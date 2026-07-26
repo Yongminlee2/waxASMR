@@ -29,6 +29,8 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        Insets.applyBoth(binding.root)
+
         store = PrefsProgressStore(this)
         progress = store.load()
 

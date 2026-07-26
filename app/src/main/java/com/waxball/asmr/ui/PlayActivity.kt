@@ -103,6 +103,10 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         binding.lockButton.setOnClickListener { toggleOrbitLock() }
         updateLockLabel()
 
+        // 3버튼 내비게이션 기기에서 아래 버튼들과 겹치지 않게 한다.
+        Insets.applyTop(binding.topBar)
+        Insets.applyBottom(binding.bottomBar)
+
         weapon = Weapon.byId(progressState.weaponId)
         buildWeaponBar()
 

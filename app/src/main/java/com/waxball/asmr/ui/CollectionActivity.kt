@@ -31,6 +31,7 @@ class CollectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityCollectionBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Insets.applyBoth(binding.root)
         store = PrefsProgressStore(this)
     }
 

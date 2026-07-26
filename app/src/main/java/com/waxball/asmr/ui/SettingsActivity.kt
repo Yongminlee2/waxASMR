@@ -19,6 +19,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Insets.applyBoth(binding.root)
 
         store = PrefsProgressStore(this)
         progress = store.load()
