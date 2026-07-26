@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">왁뿌볼 ASMR</string>
+
+    <string name="back">나가기</string>
+    <string name="orbit_unlocked">굴리기 켜짐</string>
+    <string name="orbit_locked">굴리기 잠금</string>
+    <string name="progress_percent">%d%%</string>
+    <string name="play">시작하기</string>
 </resources>
