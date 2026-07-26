@@ -23,7 +23,18 @@ class BreakModel(
      * 처음에는 열 배쯤 높게 잡아서 같은 자리를 몇 초씩 눌러야 조각 하나가 떨어졌다.
      * 실제 영상에서는 손가락이 한 번 스치면 우수수 떨어진다. 거기에 맞춰 낮췄다.
      */
-    private val thresholds = floatArrayOf(0.22f, 0.40f, 0.58f, 0.76f)
+    private var thresholds = floatArrayOf(0.22f, 0.40f, 0.58f, 0.76f)
+
+    /** 예전 값과 비교해 재보려고 열어 둔다. 앱에서는 쓰지 않는다. */
+    internal fun overrideThresholdsForTest(values: FloatArray) {
+        thresholds = values
+    }
+
+    private var cascadeEnabled = true
+
+    internal fun disableCascadeForTest() {
+        cascadeEnabled = false
+    }
 
     val state = IntArray(shards.size)
     private val damage = FloatArray(shards.size)
@@ -85,6 +96,10 @@ class BreakModel(
     fun pressArea(hit: Vec3, radiusCos: Float, force: Float, dt: Float, pan: Float) {
         if (force <= 0f || dt <= 0f) return
         val span = (1f - radiusCos).coerceAtLeast(1e-4f)
+
+        // 한 번 누를 때 조각 여럿이 같이 떨어지는데, 조각마다 분리음을 따로 내면
+        // 저역 몸통이 여섯 겹으로 쌓여 뭉쳐 울린다. 한 덩어리가 떨어지는 건 소리 하나다.
+        beginDetachBatch()
         for (s in shards.shards) {
             if (state[s.id] >= ShardState.DETACHED) continue
             val d = hit dot s.center
@@ -92,6 +107,35 @@ class BreakModel(
             val falloff = ((d - radiusCos) / span).coerceIn(0f, 1f)
             press(s.id, force * (0.3f + 0.7f * falloff), dt, pan)
         }
+        endDetachBatch(pan)
+    }
+
+    private var batchingDetach = false
+    private var batchArea = 0f
+    private var batchCount = 0
+    private var batchEnergy = 0f
+    private var batchShard = -1
+
+    private fun beginDetachBatch() {
+        batchingDetach = true
+        batchArea = 0f
+        batchCount = 0
+        batchEnergy = 0f
+        batchShard = -1
+    }
+
+    /** 모아 둔 분리를 소리 하나로 낸다. 넓이는 합치되 상한을 둬서 저역이 폭주하지 않게 한다. */
+    private fun endDetachBatch(pan: Float) {
+        batchingDetach = false
+        if (batchCount == 0) return
+        out.push(
+            EventKind.DETACH,
+            batchShard,
+            ShardState.DETACHED,
+            min(1f, batchEnergy),
+            pan,
+            min(batchArea, MAX_DETACH_SOUND_AREA),
+        )
     }
 
     /** 코어를 누른다. 껍질이 다 벗겨진 뒤에만 소리가 난다. */
@@ -136,7 +180,14 @@ class BreakModel(
                 detachedArea += shard.areaFrac
                 detachedCount++
                 quadrantDetached[quadrantOf[shardId]] += shard.areaFrac
-                out.push(EventKind.DETACH, shardId, level, energy, pan, shard.areaFrac)
+                if (batchingDetach) {
+                    batchArea += shard.areaFrac
+                    batchCount++
+                    if (energy > batchEnergy) batchEnergy = energy
+                    if (batchShard < 0) batchShard = shardId
+                } else {
+                    out.push(EventKind.DETACH, shardId, level, energy, pan, shard.areaFrac)
+                }
             } else {
                 out.push(EventKind.CRACK, shardId, level, energy, pan, shard.areaFrac)
             }
@@ -154,6 +205,7 @@ class BreakModel(
      * 이미 들뜬(LOOSE) 조각만 데려가므로 아무 데나 무너지지는 않는다.
      */
     private fun cascade(from: Int, energy: Float, pan: Float) {
+        if (!cascadeEnabled) return
         if (shards.shards[from].areaFrac < CASCADE_MIN_AREA) return
         for (n in shards.adjacency[from]) {
             if (state[n] != ShardState.LOOSE) continue
@@ -175,6 +227,12 @@ class BreakModel(
 
     /** 이 크기를 넘는 판이 떨어질 때 이웃을 데려간다. */
     private val CASCADE_MIN_AREA = 0.012f
+
+    /**
+     * 분리음 하나가 쓸 수 있는 최대 넓이.
+     * 이걸 안 걸면 연쇄로 한 번에 볼의 10%가 떨어질 때 저역이 통째로 울려 소리가 뭉갠다.
+     */
+    private val MAX_DETACH_SOUND_AREA = 0.035f
 
     /** 조각 중심의 경도로 4분면을 가른다. 사방을 까려면 볼을 굴려야 한다. */
     private fun quadrantIndex(center: Vec3): Int {
