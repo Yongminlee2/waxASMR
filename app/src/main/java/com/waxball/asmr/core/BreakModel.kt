@@ -17,8 +17,13 @@ class BreakModel(
     val profile: SoundProfile,
     private val out: EventQueue,
 ) {
-    /** 누적 손상이 이 값을 넘을 때마다 다음 단계로 간다. toughness가 곱해진다. */
-    private val thresholds = floatArrayOf(1.0f, 1.7f, 2.5f, 3.4f)
+    /**
+     * 누적 손상이 이 값을 넘을 때마다 다음 단계로 간다. toughness가 곱해진다.
+     *
+     * 처음에는 열 배쯤 높게 잡아서 같은 자리를 몇 초씩 눌러야 조각 하나가 떨어졌다.
+     * 실제 영상에서는 손가락이 한 번 스치면 우수수 떨어진다. 거기에 맞춰 낮췄다.
+     */
+    private val thresholds = floatArrayOf(0.22f, 0.40f, 0.58f, 0.76f)
 
     val state = IntArray(shards.size)
     private val damage = FloatArray(shards.size)
@@ -66,6 +71,27 @@ class BreakModel(
         damage[shardId] += force * dt
         val energy = min(1f, force / 4f)
         advance(shardId, energy, pan, spread = true)
+    }
+
+    /**
+     * 손가락이 닿은 면적만큼 한꺼번에 누른다.
+     *
+     * 조각 하나만 정확히 누르는 것은 손가락이 아니라 바늘이다. 실제로는 한 번 스치면
+     * 닿은 자리 전체가 우수수 떨어진다. 가운데가 가장 세고 가장자리로 갈수록 약해진다.
+     *
+     * @param hit 손가락이 닿은 방향(정규화)
+     * @param radiusCos 붓 반경. 이 값보다 내적이 큰 조각이 닿은 것으로 본다
+     */
+    fun pressArea(hit: Vec3, radiusCos: Float, force: Float, dt: Float, pan: Float) {
+        if (force <= 0f || dt <= 0f) return
+        val span = (1f - radiusCos).coerceAtLeast(1e-4f)
+        for (s in shards.shards) {
+            if (state[s.id] >= ShardState.DETACHED) continue
+            val d = hit dot s.center
+            if (d < radiusCos) continue
+            val falloff = ((d - radiusCos) / span).coerceIn(0f, 1f)
+            press(s.id, force * (0.3f + 0.7f * falloff), dt, pan)
+        }
     }
 
     /** 코어를 누른다. 껍질이 다 벗겨진 뒤에만 소리가 난다. */

@@ -38,6 +38,9 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
     companion object {
         const val EXTRA_BALL_ID = "ballId"
         const val EXTRA_MISSION_ID = "missionId"
+
+        /** 손가락이 닿는 넓이. 구면에서 내적이 이 값 이상인 조각이 함께 눌린다. */
+        private const val BRUSH_RADIUS_COS = 0.955f
     }
 
     private lateinit var binding: ActivityPlayBinding
@@ -248,7 +251,10 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
 
         when {
             id >= 0 -> {
-                s.model.press(id, force, step, pan)
+                // 조각 하나만 콕 누르는 건 손가락이 아니라 바늘이다. 닿은 면적만큼 한꺼번에 누른다.
+                val hit = Picker.hitDirection(origin, dir)
+                if (hit != null) s.model.pressArea(hit, BRUSH_RADIUS_COS, force, step, pan)
+                else s.model.press(id, force, step, pan)
                 if (speed > 0.5f) s.model.rub(speed / 6f, pan)
                 spawnFreshlyDetached()
                 haptics.pulse(0.3f + force * 0.15f)

@@ -6,3 +6,5 @@ local.properties
 .kotlin/
 *.apk
 app/reference/*.wav
+app/src/main/assets/grains.bin
+app/src/main/assets/grains.idx

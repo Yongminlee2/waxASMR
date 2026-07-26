@@ -186,7 +186,9 @@ class MissionsTest {
     @Test
     fun comboClearsWhenCrackingNeverStops() {
         val mission = ComboMission()
-        val m = model(200)
+        // 파괴 임계를 실제 영상에 맞춰 낮춘 뒤로는 조각이 훨씬 빨리 떨어진다.
+        // 12초를 이어가려면 깰 조각이 그만큼 많아야 한다.
+        val m = model(600)
         // 실제로 문지를 때처럼, 한 조각이 떨어지면 바로 옆 조각으로 옮겨 계속 깬다.
         var cursor = 0
         repeat(900) {

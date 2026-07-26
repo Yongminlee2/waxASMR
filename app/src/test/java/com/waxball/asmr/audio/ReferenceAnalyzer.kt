@@ -86,6 +86,38 @@ object ReferenceAnalyzer {
         }
     }
 
+    /** 파열이 시작하는 샘플 위치들. 파편을 잘라내는 도구가 같은 검출기를 쓴다. */
+    fun onsetSamples(wav: LoadedWav): List<Int> {
+        val x = normalize(wav.samples)
+        if (x.size < WIN * 4) return emptyList()
+        val frames = (x.size - WIN) / HOP
+        val flux = spectralFlux(x, frames)
+        return pickOnsets(flux).map { it * HOP }
+    }
+
+    private fun spectralFlux(x: FloatArray, frames: Int): FloatArray {
+        val window = FloatArray(WIN) { 0.5f - 0.5f * cos(2.0 * PI * it / (WIN - 1)).toFloat() }
+        val re = FloatArray(WIN)
+        val im = FloatArray(WIN)
+        val bins = WIN / 2
+        val prev = FloatArray(bins)
+        val flux = FloatArray(frames)
+
+        for (f in 0 until frames) {
+            val off = f * HOP
+            for (i in 0 until WIN) { re[i] = x[off + i] * window[i]; im[i] = 0f }
+            Spectrum.fft(re, im)
+            var sum = 0f
+            for (k in 0 until bins) {
+                val m = sqrt(re[k] * re[k] + im[k] * im[k])
+                if (f > 0) { val d = m - prev[k]; if (d > 0) sum += d }
+                prev[k] = m
+            }
+            flux[f] = sum
+        }
+        return flux
+    }
+
     fun analyze(wav: LoadedWav): Report {
         val x = normalize(wav.samples)
         val sr = wav.sampleRate

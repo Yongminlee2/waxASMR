@@ -20,9 +20,16 @@ import kotlin.math.sqrt
 class Synth(
     private val sampleRate: Int,
     capacity: Int = 192,
+    /** 실제 파열음 파편. 없으면 노이즈 합성으로 되돌아간다. */
+    bank: GrainBank? = null,
 ) : EventQueue.Sink {
 
-    private val pool = GrainPool(capacity, sampleRate)
+    private val pool: GrainSink =
+        if (bank != null && bank.size > 0) SampleGrainPool(bank, 96, sampleRate)
+        else GrainPool(capacity, sampleRate)
+
+    /** 실제 파편을 쓰고 있는지. 로그와 테스트용. */
+    val usingRecordedGrains: Boolean = pool is SampleGrainPool
     private var profile = SoundProfile.hardWax()
     private var rngState = 0x2545_F491
 

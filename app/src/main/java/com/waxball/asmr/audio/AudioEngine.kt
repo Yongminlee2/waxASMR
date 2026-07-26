@@ -53,8 +53,13 @@ class AudioEngine(context: Context) {
             ?: FALLBACK_SAMPLE_RATE
         framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)?.toIntOrNull()
             ?: FALLBACK_FRAMES
-        synth = Synth(sampleRate)
-        Log.i(TAG, "오디오 sr=$sampleRate framesPerBuffer=$framesPerBuffer")
+        val bank = GrainBank.load(context.assets)
+        synth = Synth(sampleRate, bank = bank)
+        Log.i(
+            TAG,
+            "오디오 sr=$sampleRate framesPerBuffer=$framesPerBuffer " +
+                if (synth.usingRecordedGrains) "파편재생" else "노이즈합성",
+        )
     }
 
     fun setProfile(p: SoundProfile) = synth.setProfile(p)

@@ -14,7 +14,7 @@ import kotlin.math.sin
  * 오디오 스레드가 매 버퍼마다 도는 코드이므로 객체를 하나도 만들지 않는다.
  * 그레인 상태는 전부 병렬 원시 배열에 들어 있다.
  */
-class GrainPool(val capacity: Int, private val sampleRate: Int) {
+class GrainPool(override val capacity: Int, private val sampleRate: Int) : GrainSink {
 
     private val active = BooleanArray(capacity)
     private val delay = IntArray(capacity)      // 시작까지 남은 프레임
@@ -45,14 +45,14 @@ class GrainPool(val capacity: Int, private val sampleRate: Int) {
     private var noiseState = 0x1234_5678
     private var cursor = 0
 
-    var activeCount = 0
+    override var activeCount = 0
         private set
 
     /**
      * 그레인 하나를 예약한다. 빈 슬롯이 없으면 가장 조용한 슬롯을 뺏는다.
      * 소리가 끊기는 것보다 약한 그레인 하나를 잃는 편이 낫다.
      */
-    fun spawn(
+    override fun spawn(
         delayFrames: Int,
         freq: Float,
         q: Float,
@@ -60,7 +60,7 @@ class GrainPool(val capacity: Int, private val sampleRate: Int) {
         amplitude: Float,
         pan: Float,
         resonance: Float,
-        attackMs: Float = 0.4f,
+        attackMs: Float,
     ) {
         val slot = allocate(amplitude)
         if (slot < 0) return
@@ -103,7 +103,7 @@ class GrainPool(val capacity: Int, private val sampleRate: Int) {
     }
 
     /** out에 스테레오 인터리브로 더한다. out은 호출자가 미리 0으로 채운다. */
-    fun render(out: FloatArray, frames: Int) {
+    override fun render(out: FloatArray, frames: Int) {
         for (g in 0 until capacity) {
             if (!active[g]) continue
 
@@ -165,7 +165,7 @@ class GrainPool(val capacity: Int, private val sampleRate: Int) {
         }
     }
 
-    fun reset() {
+    override fun reset() {
         java.util.Arrays.fill(active, false)
         activeCount = 0
     }

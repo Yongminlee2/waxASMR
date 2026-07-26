@@ -25,6 +25,20 @@ object Picker {
      * @param dir 볼 좌표계에서의 광선 방향(정규화되어 있지 않아도 된다)
      * @param maxRadius 모양 왜곡까지 감안한 가장 바깥 반지름
      */
+    /** 광선이 볼에 닿은 지점의 방향. 빗나갔으면 null. 붓 반경 계산에 쓴다. */
+    fun hitDirection(origin: Vec3, dir: Vec3, maxRadius: Float = 1.15f): Vec3? {
+        val d = dir.normalized()
+        val b = origin dot d
+        val c = origin.lengthSq() - maxRadius * maxRadius
+        val disc = b * b - c
+        if (disc < 0f) return null
+        val sq = sqrt(disc)
+        var t = -b - sq
+        if (t < 0f) t = -b + sq
+        if (t < 0f) return null
+        return (origin + d * t).normalized()
+    }
+
     fun pick(
         origin: Vec3,
         dir: Vec3,
