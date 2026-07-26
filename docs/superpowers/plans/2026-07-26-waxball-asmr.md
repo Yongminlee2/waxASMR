@@ -1,0 +1,918 @@
+# 왁뿌볼 ASMR Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 3D 왁스볼을 굴리고 문질러 까면서 실시간 합성된 파쇄음을 듣는 안드로이드 ASMR 앱.
+
+**Architecture:** 안드로이드 API를 쓰지 않는 순수 Kotlin `core`/`audio` 계층(파괴 상태머신 + 그래뉼러 합성기)을 JVM 유닛테스트로 검증하고, 그 위에 GLSurfaceView 렌더러와 AudioTrack 출력을 배선한다. 파괴 로직과 소리는 `BreakEvent` 하나로만 연결되어 서로를 모른다.
+
+**Tech Stack:** Kotlin (AGP 9.2.1 내장), OpenGL ES 3.0, AudioTrack(PCM_FLOAT 저지연), Views+ViewBinding, JUnit4.
+
+## Global Constraints
+
+- 위치 `C:\workAndroid\WaxBall`, `rootProject.name = "WaxBall"`, `applicationId = "com.waxball.asmr"`, 앱 이름 "왁뿌볼 ASMR"
+- compileSdk 36 / targetSdk 36 / minSdk 26, JavaVersion.VERSION_11, viewBinding = true
+- `gradle.properties`에 `org.gradle.java.home=C:/Program Files/Android/Android Studio/jbr`
+- 빌드: `gradlew.bat :app:assembleDebug` / 테스트: `gradlew.bat :app:testDebugUnitTest`
+- **NDK·CMake·게임엔진·물리엔진·오디오 파일 번들 금지.** 외부 의존성은 androidx/material/junit만.
+- **오디오 스레드에서 객체 할당 금지.** 모든 상태는 사전 할당된 원시 배열. `core`/`audio` 패키지는 `android.*` import 금지(테스트 가능성 유지).
+- 커밋 메시지·README·주석에 AI/Claude 관련 표기를 넣지 않는다. 커밋 저자는 Yongminlee2 단독.
+- 세로 모드 고정, 광고·결제·네트워크 없음.
+
+---
+
+### Task 1: 프로젝트 스캐폴딩과 테스트 인프라
+
+**Files:**
+- Create: `settings.gradle.kts`, `build.gradle.kts`, `gradle.properties`, `gradle/libs.versions.toml`, `gradle/wrapper/gradle-wrapper.properties`, `gradlew.bat`, `gradlew`, `gradle/wrapper/gradle-wrapper.jar`, `local.properties`, `.gitignore`
+- Create: `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/values/strings.xml`, `app/src/main/res/values/themes.xml`
+- Create: `app/src/main/java/com/waxball/asmr/ui/HomeActivity.kt`, `app/src/main/res/layout/activity_home.xml`
+- Test: `app/src/test/java/com/waxball/asmr/SmokeTest.kt`
+
+**Interfaces:**
+- Consumes: 없음
+- Produces: 빌드 가능한 앱 모듈, 동작하는 JVM 테스트 태스크
+
+- [ ] **Step 1: WordChain에서 gradle 래퍼 일습 복사**
+
+`gradlew.bat`, `gradlew`, `gradle/wrapper/*` 를 `C:\workAndroid\WordChain`에서 그대로 복사(gradle 9.4.1).
+
+- [ ] **Step 2: 빌드 스크립트 작성**
+
+`gradle/libs.versions.toml`은 WordChain과 동일(agp 9.2.1, coreKtx 1.10.1, appcompat 1.6.1, material 1.10.0, activityKtx 1.8.0, constraintlayout 2.1.4, junit 4.13.2).
+`app/build.gradle.kts`는 WordChain과 동일하되 namespace/applicationId를 `com.waxball.asmr`로.
+
+- [ ] **Step 3: 실패하는 스모크 테스트 작성**
+
+```kotlin
+package com.waxball.asmr
+
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+class SmokeTest {
+    @Test fun jvmTestsRun() = assertEquals(4, 2 + 2)
+}
+```
+
+- [ ] **Step 4: 테스트 실행**
+
+Run: `gradlew.bat :app:testDebugUnitTest`
+Expected: PASS (여기서 실패하면 툴체인 문제이므로 진행 불가)
+
+- [ ] **Step 5: 빈 HomeActivity로 앱 빌드 확인**
+
+`HomeActivity`는 `AppCompatActivity`를 상속해 `activity_home.xml`(빈 ConstraintLayout)만 띄운다.
+매니페스트에 `android:screenOrientation="portrait"`, 런처 인텐트 필터.
+
+Run: `gradlew.bat :app:assembleDebug`
+Expected: BUILD SUCCESSFUL
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add -A && git commit -m "프로젝트 스캐폴딩: gradle 구성, 빈 홈 화면, JVM 테스트 인프라"
+```
+
+---
+
+### Task 2: 벡터·행렬·구 메시
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/core/Vec3.kt`, `core/Mat4.kt`, `core/Mesh.kt`, `core/Icosphere.kt`
+- Test: `app/src/test/java/com/waxball/asmr/core/IcosphereTest.kt`, `core/Mat4Test.kt`
+
+**Interfaces:**
+- Produces:
+  - `data class Vec3(val x: Float, val y: Float, val z: Float)` — `plus/minus/times(Float)/dot/cross/normalized()/length()`
+  - `class Mat4` — `identity()`, `perspective(fovyDeg, aspect, near, far)`, `lookAt(eye, center, up)`, `multiply(a, b, out)`, `fromQuaternion(x,y,z,w)`, `m: FloatArray(16)` 열 우선
+  - `class Mesh(val positions: FloatArray, val normals: FloatArray, val indices: IntArray)` — `val vertexCount: Int`, `val triangleCount: Int`
+  - `object Icosphere { fun build(subdivisions: Int): Mesh }` — 반지름 1 정규화, 정점 중복 제거(에지 중점 캐시)
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+```kotlin
+class IcosphereTest {
+    @Test fun subdivisionZeroIsIcosahedron() {
+        val m = Icosphere.build(0)
+        assertEquals(12, m.vertexCount)
+        assertEquals(20, m.triangleCount)
+    }
+
+    @Test fun triangleCountQuadruplesPerSubdivision() {
+        assertEquals(80, Icosphere.build(1).triangleCount)
+        assertEquals(5120, Icosphere.build(4).triangleCount)
+    }
+
+    @Test fun allVerticesOnUnitSphere() {
+        val m = Icosphere.build(3)
+        for (i in 0 until m.vertexCount) {
+            val len = Vec3(m.positions[i*3], m.positions[i*3+1], m.positions[i*3+2]).length()
+            assertEquals(1.0f, len, 1e-4f)
+        }
+    }
+
+    @Test fun noDuplicateVertices() {
+        val m = Icosphere.build(2)
+        val seen = HashSet<String>()
+        for (i in 0 until m.vertexCount) {
+            val k = "%.5f,%.5f,%.5f".format(m.positions[i*3], m.positions[i*3+1], m.positions[i*3+2])
+            assertTrue("중복 정점 $k", seen.add(k))
+        }
+    }
+}
+```
+
+- [ ] **Step 2: 실패 확인**
+
+Run: `gradlew.bat :app:testDebugUnitTest --tests "*IcosphereTest*"`
+Expected: 컴파일 실패 (Icosphere 없음)
+
+- [ ] **Step 3: 구현**
+
+정이십면체 12정점(황금비 t=(1+√5)/2로 만든 3개의 직교 사각형) → `subdivisions`회 각 삼각형을 4분할.
+에지 중점은 `HashMap<Long, Int>`(정점 인덱스 쌍을 `min*N+max`로 인코딩)로 캐시해 중복 생성 방지.
+각 정점은 정규화하고, 구이므로 법선 = 정점 위치.
+
+- [ ] **Step 4: 통과 확인 + Mat4 테스트**
+
+`Mat4Test`: `identity` 곱셈 항등, `perspective` 대각 성분 부호, `lookAt`이 카메라를 원점으로 보내는지(변환 후 center가 -z축 위에 오는지).
+
+Run: `gradlew.bat :app:testDebugUnitTest`
+Expected: PASS
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add -A && git commit -m "구 메시 생성과 벡터·행렬 유틸"
+```
+
+---
+
+### Task 3: 껍질 조각 분할 (구면 보로노이)
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/core/Shard.kt`, `core/ShardSplitter.kt`
+- Test: `app/src/test/java/com/waxball/asmr/core/ShardSplitterTest.kt`
+
+**Interfaces:**
+- Consumes: `Icosphere.build`, `Vec3`, `Mesh`
+- Produces:
+  - `class Shard(val id: Int, val center: Vec3, val areaFrac: Float, val triangles: IntArray)`
+  - `class ShardSet(val shards: Array<Shard>, val adjacency: Array<IntArray>, val baseMesh: Mesh)`
+  - `object ShardSplitter { fun split(base: Mesh, seedCount: Int, rng: Random): ShardSet }`
+
+**분할 방식(중요):** 구면을 직접 자르지 않는다. 세분화된 구 메시(subdiv 4 = 5120삼각형)의 **각 삼각형을 가장 가까운 시드에 배정**해 군집을 만든다. 격자가 아니라 불규칙 유기적 조각이 나오고, 축퇴 폴리곤 같은 기하 예외가 원천적으로 없다. 시드는 구면 균등 난수(z=U(-1,1), θ=U(0,2π))로 뽑는다.
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+```kotlin
+class ShardSplitterTest {
+    private val base = Icosphere.build(4)
+
+    @Test fun everyTriangleBelongsToExactlyOneShard() {
+        val s = ShardSplitter.split(base, 120, Random(1))
+        val total = s.shards.sumOf { it.triangles.size }
+        assertEquals(base.triangleCount, total)
+        val seen = BooleanArray(base.triangleCount)
+        s.shards.forEach { sh -> sh.triangles.forEach { t ->
+            assertFalse("삼각형 $t 중복 배정", seen[t]); seen[t] = true } }
+    }
+
+    @Test fun noEmptyShards() {
+        val s = ShardSplitter.split(base, 300, Random(7))
+        s.shards.forEach { assertTrue("빈 조각 ${it.id}", it.triangles.isNotEmpty()) }
+    }
+
+    @Test fun areaFractionsSumToOne() {
+        val s = ShardSplitter.split(base, 200, Random(3))
+        assertEquals(1.0f, s.shards.map { it.areaFrac }.sum(), 1e-3f)
+    }
+
+    @Test fun adjacencyIsSymmetricAndNonSelf() {
+        val s = ShardSplitter.split(base, 150, Random(5))
+        s.adjacency.forEachIndexed { i, ns ->
+            ns.forEach { j ->
+                assertNotEquals(i, j)
+                assertTrue("$j 는 $i 를 이웃으로 갖지 않음", s.adjacency[j].contains(i))
+            }
+        }
+    }
+
+    @Test fun everyShardHasAtLeastOneNeighbour() {
+        val s = ShardSplitter.split(base, 100, Random(11))
+        s.adjacency.forEach { assertTrue(it.isNotEmpty()) }
+    }
+
+    @Test fun sameSeedGivesSameResult() {
+        val a = ShardSplitter.split(base, 80, Random(42))
+        val b = ShardSplitter.split(base, 80, Random(42))
+        assertArrayEquals(a.shards.map { it.triangles.size }.toIntArray(),
+                          b.shards.map { it.triangles.size }.toIntArray())
+    }
+}
+```
+
+- [ ] **Step 2: 실패 확인** — Run: `gradlew.bat :app:testDebugUnitTest --tests "*ShardSplitterTest*"` / Expected: 컴파일 실패
+
+- [ ] **Step 3: 구현**
+
+1. 시드 `seedCount`개를 구면 균등 난수로 생성
+2. 각 삼각형의 무게중심을 정규화 → 모든 시드와 내적 비교해 최댓값 시드에 배정 (O(T·S), 5120×300 = 154만, 수 ms)
+3. 빈 시드가 생기면 가장 큰 군집에서 가장 먼 삼각형을 떼어 재배정 — 빈 조각 0 보장
+4. `areaFrac` = 군집 삼각형 면적 합 ÷ 전체 면적
+5. 인접: 에지(정점 인덱스 쌍 정렬) → 삼각형 목록 맵을 만들고, 서로 다른 조각에 속한 두 삼각형이 에지를 공유하면 인접. 대칭이 되도록 양방향 등록, 중복 제거
+
+- [ ] **Step 4: 통과 확인** — Run: `gradlew.bat :app:testDebugUnitTest` / Expected: PASS
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add -A && git commit -m "구 표면을 불규칙 조각으로 분할하는 보로노이 분할기"
+```
+
+---
+
+### Task 4: 파괴 상태머신과 이벤트
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/core/BreakEvent.kt`, `core/EventQueue.kt`, `core/BreakModel.kt`
+- Test: `app/src/test/java/com/waxball/asmr/core/BreakModelTest.kt`, `core/EventQueueTest.kt`
+
+**Interfaces:**
+- Consumes: `ShardSet`, `Vec3`
+- Produces:
+  - `object EventKind { const val CRACK=0; const val DETACH=1; const val LAND=2; const val RUB=3; const val CORE=4 }`
+  - `class EventQueue(capacity: Int)` — **할당 없는 SPSC 링버퍼.** `push(kind: Int, shardId: Int, level: Int, energy: Float, pan: Float, areaFrac: Float): Boolean`, `poll(sink: Sink): Boolean`, `interface Sink { fun on(kind: Int, shardId: Int, level: Int, energy: Float, pan: Float, areaFrac: Float) }`. 내부는 `IntArray`/`FloatArray` + `AtomicInteger` head/tail. 가득 차면 `push`가 false를 반환하고 버린다(오디오가 멈추는 것보다 이벤트 하나 버리는 게 낫다).
+  - `class BreakModel(val shards: ShardSet, val profile: SoundProfile, val out: EventQueue)`
+    - `val state: IntArray` (0=INTACT,1=HAIRLINE,2=CRACKED,3=LOOSE,4=DETACHED)
+    - `fun press(shardId: Int, force: Float, dt: Float, pan: Float)`
+    - `fun update(dt: Float)`
+    - `val shellProgress: Float` (분리된 조각 면적 비율 0~1)
+    - `val detachedCount: Int`, `val coreExposed: Boolean` (shellProgress ≥ 0.98)
+    - `fun quadrantProgress(): FloatArray` (4분면별 분리 비율, 미션 4용)
+
+**규칙:** 압력이 임계(단계별 `1f, 1.6f, 2.4f, 3.2f` × 재질 `toughness`)를 넘을 때마다 한 단계 전이하고 `CRACK`(마지막은 `DETACH`) 이벤트를 낸다. 전이 시 인접 조각에 `profile.propagation`(0.2~0.6) 비율의 압력을 전달한다. 전파는 1홉만(연쇄 폭주 방지). 상태는 되돌아가지 않는다.
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+```kotlin
+class BreakModelTest {
+    private fun model(seed: Long = 1, seeds: Int = 60) =
+        BreakModel(ShardSplitter.split(Icosphere.build(3), seeds, Random(seed)),
+                   SoundProfile.hardWax(), EventQueue(1024))
+
+    @Test fun statesAdvanceInOrderAndNeverGoBack() {
+        val m = model(); val prev = m.state.copyOf()
+        repeat(200) { m.press(0, 5f, 0.016f, 0f); m.update(0.016f)
+            assertTrue(m.state[0] >= prev[0]); prev[0] = m.state[0] }
+        assertEquals(4, m.state[0])
+    }
+
+    @Test fun lightTouchDoesNotDetachImmediately() {
+        val m = model(); m.press(0, 0.05f, 0.016f, 0f); m.update(0.016f)
+        assertTrue(m.state[0] < 4)
+    }
+
+    @Test fun crackPropagatesToNeighbours() {
+        val m = model()
+        while (m.state[0] < 2) { m.press(0, 3f, 0.016f, 0f); m.update(0.016f) }
+        assertTrue("이웃으로 금이 번지지 않음", m.shards.adjacency[0].any { m.state[it] > 0 })
+    }
+
+    @Test fun eventsAreEmittedOnEachTransition() {
+        val q = EventQueue(1024)
+        val m = BreakModel(ShardSplitter.split(Icosphere.build(3), 40, Random(2)), SoundProfile.hardWax(), q)
+        var detaches = 0
+        val sink = object : EventQueue.Sink {
+            override fun on(kind: Int, id: Int, lv: Int, e: Float, p: Float, a: Float) {
+                if (kind == EventKind.DETACH) detaches++ } }
+        repeat(300) { m.press(0, 5f, 0.016f, 0f); m.update(0.016f) }
+        while (q.poll(sink)) {}
+        assertEquals("조각 0은 정확히 한 번만 분리돼야 함", 1, detaches)
+    }
+
+    @Test fun shellProgressReachesOneWhenAllDetached() {
+        val m = model(seeds = 30)
+        m.shards.shards.indices.forEach { i ->
+            repeat(300) { m.press(i, 5f, 0.016f, 0f); m.update(0.016f) } }
+        assertEquals(1.0f, m.shellProgress, 1e-3f)
+        assertTrue(m.coreExposed)
+    }
+
+    @Test fun randomHammeringKeepsInvariants() {
+        val m = model(seeds = 80); val rng = Random(99)
+        repeat(20000) {
+            m.press(rng.nextInt(m.shards.shards.size), rng.nextFloat()*4f, 0.008f, rng.nextFloat()*2-1)
+            m.update(0.008f) }
+        m.state.forEach { assertTrue(it in 0..4) }
+        assertTrue(m.shellProgress in 0f..1.0001f)
+    }
+}
+```
+
+- [ ] **Step 2: 실패 확인** — Expected: 컴파일 실패
+
+- [ ] **Step 3: EventQueue 먼저 구현하고 테스트**
+
+`EventQueueTest`: 용량 초과 시 push가 false, FIFO 순서 보존, poll이 빈 큐에서 false, 한 바퀴 감긴 뒤에도 정상.
+
+- [ ] **Step 4: BreakModel 구현 후 전체 통과 확인**
+
+Run: `gradlew.bat :app:testDebugUnitTest`
+Expected: PASS
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add -A && git commit -m "조각 파괴 상태머신과 균열 전파, 할당 없는 이벤트 큐"
+```
+
+---
+
+### Task 5: 그래뉼러 크랙 합성기
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/audio/Biquad.kt`, `audio/GrainPool.kt`, `audio/SoundProfile.kt`, `audio/Synth.kt`
+- Test: `app/src/test/java/com/waxball/asmr/audio/BiquadTest.kt`, `audio/SynthTest.kt`
+
+**Interfaces:**
+- Consumes: `EventQueue`, `EventKind`
+- Produces:
+  - `class Biquad` — `setBandpass(sr: Int, freq: Float, q: Float)`, `process(x: Float): Float`, `reset()`
+  - `data class SoundProfile(baseFreq, freqSpread, q, decayMsMin, decayMsMax, resonance, density, toughness, propagation, brightness)` + 재질별 팩토리 `hardWax() softWax() glitter() crunchBeads() sugarGlass()`
+  - `class GrainPool(capacity: Int, sampleRate: Int)` — `spawn(delayFrames: Int, freq: Float, q: Float, decayMs: Float, amp: Float, pan: Float, resonance: Float)`, `render(out: FloatArray, frames: Int)` (스테레오 인터리브 가산), `val active: Int`
+  - `class Synth(sampleRate: Int, capacity: Int = 256)` — `EventQueue.Sink` 구현, `fun setProfile(p: SoundProfile)`, `fun render(out: FloatArray, frames: Int)`, `fun renderOffline(seconds: Float): FloatArray` (테스트용)
+
+**합성 모델:** 그레인 1개 = 대역통과 노이즈 버스트(어택 0.2~1ms, 지수 감쇠) + `resonance` 비율로 섞이는 감쇠 사인. 이벤트 1개 → 그레인 N개를 **지수분포 간격**으로 예약(균등 간격이면 기계음이 된다). N은 `energy × profile.density`에 비례.
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+```kotlin
+class SynthTest {
+    private val SR = 48000
+    private fun rms(b: FloatArray) = sqrt(b.sumOf { (it*it).toDouble() } / b.size).toFloat()
+
+    @Test fun silenceWhenNoEvents() {
+        val s = Synth(SR); val buf = s.renderOffline(0.5f)
+        assertEquals(0f, rms(buf), 1e-7f)
+    }
+
+    @Test fun neverClips() {
+        val s = Synth(SR); s.setProfile(SoundProfile.sugarGlass())
+        repeat(60) { s.on(EventKind.CRACK, it, 2, 1f, 0f, 0.05f) }
+        val buf = s.renderOffline(1f)
+        assertTrue("클리핑 발생: ${buf.max()}", buf.all { abs(it) <= 1.0f })
+    }
+
+    @Test fun louderEventProducesMoreEnergy() {
+        fun energyOf(e: Float): Float {
+            val s = Synth(SR); s.setProfile(SoundProfile.hardWax())
+            s.on(EventKind.CRACK, 0, 1, e, 0f, 0.02f); return rms(s.renderOffline(0.5f)) }
+        assertTrue(energyOf(1.0f) > energyOf(0.2f) * 2f)
+    }
+
+    @Test fun panPlacesEnergyOnCorrectSide() {
+        val s = Synth(SR); s.on(EventKind.CRACK, 0, 1, 1f, -1f, 0.02f)
+        val b = s.renderOffline(0.4f)
+        var l = 0.0; var r = 0.0
+        for (i in b.indices step 2) { l += abs(b[i]); r += abs(b[i+1]) }
+        assertTrue("왼쪽 팬인데 오른쪽이 더 큼", l > r * 3)
+    }
+
+    @Test fun materialsDifferInSpectralCentroid() {
+        fun centroid(p: SoundProfile): Float {
+            val s = Synth(SR); s.setProfile(p)
+            repeat(20) { s.on(EventKind.CRACK, it, 1, 1f, 0f, 0.02f) }
+            return spectralCentroid(s.renderOffline(1f), SR) }
+        val soft = centroid(SoundProfile.softWax())
+        val glass = centroid(SoundProfile.sugarGlass())
+        assertTrue("설탕유리가 소프트왁스보다 밝아야 함 ($glass vs $soft)", glass > soft * 1.3f)
+    }
+
+    @Test fun bigShardIsLowerThanSmallShard() {
+        fun centroidOfArea(a: Float): Float {
+            val s = Synth(SR); s.setProfile(SoundProfile.hardWax())
+            s.on(EventKind.DETACH, 0, 4, 1f, 0f, a); return spectralCentroid(s.renderOffline(1f), SR) }
+        assertTrue(centroidOfArea(0.15f) < centroidOfArea(0.005f))
+    }
+
+    @Test fun voiceStealingKeepsPoolBounded() {
+        val s = Synth(SR, capacity = 64)
+        repeat(500) { s.on(EventKind.CRACK, it, 2, 1f, 0f, 0.02f) }
+        val b = s.renderOffline(0.2f)
+        assertTrue(b.all { abs(it) <= 1.0f })
+    }
+
+    @Test fun noDcOffset() {
+        val s = Synth(SR)
+        repeat(30) { s.on(EventKind.CRACK, it, 1, 1f, 0f, 0.02f) }
+        val b = s.renderOffline(1f)
+        assertEquals(0f, b.average().toFloat(), 1e-3f)
+    }
+}
+```
+
+`spectralCentroid`는 테스트 헬퍼(`app/src/test/.../audio/Spectrum.kt`)로 단순 DFT(1024점, 해닝창) 구현.
+
+- [ ] **Step 2: 실패 확인** — Expected: 컴파일 실패
+
+- [ ] **Step 3: Biquad → GrainPool → Synth 순서로 구현**
+
+- `Biquad`: RBJ 쿡북 밴드패스 계수
+- `GrainPool`: 구조체 배열이 아니라 **병렬 원시 배열**(freq/q/decay/amp/pan/res/age/delay). `spawn`은 비활성 슬롯을 찾고, 없으면 진폭이 가장 작고 오래된 슬롯을 뺏는다. `render`에서 슬롯별로 노이즈 1샘플 → biquad → 엔벨로프 → L/R 가산. **루프 안에서 어떤 객체도 만들지 않는다.**
+- 노이즈: xorshift32 정수 난수(`java.util.Random` 금지 — 동기화·박싱 없음)
+- 출력단에 소프트 리미터 `tanh` 근사로 클리핑 방지
+- `Synth.on(...)`이 이벤트 종류에 따라 그레인 묶음을 예약:
+  - `CRACK`: N = (8 + 190×energy×density) × level 가중, 지수분포 간격(평균 1.5~6ms)
+  - `DETACH`: 강한 그레인 1개 + resonance 높임, `decayMs`를 areaFrac에 비례해 늘리고 freq를 반비례로 낮춤
+  - `LAND`: 그레인 2~5개, 고역, 진폭 작게
+  - `RUB`: energy를 속도로 해석해 프레임 내내 지속 방출
+  - `CORE`: 크랙 없이 200~500Hz 대역 저역 마찰 노이즈
+
+- [ ] **Step 4: 통과 확인** — Run: `gradlew.bat :app:testDebugUnitTest` / Expected: PASS
+
+- [ ] **Step 5: 귀 검수용 WAV 덤프 테스트 추가**
+
+`SynthAuditionTest`(`@Ignore` 아님, 항상 실행): 재질 5종 각각 3초를 렌더해 `build/audition/<재질>.wav`로 쓴다. 44byte WAV 헤더 + 16bit PCM 변환. 실패 조건은 없고, 사람이 들어보기 위한 산출물이다.
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add -A && git commit -m "그래뉼러 크랙 합성기: 그레인 풀, 밴드패스, 재질별 음색 프로파일"
+```
+
+---
+
+### Task 6: 오디오 출력과 진동
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/audio/AudioEngine.kt`, `audio/Haptics.kt`
+- Modify: `app/src/main/AndroidManifest.xml` (VIBRATE 권한)
+
+**Interfaces:**
+- Consumes: `Synth`, `EventQueue`
+- Produces:
+  - `class AudioEngine(ctx: Context)` — `fun start()`, `fun stop()`, `fun setProfile(p: SoundProfile)`, `val queue: EventQueue`, `val measuredLatencyMs: Float`
+  - `class Haptics(ctx: Context)` — `fun pulse(intensity: Float)` (초당 40회 제한), `fun setEnabled(b: Boolean)`
+
+- [ ] **Step 1: AudioEngine 구현**
+
+- `AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE` / `PROPERTY_OUTPUT_FRAMES_PER_BUFFER` 를 읽어 네이티브 값 사용(없으면 48000/192)
+- `AudioTrack.Builder`: `AudioAttributes(USAGE_GAME, CONTENT_TYPE_SONIFICATION)`, `ENCODING_PCM_FLOAT`, `CHANNEL_OUT_STEREO`, `MODE_STREAM`, `setPerformanceMode(PERFORMANCE_MODE_LOW_LATENCY)`, 버퍼 = 네이티브프레임 × 2 × 2채널 × 4byte
+- 전용 스레드에서 루프: `Process.setThreadPriority(THREAD_PRIORITY_URGENT_AUDIO)` → 큐 비우기(`synth`가 Sink) → `synth.render(buf, frames)` → `track.write(buf, 0, n, WRITE_BLOCKING)`
+- 버퍼는 생성자에서 한 번만 할당. 루프 안 할당 0
+- `write`가 음수를 반환하거나 언더런(`track.underrunCount` 증가)이 감지되면 1회에 한해 버퍼를 1.5배로 재생성하고 `Log.w`
+- 초기화 실패 시 저지연 모드 없이 재시도, 그래도 실패하면 `started=false`로 무음 동작(앱은 죽지 않는다)
+
+- [ ] **Step 2: Haptics 구현**
+
+`VibratorManager`(API 31+) / `Vibrator`(그 이하) 분기. `VibrationEffect.createOneShot(8ms, amplitude)`.
+마지막 진동 시각을 기록해 25ms 이내 재요청은 무시.
+
+- [ ] **Step 3: 지연 측정 로그**
+
+`AudioEngine`에 `markTouch(nanoTime)`를 두고, 그 뒤 첫 그레인이 실제 출력 버퍼에 실린 시점과의 차이를 `measuredLatencyMs`로 갱신, `Log.i("WaxBall", "latency=..")`.
+
+- [ ] **Step 4: 빌드 확인** — Run: `gradlew.bat :app:assembleDebug` / Expected: BUILD SUCCESSFUL
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add -A && git commit -m "AudioTrack 저지연 출력 스레드와 햅틱"
+```
+
+---
+
+### Task 7: 볼 렌더러
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/gl/Shaders.kt`, `gl/GlUtil.kt`, `gl/BallGeometry.kt`, `gl/BallRenderer.kt`
+- Test: `app/src/test/java/com/waxball/asmr/gl/BallGeometryTest.kt`
+
+**Interfaces:**
+- Consumes: `ShardSet`, `BreakModel`, `Mat4`
+- Produces:
+  - `object BallGeometry { fun build(set: ShardSet, thickness: Float, shapeWarp: (Vec3) -> Float): GeometryBuffers }`
+  - `class GeometryBuffers(val positions: FloatArray, val normals: FloatArray, val shardIds: FloatArray, val indices: IntArray, val shardCenters: FloatArray)`
+  - `class BallRenderer` — `fun onSurfaceCreated/onSurfaceChanged/onDrawFrame`, `fun setBall(spec: BallSpec, set: ShardSet, model: BreakModel)`, `fun rotate(dx: Float, dy: Float)`, `fun zoom(f: Float)`, `fun screenToRay(x: Float, y: Float, outOrigin: Vec3Ref, outDir: Vec3Ref)`
+
+**조각 변환 전달 방식:** 정점마다 `aShardId`를 두고, 조각별 변환(쿼터니언 + 오프셋 + 상태)을 **RGBA32F 텍스처(N×2)** 에 담아 정점 셰이더에서 `texelFetch`로 읽는다. 유니폼 배열 한계(ES 3.0 최소 224 vec4)를 넘지 않게 하기 위해서다. 매 프레임 텍스처를 `glTexSubImage2D`로 갱신한다.
+
+**껍질 두께:** 각 조각의 바깥면(반지름 R)과 안쪽면(R−t)을 만들고 군집 경계 에지에 측면을 세워 닫는다. 조각 안쪽이 보이므로 두께가 눈에 보인다.
+
+**금 표현:** 셰이더에서 `crackLevel`에 따라 조각을 중심 방향으로 0~3% 수축시킨다. 조각 사이에 틈이 벌어져 금이 간 것처럼 보인다. 별도 텍스처 없이 해결된다.
+
+- [ ] **Step 1: 지오메트리 테스트 작성**
+
+```kotlin
+class BallGeometryTest {
+    @Test fun eachVertexCarriesItsShardId() {
+        val set = ShardSplitter.split(Icosphere.build(3), 50, Random(1))
+        val g = BallGeometry.build(set, 0.12f) { 1f }
+        assertEquals(g.positions.size / 3, g.shardIds.size)
+        assertTrue(g.shardIds.all { it >= 0f && it < 50f })
+    }
+
+    @Test fun innerSurfaceIsCloserToCenterThanOuter() {
+        val set = ShardSplitter.split(Icosphere.build(2), 30, Random(2))
+        val g = BallGeometry.build(set, 0.2f) { 1f }
+        val radii = (0 until g.positions.size/3).map {
+            Vec3(g.positions[it*3], g.positions[it*3+1], g.positions[it*3+2]).length() }
+        assertEquals(1.0f, radii.max(), 1e-3f)
+        assertEquals(0.8f, radii.min(), 1e-3f)
+    }
+
+    @Test fun indicesAreInRange() {
+        val set = ShardSplitter.split(Icosphere.build(3), 40, Random(3))
+        val g = BallGeometry.build(set, 0.15f) { 1f }
+        val vc = g.positions.size / 3
+        assertTrue(g.indices.all { it in 0 until vc })
+        assertEquals(0, g.indices.size % 3)
+    }
+}
+```
+
+- [ ] **Step 2: 실패 확인 후 BallGeometry 구현, 테스트 통과**
+
+Run: `gradlew.bat :app:testDebugUnitTest --tests "*BallGeometryTest*"` / Expected: PASS
+
+- [ ] **Step 3: 셰이더와 렌더러 구현**
+
+정점 셰이더: 조각 변환 적용(수축 → 회전 → 오프셋) → MVP.
+프래그먼트 셰이더: 반램버트 + 림라이트, 껍질/속살/코어 색상 구분, 분리된 조각은 알파 페이드.
+코어는 별도 구 메시(subdiv 3)로 그리고, 누를 때 눌린 지점 방향으로 정점을 밀어 넣는다(정점 셰이더 `uPressPoint`, `uPressAmount`).
+
+- [ ] **Step 4: 빌드 확인 후 커밋**
+
+```bash
+git add -A && git commit -m "OpenGL ES 3.0 볼 렌더러: 조각 지오메트리, 텍스처 기반 조각 변환, 금 표현"
+```
+
+---
+
+### Task 8: 터치 라우팅과 조각 선택
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/gl/Picker.kt`, `ui/InputRouter.kt`
+- Test: `app/src/test/java/com/waxball/asmr/gl/PickerTest.kt`, `ui/InputRouterTest.kt`
+
+**Interfaces:**
+- Produces:
+  - `object Picker { fun pick(origin: Vec3, dir: Vec3, set: ShardSet, state: IntArray, radius: Float, warp: (Vec3)->Float): Int }` — 광선-구 교점을 구하고, 교점 방향에 가장 가까운 시드의 조각 id 반환. 이미 DETACHED면 그 지점의 코어 히트로 간주해 −1 반환
+  - `class InputRouter(val listener: Listener)` — `fun onTouch(action: Int, pointers: Int, x: FloatArray, y: FloatArray, timeNs: Long)`, `interface Listener { fun onBreak(x: Float, y: Float, force: Float, speed: Float); fun onOrbit(dx: Float, dy: Float); fun onZoom(scale: Float); fun onRelease() }`, `var ballScreenRadius: Float`, `var ballScreenCenter: FloatArray`, `var orbitLocked: Boolean`
+
+**라우팅 규칙:** 포인터 2개 이상 → 오빗/줌. 포인터 1개가 볼 화면 원 안에서 시작 → 깨기(누른 시간·이동 속도로 force/speed 계산). 볼 밖에서 시작 → 오빗. `orbitLocked`면 볼 밖 드래그도 무시.
+
+- [ ] **Step 1: 테스트 작성**
+
+```kotlin
+class PickerTest {
+    @Test fun rayThroughCenterHitsFrontShard() {
+        val set = ShardSplitter.split(Icosphere.build(3), 60, Random(1))
+        val id = Picker.pick(Vec3(0f,0f,5f), Vec3(0f,0f,-1f), set, IntArray(60), 1f) { 1f }
+        assertTrue(id >= 0)
+        assertTrue("앞면(+z)을 맞춰야 함", set.shards[id].center.z > 0f)
+    }
+    @Test fun rayMissingSphereReturnsMinusOne() {
+        val set = ShardSplitter.split(Icosphere.build(3), 60, Random(1))
+        assertEquals(-1, Picker.pick(Vec3(0f,3f,5f), Vec3(0f,0f,-1f), set, IntArray(60), 1f) { 1f })
+    }
+    @Test fun detachedShardIsSkipped() {
+        val set = ShardSplitter.split(Icosphere.build(3), 60, Random(1))
+        val st = IntArray(60)
+        val first = Picker.pick(Vec3(0f,0f,5f), Vec3(0f,0f,-1f), set, st, 1f) { 1f }
+        st[first] = 4
+        assertEquals(-1, Picker.pick(Vec3(0f,0f,5f), Vec3(0f,0f,-1f), set, st, 1f) { 1f })
+    }
+}
+
+class InputRouterTest {
+    // 볼 중심 (500,500), 반지름 300으로 두고
+    @Test fun singleFingerInsideBallBreaks()      // onBreak 호출, onOrbit 미호출
+    @Test fun singleFingerOutsideBallOrbits()     // onOrbit 호출, onBreak 미호출
+    @Test fun twoFingersAlwaysOrbit()             // 볼 안에서 시작해도 오빗
+    @Test fun orbitLockedIgnoresOutsideDrag()
+    @Test fun holdingStillIncreasesForceOverTime()
+    @Test fun fastDragReportsHigherSpeed()
+}
+```
+
+- [ ] **Step 2: 실패 확인 → 구현 → 통과 확인**
+
+Run: `gradlew.bat :app:testDebugUnitTest` / Expected: PASS
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add -A && git commit -m "광선 기반 조각 선택과 깨기/굴리기/줌 터치 라우팅"
+```
+
+---
+
+### Task 9: 떨어진 조각과 부스러기
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/gl/Debris.kt`
+- Test: `app/src/test/java/com/waxball/asmr/gl/DebrisTest.kt`
+
+**Interfaces:**
+- Produces: `class Debris(capacity: Int = 400)` — `fun spawn(shardId: Int, from: Vec3, areaFrac: Float)`, `fun update(dt: Float, floorY: Float, onLand: (shardId: Int, pan: Float, areaFrac: Float) -> Unit)`, `fun writeTransforms(tex: FloatArray)`, `fun clear()`, `val count: Int`
+
+중력 −9.8, 초기 속도는 표면 법선 방향 소량 + 랜덤 회전. 바닥(`floorY`)에 닿으면 반발 0.25로 튀고 2회 튄 뒤 정지, 정지 시 `onLand` 콜백(→ LAND 이벤트 → 소리). 400개 초과 시 가장 오래된 것부터 페이드아웃 후 제거.
+
+- [ ] **Step 1: 테스트 작성**
+
+```kotlin
+class DebrisTest {
+    @Test fun fallsDownOverTime()          // update 반복 후 y가 감소
+    @Test fun landsAndFiresCallbackOnce()  // onLand가 조각당 정확히 1회
+    @Test fun restsOnFloorAndStopsMoving() // 충분한 시간 후 y == floorY, 속도 0
+    @Test fun capacityIsBounded()          // 1000개 spawn 후 count <= 400
+    @Test fun clearRemovesEverything()
+}
+```
+
+- [ ] **Step 2: 실패 확인 → 구현 → 통과 → 커밋**
+
+```bash
+git add -A && git commit -m "떨어진 조각 낙하·착지·누적 시뮬레이션"
+```
+
+---
+
+### Task 10: 볼 카탈로그 30종
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/core/BallSpec.kt`, `core/BallCatalog.kt`
+- Test: `app/src/test/java/com/waxball/asmr/core/BallCatalogTest.kt`
+
+**Interfaces:**
+- Produces:
+  - `enum class Material { HARD_WAX, SOFT_WAX, GLITTER, CRUNCH_BEADS, SUGAR_GLASS }`
+  - `enum class ShapeKind { SPHERE, EGG, FACETED, LUMPY }` — 각각 `warp(v: Vec3): Float` 반지름 배율
+  - `enum class SizeClass(val radius: Float, val shardBase: Int) { S(0.75f,90), M(1.0f,150), L(1.25f,220), XL(1.5f,300) }`
+  - `enum class Thickness(val value: Float) { THIN(0.06f), NORMAL(0.11f), THICK(0.18f) }`
+  - `data class BallSpec(id, nameKo, size, thickness, shape, material, shellColor, fleshColor, coreColor, capsule, price, soundDesc)` — `fun soundProfile(): SoundProfile`, `fun shardCount(quality: Int): Int`
+  - `object BallCatalog { val all: List<BallSpec>; val free: List<Int>; fun byId(id: Int): BallSpec }`
+
+`soundProfile()`은 재질 기본 프로파일에서 출발해 크기(저역 이동·감쇠 증가), 두께(밝기·감쇠), 모양(전파 계수)으로 보정한다.
+
+- [ ] **Step 1: 테스트 작성**
+
+```kotlin
+class BallCatalogTest {
+    @Test fun thirtyBallsWithUniqueIdsAndNames() {
+        assertEquals(30, BallCatalog.all.size)
+        assertEquals(30, BallCatalog.all.map { it.id }.toSet().size)
+        assertEquals(30, BallCatalog.all.map { it.nameKo }.toSet().size)
+    }
+    @Test fun fiveAreFreeAndTheyAreCheapest() {
+        assertEquals(5, BallCatalog.free.size)
+        BallCatalog.free.forEach { assertEquals(0, BallCatalog.byId(it).price) }
+    }
+    @Test fun allFiveMaterialsAndFourShapesAppear() {
+        assertEquals(5, BallCatalog.all.map { it.material }.toSet().size)
+        assertEquals(4, BallCatalog.all.map { it.shape }.toSet().size)
+    }
+    @Test fun everyBallHasSoundDescription() {
+        BallCatalog.all.forEach { assertTrue(it.soundDesc.length >= 8) }
+    }
+    @Test fun soundProfilesAreDistinctPerMaterial() {
+        val f = BallCatalog.all.groupBy { it.material }.map { it.value.first().soundProfile().baseFreq }
+        assertEquals(5, f.toSet().size)
+    }
+    @Test fun biggerBallsHaveMoreShardsAndLowerPitch() {
+        val s = BallCatalog.all.first { it.size == SizeClass.S }
+        val xl = BallCatalog.all.first { it.size == SizeClass.XL }
+        assertTrue(xl.shardCount(2) > s.shardCount(2))
+        assertTrue(xl.soundProfile().baseFreq < s.soundProfile().baseFreq)
+    }
+    @Test fun shardCountRespectsQualityTier() {
+        BallCatalog.all.forEach {
+            assertTrue(it.shardCount(0) <= 100); assertTrue(it.shardCount(2) <= 300) }
+    }
+}
+```
+
+- [ ] **Step 2: 실패 확인 → 30종 정의 → 통과 → 커밋**
+
+```bash
+git add -A && git commit -m "볼 30종 카탈로그: 크기·두께·모양·재질 조합과 음색 매핑"
+```
+
+---
+
+### Task 11: 플레이 화면 배선 — 첫 플레이 가능 빌드
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/ui/PlayActivity.kt`, `ui/PlayView.kt`, `res/layout/activity_play.xml`
+- Modify: `ui/HomeActivity.kt` (플레이 진입 버튼)
+
+**Interfaces:**
+- Consumes: `BallRenderer`, `BreakModel`, `AudioEngine`, `InputRouter`, `Picker`, `Debris`, `BallCatalog`
+- Produces: `class PlayActivity` — 인텐트 엑스트라 `ballId: Int`, `mode: String("sandbox"|"mission")`, `missionId: Int`
+
+- [ ] **Step 1: PlayView(GLSurfaceView) 배선**
+
+`setEGLContextClientVersion(3)`, 렌더러 연결, `onTouchEvent`를 `InputRouter`로 넘김.
+`InputRouter.Listener` 구현: `onBreak` → `Picker.pick` → `BreakModel.press` → 이벤트가 큐로 → 오디오 스레드가 소리, 렌더러가 그림. `onOrbit`/`onZoom` → 렌더러 카메라.
+
+- [ ] **Step 2: 생명주기**
+
+`onPause`: `audioEngine.stop()`, `glView.onPause()`. `onResume`: 역순. 파괴 상태는 유지.
+
+- [ ] **Step 3: 샌드박스 루프**
+
+`shellProgress >= 1.0` 이 되고 3초 뒤 새 볼 생성(같은 spec, 새 랜덤 시드로 재분할 → 갈라짐 모양이 달라짐). `Debris.clear()`.
+
+- [ ] **Step 4: UI 자동 숨김**
+
+상단 진행 바와 뒤로가기 버튼만 두고, 3초 무입력 시 alpha 애니메이션으로 숨김. 터치하면 다시 표시.
+
+- [ ] **Step 5: 실기기 확인**
+
+```bash
+gradlew.bat :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+확인 항목: 볼이 보이는가 / 문지르면 까지는가 / 소리가 나는가 / 지연 로그가 30ms 이하인가 / 60fps인가.
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add -A && git commit -m "플레이 화면 배선: 터치→파괴→소리·렌더 연결, 샌드박스 무한 루프"
+```
+
+---
+
+### Task 12: 진행 상태 저장
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/core/Progress.kt`, `core/ProgressStore.kt`, `ui/PrefsProgressStore.kt`
+- Test: `app/src/test/java/com/waxball/asmr/core/ProgressTest.kt`
+
+**Interfaces:**
+- Produces:
+  - `data class Progress(var coins: Int, val unlocked: MutableSet<Int>, val completed: MutableSet<Int>, var missionDay: Long, val missionIds: MutableList<Int>, val missionDone: MutableSet<Int>, var hapticsOn: Boolean, var volume: Float, var quality: Int, var orbitLocked: Boolean)`
+    - `fun awardForRun(detached: Int, cleared: Boolean): Int`
+    - `fun canBuy(spec: BallSpec): Boolean`, `fun buy(spec: BallSpec): Boolean`
+    - `fun toJson(): String`, `companion object { fun fromJson(s: String?): Progress }` — `org.json` 대신 손으로 쓴 최소 직렬화(순수 JVM 테스트 위해 `JSONObject` 금지)
+  - `interface ProgressStore { fun load(): Progress; fun save(p: Progress) }`
+  - `class PrefsProgressStore(ctx: Context) : ProgressStore` — SharedPreferences "waxball", 키 "state"
+
+- [ ] **Step 1: 테스트 작성**
+
+```kotlin
+class ProgressTest {
+    @Test fun freeBallsUnlockedByDefault()
+    @Test fun coinFormula() {                       // 조각 57개 + 완파 → 5 + 20 = 25
+        assertEquals(25, Progress.fresh().awardForRun(57, true)) }
+    @Test fun cannotBuyWithoutEnoughCoins()
+    @Test fun buyingDeductsAndUnlocksOnce()         // 두 번째 buy는 false
+    @Test fun jsonRoundTripPreservesEverything()
+    @Test fun corruptJsonFallsBackToFreshInsteadOfThrowing() {
+        val p = Progress.fromJson("{{{쓰레기"); assertEquals(0, p.coins) }
+    @Test fun nullJsonGivesFreshProgress()
+}
+```
+
+- [ ] **Step 2: 실패 확인 → 구현 → 통과 → 커밋**
+
+```bash
+git add -A && git commit -m "코인·해금·도감 진행 상태와 손상 내성 저장"
+```
+
+---
+
+### Task 13: 미션 6종
+
+**Files:**
+- Create: `app/src/main/java/com/waxball/asmr/core/Mission.kt`, `core/Missions.kt`
+- Modify: `ui/PlayActivity.kt` (미션 HUD·결과)
+- Create: `res/layout/view_mission_hud.xml`, `res/layout/dialog_result.xml`
+- Test: `app/src/test/java/com/waxball/asmr/core/MissionsTest.kt`
+
+**Interfaces:**
+- Produces:
+  - `abstract class Mission(val id: Int, val titleKo: String, val reward: Int)` — `open fun onEvent(kind: Int, shardId: Int, level: Int, energy: Float, areaFrac: Float)`, `open fun onFrame(dt: Float, model: BreakModel, gesture: Gesture)`, `val progress: Float`, `var state: Int` (0=RUNNING,1=CLEARED,2=FAILED)
+  - `data class Gesture(var touching: Boolean, var force: Float, var speed: Float, var strokeId: Int, var touchedCore: Boolean)`
+  - `object Missions { val all: List<() -> Mission>; fun dailyFor(day: Long): List<Mission> }` — 날짜를 시드로 3개 선택(같은 날은 항상 같은 조합)
+
+6종: ①속도(제한시간 내 80%) ②한 획(단일 스트로크 25조각) ③정밀(force가 임계 초과하면 즉시 실패, 완파 시 클리어) ④사방(4분면 각 60%) ⑤콤보(크랙 간격 0.4초 초과하면 끊김, 12초 유지) ⑥껍질만(코어 터치 시 실패, 껍질 100%)
+
+- [ ] **Step 1: 테스트 작성** — 6종 각각 성공 경로 1개 + 실패/경계 1개, 총 12개 이상.
+
+```kotlin
+class MissionsTest {
+    @Test fun speedMissionClearsWhenThresholdReachedInTime()
+    @Test fun speedMissionFailsWhenTimeRunsOut()
+    @Test fun singleStrokeResetsWhenFingerLifts()
+    @Test fun precisionFailsOnExcessiveForce()
+    @Test fun quadrantNeedsAllFourSides()
+    @Test fun comboBreaksAfterGap()
+    @Test fun shellOnlyFailsWhenCoreTouched()
+    @Test fun dailySelectionIsStableForSameDay() {
+        assertEquals(Missions.dailyFor(20300L).map { it.id }, Missions.dailyFor(20300L).map { it.id }) }
+    @Test fun dailySelectionHasNoDuplicates()
+    @Test fun everyMissionHasKoreanTitleAndReward()
+}
+```
+
+- [ ] **Step 2: 실패 확인 → 구현 → 통과**
+
+- [ ] **Step 3: PlayActivity에 미션 모드 배선**
+
+HUD(제목·진행바·타이머)를 `mode == "mission"`일 때만 붙인다. 파괴·소리 코드는 건드리지 않는다.
+클리어/실패 시 결과 다이얼로그(보상 코인, 다시하기, 나가기).
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add -A && git commit -m "미션 6종 판정기와 미션 모드 HUD·결과 화면"
+```
+
+---
+
+### Task 14: 홈 화면
+
+**Files:**
+- Modify: `ui/HomeActivity.kt`, `res/layout/activity_home.xml`
+- Create: `res/layout/item_ball.xml`
+
+- [ ] **Step 1: 구성** — 상단 코인, 오늘의 미션 카드 3개(완료 표시), 볼 가로 리스트(해금됨=컬러/잠김=실루엣+가격), 하단 도감·설정 버튼.
+- [ ] **Step 2: 해금** — 잠긴 볼 탭 → 확인 다이얼로그 → `Progress.buy` → 저장 → 즉시 플레이.
+- [ ] **Step 3: 첫 실행 시 이어폰 권장 안내 1회** (`Progress`에 플래그 추가하지 말고 SharedPreferences 별도 키 "seenHeadphoneTip").
+- [ ] **Step 4: 커밋**
+
+```bash
+git add -A && git commit -m "홈 화면: 볼 선택·해금, 오늘의 미션 진입"
+```
+
+---
+
+### Task 15: 도감
+
+**Files:**
+- Create: `ui/CollectionActivity.kt`, `res/layout/activity_collection.xml`, `res/layout/item_collection.xml`
+- Modify: `AndroidManifest.xml`
+
+- [ ] **Step 1: 3열 그리드** — 완파한 볼은 컬러 카드 + 캡슐 아이템 + `soundDesc`, 미완파는 실루엣과 "???".
+- [ ] **Step 2: 상단에 "30개 중 N개" 진행 표시.**
+- [ ] **Step 3: 카드 탭 → 해금된 볼이면 바로 플레이, 잠겼으면 가격 안내.**
+- [ ] **Step 4: 커밋**
+
+```bash
+git add -A && git commit -m "도감 화면: 완파 기록과 볼별 소리 설명"
+```
+
+---
+
+### Task 16: 설정·성능 등급·에러 대응
+
+**Files:**
+- Create: `ui/SettingsActivity.kt`, `res/layout/activity_settings.xml`, `core/QualityProbe.kt`
+- Modify: `PlayActivity`, `AudioEngine`, `AndroidManifest.xml`
+- Test: `app/src/test/java/com/waxball/asmr/core/QualityProbeTest.kt`
+
+- [ ] **Step 1: QualityProbe** — `fun feed(frameTimeMs: Float)`, `val tier: Int` (0/1/2). 첫 5초 프레임타임 중앙값이 22ms 초과=0, 15ms 초과=1, 그 외 2. 테스트: 합성 프레임타임 배열을 먹여 등급 경계 확인.
+- [ ] **Step 2: 설정 화면** — 진동 on/off, 음량 슬라이더, 화질(자동/낮음/보통/높음), 굴리기 잠금, 부스러기 지우기, 데이터 초기화(확인 다이얼로그).
+- [ ] **Step 3: 에러 대응 마무리** — 스펙 9절 표대로. GL ES 3.0 미지원 시 안내 후 종료, AudioTrack 실패 시 무음 진행 + 안내 1회, 저장 파손 시 초기화.
+- [ ] **Step 4: 커밋**
+
+```bash
+git add -A && git commit -m "설정 화면, 기기 성능 등급 자동 판정, 예외 상황 대응"
+```
+
+---
+
+### Task 17: 소리 튜닝과 마무리
+
+**Files:**
+- Modify: `audio/SoundProfile.kt`, `audio/Synth.kt`
+- Create: `README.md`
+
+- [ ] **Step 1: 실제 왁뿌볼 파쇄음 특성 조사** — 크랙 간격 분포, 지배 주파수 대역, 감쇠 시간, 재질별 차이를 수치로 정리해 README에 근거로 남긴다. 오디오 파일은 사용하지 않는다.
+- [ ] **Step 2: 조사한 수치에 맞춰 5종 프로파일 재조정**, `SynthAuditionTest`로 WAV 재생성 후 청취.
+- [ ] **Step 3: 회귀 방지 테스트 추가** — 각 재질의 스펙트럼 중심과 크랙 밀도가 목표 범위 안에 있는지 assert.
+- [ ] **Step 4: 전체 테스트 + 릴리스 빌드**
+
+```bash
+gradlew.bat :app:testDebugUnitTest
+gradlew.bat :app:assembleDebug
+```
+
+- [ ] **Step 5: README 작성** — 개요, 조작법, 소리 설계 근거, 빌드 방법. AI 관련 표기 없음.
+- [ ] **Step 6: 최종 커밋**
+
+```bash
+git add -A && git commit -m "소리 프로파일 튜닝과 README"
+```
+
+---
+
+## Self-Review
+
+**스펙 커버리지:** 1절 개요→Task 11, 2절 기술→Task 1·6·7, 3절 구조→전 태스크, 4절 소리→Task 5·6·17, 5절 볼과 깨짐→Task 2·3·4·7·8·9·10, 6절 모드→Task 11·13·15, 7절 저장→Task 12, 8절 성능→Task 16, 9절 에러→Task 16, 10절 테스트→각 태스크에 분산, 11절 프로젝트→Task 1, 12절 범위 밖→Global Constraints. 누락 없음.
+
+**타입 일관성:** `EventQueue.Sink.on(kind, shardId, level, energy, pan, areaFrac)` 시그니처가 Task 4·5·13에서 동일. `BreakModel.press(shardId, force, dt, pan)` Task 4·11 동일. `shardCount(quality)`의 quality는 `QualityProbe.tier`와 같은 0/1/2 체계.
