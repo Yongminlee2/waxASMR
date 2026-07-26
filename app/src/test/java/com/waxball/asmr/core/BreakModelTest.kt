@@ -140,6 +140,64 @@ class BreakModelTest {
     }
 
     @Test
+    fun bigPlateTakesLooseNeighboursWithIt() {
+        // 조각이 하나씩 또박또박 떨어지면 사건이 없어 지루하다.
+        // 넓은 판이 갈 때 이미 들뜬 이웃이 우수수 따라 무너져야 한 방이 생긴다.
+        val m = model(seeds = 90)
+        val big = m.shards.shards.maxByOrNull { it.areaFrac }!!
+
+        // 이웃들을 들뜬 상태까지만 만들어 둔다.
+        val neighbours = m.shards.adjacency[big.id]
+        for (n in neighbours) {
+            while (m.state[n] < ShardState.LOOSE) m.press(n, 2f, 0.016f, 0f)
+        }
+        val looseBefore = neighbours.count { m.state[it] == ShardState.LOOSE }
+        assertTrue("들뜬 이웃을 만들지 못함", looseBefore >= 2)
+
+        while (m.state[big.id] < ShardState.DETACHED) m.press(big.id, 2f, 0.016f, 0f)
+
+        val fellTogether = neighbours.count { m.state[it] == ShardState.DETACHED }
+        assertTrue("넓은 판이 떨어졌는데 들뜬 이웃이 그대로 남음", fellTogether >= 2)
+    }
+
+    @Test
+    fun bigPlateCollapsesMoreThanASmallChip() {
+        // 들뜬 이웃은 금이 번지는 것만으로도 넘어갈 수 있다. 그건 의도한 동작이다.
+        // 확인할 것은 "크기에 따라 데려가는 양이 다른가"다. 다 똑같이 무너지면
+        // 넓은 판이 떨어지는 한 방이 안 생긴다.
+        fun collapsedFractionOf(pickBiggest: Boolean): Float {
+            val m = model(seeds = 120)
+            val target = if (pickBiggest) {
+                m.shards.shards.maxByOrNull { it.areaFrac }!!
+            } else {
+                m.shards.shards.minByOrNull { it.areaFrac }!!
+            }
+            val neighbours = m.shards.adjacency[target.id]
+            for (n in neighbours) {
+                while (m.state[n] < ShardState.LOOSE) m.press(n, 2f, 0.016f, 0f)
+            }
+            while (m.state[target.id] < ShardState.DETACHED) m.press(target.id, 2f, 0.016f, 0f)
+            return neighbours.count { m.state[it] == ShardState.DETACHED }.toFloat() / neighbours.size
+        }
+
+        val big = collapsedFractionOf(pickBiggest = true)
+        val small = collapsedFractionOf(pickBiggest = false)
+        assertTrue("넓은 판이 이웃을 다 데려가지 못함 ($big)", big >= 0.9f)
+        assertTrue("크기와 상관없이 똑같이 무너짐 (큼=$big, 작음=$small)", big > small)
+    }
+
+    @Test
+    fun brushPressBreaksAWholeAreaNotASingleShard() {
+        // 조각 하나만 콕 누르는 건 손가락이 아니라 바늘이다.
+        val m = model(seeds = 120)
+        val hit = m.shards.shards[0].center
+        repeat(40) { m.pressArea(hit, 0.955f, 3f, 0.016f, 0f) }
+
+        val touched = m.state.count { it > ShardState.INTACT }
+        assertTrue("한 번 문질렀는데 조각 하나만 반응함 (${touched}개)", touched >= 4)
+    }
+
+    @Test
     fun randomHammeringKeepsInvariants() {
         val q = EventQueue(64)   // 일부러 작게: 넘쳐도 상태가 망가지면 안 된다
         val m = model(seeds = 80, queue = q)

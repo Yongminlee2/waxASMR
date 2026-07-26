@@ -46,6 +46,24 @@ class Haptics(context: Context) {
         }
     }
 
+    /**
+     * 큰 사건용. 간격 제한을 무시하고 길고 세게 준다.
+     *
+     * 넓은 판이 떨어질 때까지 자잘한 진동과 똑같으면 손끝에서는 아무 차이가 없다.
+     * 이 한 방이 있어야 "큰 게 떨어졌다"가 느껴진다.
+     */
+    fun thud(intensity: Float) {
+        if (!enabled || !supported) return
+        lastPulseNs = System.nanoTime()
+        val amplitude = (0.35f + intensity.coerceIn(0f, 1f) * 0.65f).let { (it * 255f).toInt() }
+            .coerceIn(1, 255)
+        val duration = (18L + (intensity.coerceIn(0f, 1f) * 34f).toLong())
+        try {
+            vibrator?.vibrate(VibrationEffect.createOneShot(duration, amplitude))
+        } catch (e: Exception) {
+        }
+    }
+
     fun cancel() {
         if (!supported) return
         try {

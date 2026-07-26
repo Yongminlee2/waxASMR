@@ -91,6 +91,31 @@ class ShardSplitterTest {
     }
 
     @Test
+    fun someShardsAreMuchBiggerThanTheRest() {
+        // 크기가 다 비슷하면 큰 판이 통째로 벗겨지는 순간이 없어서 금방 지루해진다.
+        for (seed in 1..10) {
+            val s = ShardSplitter.split(base, 150, Random(seed.toLong()))
+            val areas = s.shards.map { it.areaFrac }.sorted()
+            val median = areas[areas.size / 2]
+            val biggest = areas.last()
+            assertTrue(
+                "가장 큰 조각이 중간 크기의 6배도 안 됨 (seed=$seed, 최대=$biggest, 중앙=$median)",
+                biggest > median * 6f,
+            )
+        }
+    }
+
+    @Test
+    fun bothLargePlatesAndFineChipsExist() {
+        val s = ShardSplitter.split(base, 150, Random(3))
+        val areas = s.shards.map { it.areaFrac }
+        val plates = areas.count { it > 0.015f }
+        val chips = areas.count { it < 0.004f }
+        assertTrue("넓은 판이 없음 (${plates}개)", plates >= 3)
+        assertTrue("자잘한 부스러기가 없음 (${chips}개)", chips >= 20)
+    }
+
+    @Test
     fun coarseBaseMeshStillSplitsCleanly() {
         val coarse = Icosphere.build(2)
         val s = ShardSplitter.split(coarse, 60, Random(6))

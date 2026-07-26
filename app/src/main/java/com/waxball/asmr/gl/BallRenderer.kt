@@ -101,6 +101,20 @@ class BallRenderer : GLSurfaceView.Renderer {
         pressAmount = amount.coerceIn(0f, 0.35f)
     }
 
+    /**
+     * 화면을 흔든다. 떨어져 나간 넓이에 비례해 세게 준다.
+     *
+     * 조각이 떨어지는데 화면이 조용하면 아무 일도 안 일어난 것처럼 느껴진다.
+     * 작은 부스러기는 거의 안 흔들리고 넓은 판이 갈 때만 쿵 하도록 폭을 크게 벌린다.
+     */
+    fun shake(strength: Float) {
+        val s = strength.coerceIn(0f, 1f)
+        shakeAmount = maxOf(shakeAmount, s * MAX_SHAKE)
+    }
+
+    @Volatile private var shakeAmount = 0f
+    private var shakePhase = 0f
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES30.glClearColor(0.027f, 0.031f, 0.043f, 1f)
         GLES30.glEnable(GLES30.GL_DEPTH_TEST)
@@ -136,7 +150,18 @@ class BallRenderer : GLSurfaceView.Renderer {
 
         val s = scene ?: return
 
-        Mat4.lookAt(viewMatrix, Vec3(0f, 0f, cameraDistance), Vec3.ZERO, Vec3.UP)
+        // 흔들림은 빠르게 진동하다 잦아든다. 오래 끌면 멀미가 난다.
+        var shakeX = 0f
+        var shakeY = 0f
+        if (shakeAmount > 1e-4f) {
+            shakePhase += dt * 46f
+            shakeX = kotlin.math.sin(shakePhase) * shakeAmount
+            shakeY = kotlin.math.cos(shakePhase * 1.37f) * shakeAmount * 0.7f
+            shakeAmount *= kotlin.math.exp(-dt * 11f)
+            if (shakeAmount < 1e-4f) shakeAmount = 0f
+        }
+
+        Mat4.lookAt(viewMatrix, Vec3(shakeX, shakeY, cameraDistance), Vec3(shakeX, shakeY, 0f), Vec3.UP)
         Mat4.multiply(viewProj, projMatrix, viewMatrix)
 
         val scale = s.spec.size.radius
@@ -208,7 +233,8 @@ class BallRenderer : GLSurfaceView.Renderer {
                 ShardState.HAIRLINE -> 0.008f
                 ShardState.CRACKED -> 0.018f
                 ShardState.LOOSE -> 0.032f
-                else -> 0f
+                // 떨어진 뒤에는 뭉갠 만큼 작아진다. 비빌수록 가루가 되어 간다.
+                else -> s.debris.shrinkOf(i)
             }
             val alpha = if (s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i)) 0f else 1f
 
@@ -346,5 +372,8 @@ class BallRenderer : GLSurfaceView.Renderer {
 
         /** 화면 짧은 축을 볼이 차지하는 비율. 나머지는 굴리기용 여백이다. */
         const val BALL_SCREEN_FILL = 0.82f
+
+        /** 흔들림 최대 진폭(볼 좌표계). 이보다 크면 화면이 요동쳐서 거슬린다. */
+        const val MAX_SHAKE = 0.075f
     }
 }

@@ -129,11 +129,65 @@ object ShardSplitter {
         return (lo shl 32) or hi
     }
 
-    /** 구면 균등 분포 샘플링. z를 균등하게 뽑아야 극 주변이 뭉치지 않는다. */
-    private fun sampleSphere(n: Int, rng: Random): Array<Vec3> = Array(n) {
+    /**
+     * 시드를 균등하게 뿌리지 않는다.
+     *
+     * 균등하게 뿌리면 조각 크기가 죄다 비슷해져서, 어디를 깨도 같은 크기가 떨어진다.
+     * 큰 판이 통째로 벗겨지는 순간이 아예 생기지 않아 금방 지루해진다.
+     *
+     * 실제 왁스는 어떤 데는 넓은 판으로 떨어지고 어떤 데는 자잘하게 바스러진다.
+     * 그래서 시드 일부만 전체에 고루 뿌려 넓은 판을 만들고, 나머지는 몇 군데
+     * 좁은 구역에 몰아넣어 그 자리만 잘게 부서지게 한다.
+     * 보로노이 조각 크기는 시드 밀도에 반비례하므로 이것만으로 크기가 갈린다.
+     */
+    private fun sampleSphere(n: Int, rng: Random): Array<Vec3> {
+        val coarseCount = (n * COARSE_RATIO).toInt().coerceAtLeast(4)
+        val fineCount = n - coarseCount
+
+        val seeds = arrayOfNulls<Vec3>(n)
+        for (i in 0 until coarseCount) seeds[i] = randomDirection(rng)
+
+        if (fineCount > 0) {
+            val zoneCount = 2 + rng.nextInt(3)
+            val zones = Array(zoneCount) { randomDirection(rng) }
+            // 구역 크기를 다르게 해야 자잘한 정도도 자리마다 달라진다.
+            val zoneCos = FloatArray(zoneCount) { 0.55f + rng.nextFloat() * 0.3f }
+
+            for (i in 0 until fineCount) {
+                val z = i % zoneCount
+                seeds[coarseCount + i] = randomInCap(zones[z], zoneCos[z], rng)
+            }
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return seeds as Array<Vec3>
+    }
+
+    private fun randomDirection(rng: Random): Vec3 {
         val z = rng.nextFloat() * 2f - 1f
         val theta = rng.nextFloat() * 2f * Math.PI.toFloat()
         val r = sin(acos(z))
-        Vec3(r * cos(theta), r * sin(theta), z)
+        return Vec3(r * cos(theta), r * sin(theta), z)
     }
+
+    /** 축을 중심으로 한 원뿔(캡) 안에서 균등하게 한 점을 뽑는다. */
+    private fun randomInCap(axis: Vec3, cosMax: Float, rng: Random): Vec3 {
+        val z = cosMax + rng.nextFloat() * (1f - cosMax)
+        val theta = rng.nextFloat() * 2f * Math.PI.toFloat()
+        val r = sin(acos(z))
+        val local = Vec3(r * cos(theta), r * sin(theta), z)
+
+        // z축 기준으로 뽑은 점을 axis 방향으로 돌린다.
+        val a = axis.normalized()
+        val reference = if (kotlin.math.abs(a.z) < 0.9f) Vec3(0f, 0f, 1f) else Vec3(1f, 0f, 0f)
+        val u = (reference cross a).normalized()
+        val v = a cross u
+        return (u * local.x + v * local.y + a * local.z).normalized()
+    }
+
+    /**
+     * 전체 시드 중 넓은 판을 만드는 데 쓰는 비율.
+     * 낮출수록 판이 커지고 나머지 구역은 더 잘게 부서진다.
+     */
+    private const val COARSE_RATIO = 0.2f
 }

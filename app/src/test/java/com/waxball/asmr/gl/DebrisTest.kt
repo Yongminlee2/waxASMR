@@ -140,6 +140,67 @@ class DebrisTest {
     }
 
     @Test
+    fun bigShardHangsBeforeItDrops() {
+        // 바로 떨어뜨리면 "툭" 하고 사라질 뿐이다. 버티다 놓이는 순간이 있어야 한다.
+        val d = debris(); val c = centers(8)
+        d.spawn(0, Vec3(1f, 0f, 0f), 0.05f, Quat.IDENTITY)
+        val m = FloatArray(12)
+        d.writeMatrix(0, c, m, 0)
+        val startY = m[7]
+
+        d.update(0.016f, floorY, c) { _, _, _ -> }
+        d.writeMatrix(0, c, m, 0)
+        assertEquals("매달려 있어야 할 프레임에 이미 떨어짐", startY, m[7], 1e-6f)
+
+        repeat(40) { d.update(0.016f, floorY, c) { _, _, _ -> } }
+        d.writeMatrix(0, c, m, 0)
+        assertTrue("매달린 뒤에도 안 떨어짐", m[7] < startY)
+    }
+
+    @Test
+    fun crushingShrinksDebrisThenRemovesIt() {
+        val d = debris(); val c = centers(8)
+        d.spawn(0, Vec3(1f, 0f, 0f), 0.02f, Quat.IDENTITY)
+        repeat(600) { d.update(0.016f, floorY, c) { _, _, _ -> } }
+        assertTrue("바닥에 자리잡지 않아 뭉갤 수 없음", d.hasCrushableDebris())
+
+        val worldX = 0.9f
+        var crunches = 0
+        var previousShrink = d.shrinkOf(0)
+        repeat(2) {
+            d.crushNear(worldX, 0.5f, 3, c) { _, _, _ -> crunches++ }
+            assertTrue("뭉갰는데 안 작아짐", d.shrinkOf(0) > previousShrink)
+            previousShrink = d.shrinkOf(0)
+        }
+
+        d.crushNear(worldX, 0.5f, 3, c) { _, _, _ -> crunches++ }
+        assertEquals("세 번 뭉개면 가루가 되어 사라져야 함", 0, d.count)
+        assertEquals(3, crunches)
+        assertFalse(d.hasCrushableDebris())
+    }
+
+    @Test
+    fun crushingOnlyAffectsDebrisUnderTheFinger() {
+        val d = debris(); val c = centers(8)
+        d.spawn(0, Vec3(1f, 0f, 0f), 0.02f, Quat.IDENTITY)   // center.x = +0.9
+        d.spawn(1, Vec3(-1f, 0f, 0f), 0.02f, Quat.IDENTITY)  // center.x = -0.9
+        repeat(600) { d.update(0.016f, floorY, c) { _, _, _ -> } }
+
+        d.crushNear(0.9f, 0.4f, 3, c) { _, _, _ -> }
+        assertTrue("손가락 아래 것이 안 뭉개짐", d.shrinkOf(0) > 0f)
+        assertEquals("멀리 있는 것까지 뭉개짐", 0f, d.shrinkOf(1), 1e-6f)
+    }
+
+    @Test
+    fun airborneDebrisCannotBeCrushed() {
+        val d = debris(); val c = centers(8)
+        d.spawn(0, Vec3(1f, 0f, 0f), 0.02f, Quat.IDENTITY)
+        d.update(0.016f, floorY, c) { _, _, _ -> }
+        assertFalse("아직 떨어지는 중인데 뭉갤 수 있다고 나옴", d.hasCrushableDebris())
+        d.crushNear(0.9f, 1f, 3, c) { _, _, _ -> throw AssertionError("공중에 있는 걸 뭉갬") }
+    }
+
+    @Test
     fun clearRemovesEverything() {
         val d = debris(); val c = centers(8)
         repeat(8) { d.spawn(it, Vec3(1f, 0f, 0f), 0.02f, Quat.IDENTITY) }

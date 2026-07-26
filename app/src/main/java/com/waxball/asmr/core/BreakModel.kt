@@ -116,7 +116,13 @@ class BreakModel(
         if (quadrantArea[q] <= 0f) 1f else min(1f, quadrantDetached[q] / quadrantArea[q])
     }
 
-    private fun advance(shardId: Int, energy: Float, pan: Float, spread: Boolean) {
+    private fun advance(
+        shardId: Int,
+        energy: Float,
+        pan: Float,
+        spread: Boolean,
+        allowCascade: Boolean = true,
+    ) {
         val toughness = profile.toughness
         while (state[shardId] < ShardState.DETACHED &&
             damage[shardId] >= thresholds[state[shardId]] * toughness
@@ -136,6 +142,24 @@ class BreakModel(
             }
 
             if (spread) propagate(shardId, level, energy, pan)
+            if (allowCascade && level >= ShardState.DETACHED) cascade(shardId, energy, pan)
+        }
+    }
+
+    /**
+     * 넓은 판이 떨어질 때, 이미 들뜬 이웃을 같이 데려간다.
+     *
+     * 조각이 하나씩 또박또박 떨어지면 사건이 없어 지루하다. 큰 판이 갈 때
+     * 옆이 우수수 따라 무너져야 "한 방"이 생긴다.
+     * 이미 들뜬(LOOSE) 조각만 데려가므로 아무 데나 무너지지는 않는다.
+     */
+    private fun cascade(from: Int, energy: Float, pan: Float) {
+        if (shards.shards[from].areaFrac < CASCADE_MIN_AREA) return
+        for (n in shards.adjacency[from]) {
+            if (state[n] != ShardState.LOOSE) continue
+            damage[n] = thresholds[ShardState.LOOSE] * profile.toughness + 1e-3f
+            // 연쇄가 연쇄를 부르면 한 번에 볼이 통째로 무너진다. 한 겹까지만.
+            advance(n, energy * 0.85f, pan, spread = false, allowCascade = false)
         }
     }
 
@@ -148,6 +172,9 @@ class BreakModel(
             advance(n, energy * 0.6f, pan, spread = false)
         }
     }
+
+    /** 이 크기를 넘는 판이 떨어질 때 이웃을 데려간다. */
+    private val CASCADE_MIN_AREA = 0.012f
 
     /** 조각 중심의 경도로 4분면을 가른다. 사방을 까려면 볼을 굴려야 한다. */
     private fun quadrantIndex(center: Vec3): Int {

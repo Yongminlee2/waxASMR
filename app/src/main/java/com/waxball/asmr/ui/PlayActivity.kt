@@ -41,6 +41,9 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
 
         /** 손가락이 닿는 넓이. 구면에서 내적이 이 값 이상인 조각이 함께 눌린다. */
         private const val BRUSH_RADIUS_COS = 0.955f
+
+        /** 부스러기를 뭉갤 때 손가락이 닿는 가로 범위(볼 좌표계). */
+        private const val CRUSH_RADIUS = 0.5f
     }
 
     private lateinit var binding: ActivityPlayBinding
@@ -256,10 +259,15 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
                 if (hit != null) s.model.pressArea(hit, BRUSH_RADIUS_COS, force, step, pan)
                 else s.model.press(id, force, step, pan)
                 if (speed > 0.5f) s.model.rub(speed / 6f, pan)
-                spawnFreshlyDetached()
-                haptics.pulse(0.3f + force * 0.15f)
+
+                val broken = spawnFreshlyDetached()
+                if (broken > 0f) reactToBreak(broken) else haptics.pulse(0.25f + force * 0.1f)
                 renderer.setPress(Vec3.ZERO, 0f)
             }
+
+            // 볼을 빗나간 손가락은 바닥에 쌓인 부스러기를 뭉갠다.
+            // 다 깨고 나서도 계속 만질 거리가 남아야 한다. 영상에서 제일 재미있던 구간이다.
+            id == Picker.MISS -> crushDebris(x, pan, step)
 
             id == Picker.CORE -> {
                 gesture.coreTouches++
@@ -271,15 +279,65 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         }
     }
 
-    /** 금이 번져 한꺼번에 여러 조각이 떨어질 수 있어, 상태를 훑어 새로 떨어진 것만 낙하시킨다. */
-    private fun spawnFreshlyDetached() {
-        val s = scene ?: return
+    /**
+     * 금이 번져 한꺼번에 여러 조각이 떨어질 수 있어, 상태를 훑어 새로 떨어진 것만 낙하시킨다.
+     *
+     * 연쇄로 떨어진 것들은 시차를 두고 놓아 준다. 동시에 우르르 사라지면 한 덩어리가
+     * 지워진 것처럼 보이는데, 몇 프레임씩 어긋나면 옆으로 번져 무너지는 게 눈에 보인다.
+     *
+     * @return 이번에 떨어져 나간 넓이 합
+     */
+    private fun spawnFreshlyDetached(): Float {
+        val s = scene ?: return 0f
         val rotation = binding.playView.renderer.ballRotation
+        var area = 0f
+        var order = 0
         for (i in s.model.state.indices) {
             if (s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i)) {
-                s.debris.spawn(i, s.shards.shards[i].center, s.shards.shards[i].areaFrac, rotation)
+                val shard = s.shards.shards[i]
+                s.debris.spawn(i, shard.center, shard.areaFrac, rotation, hangFrames = order * 3)
+                area += shard.areaFrac
+                order++
             }
         }
+        return area
+    }
+
+    /**
+     * 바닥에 쌓인 부스러기를 문질러 더 잘게 부순다.
+     *
+     * 손가락 아래 있는 것만 부수도록 가로 위치로 고른다. 화면 어디를 눌러도 다 부서지면
+     * 무더기를 비비는 느낌이 안 난다.
+     */
+    private fun crushDebris(screenX: Float, pan: Float, dt: Float) {
+        val s = scene ?: return
+        if (!s.debris.hasCrushableDebris()) return
+
+        val width = binding.playView.width.coerceAtLeast(1)
+        val worldX = ((screenX / width) * 2f - 1f) * s.spec.size.radius * 1.4f
+
+        val crushed = s.debris.crushNear(
+            worldX = worldX,
+            radius = CRUSH_RADIUS,
+            maxCount = 3,
+            centers = s.geometry.shardCenters,
+        ) { id, crunchPan, sizeHint ->
+            s.model.land(id, crunchPan, sizeHint * 0.02f)
+        }
+
+        if (crushed > 0) {
+            haptics.pulse(0.35f)
+            binding.playView.renderer.shake(0.12f)
+        }
+    }
+
+    /** 떨어진 넓이에 맞춰 화면과 손끝에 되돌려 준다. 작은 부스러기와 넓은 판이 달라야 한다. */
+    private fun reactToBreak(area: Float) {
+        if (area <= 0f) return
+        // 조각 하나가 전체의 3%만 돼도 큰 판이다. 그 지점에서 최대가 되도록 잡는다.
+        val magnitude = (area / 0.03f).coerceIn(0f, 1f)
+        binding.playView.renderer.shake(magnitude)
+        if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
     }
 
     override fun onOrbit(dx: Float, dy: Float) {

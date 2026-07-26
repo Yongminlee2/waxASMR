@@ -34,6 +34,16 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
     private val halfSize = FloatArray(capacity)
     private val bounces = IntArray(capacity)
 
+    /**
+     * 떨어지기 직전 매달려 있는 시간(프레임).
+     * 금이 다 갔는데도 잠깐 버티다 놓이는 그 순간이 깨는 맛의 정체다.
+     * 바로 떨어뜨리면 "툭" 하고 사라질 뿐 아무 감흥이 없다.
+     */
+    private val hang = IntArray(capacity)
+
+    /** 바닥에 쌓인 뒤 몇 번 더 뭉갰는지. 뭉갤수록 작아지다 가루가 된다. */
+    private val crush = IntArray(capacity)
+
     var count = 0
         private set
 
@@ -45,13 +55,16 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
      * @param outward 조각이 붙어 있던 방향. 이쪽으로 살짝 튕겨 나간다
      * @param ballRotation 분리 순간의 볼 회전. 이 자세로 굳은 채 떨어진다
      */
-    fun spawn(shardId: Int, outward: Vec3, areaFrac: Float, ballRotation: Quat) {
+    fun spawn(shardId: Int, outward: Vec3, areaFrac: Float, ballRotation: Quat, hangFrames: Int = 0) {
         if (shardId < 0 || shardId >= capacity || active[shardId]) return
 
         active[shardId] = true
         resting[shardId] = false
         landed[shardId] = false
         bounces[shardId] = 0
+        crush[shardId] = 0
+        // 큰 판일수록 오래 매달렸다 떨어져야 무게가 느껴진다.
+        hang[shardId] = hangFrames + (areaFrac * 260f).toInt().coerceAtMost(14)
         count++
 
         val n = outward.normalized()
@@ -81,6 +94,8 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
     ) {
         for (i in 0 until capacity) {
             if (!active[i] || resting[i]) continue
+
+            if (hang[i] > 0) { hang[i]--; continue }
 
             vy[i] -= GRAVITY * dt
             ox[i] += vx[i] * dt
@@ -142,10 +157,62 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
         out[offset + 11] = base.z + oz[shardId] - moved.z
     }
 
+    /** 뭉갠 정도에 따라 조각이 줄어드는 비율. 셰이더가 이만큼 조각을 오므린다. */
+    fun shrinkOf(shardId: Int): Float =
+        if (shardId in 0 until capacity) crush[shardId] * 0.3f else 0f
+
+    /**
+     * 바닥에 쌓인 부스러기를 문질러 더 잘게 부순다.
+     *
+     * 영상에서 진짜 재미있는 구간은 손 안의 무더기를 계속 비비는 부분이다.
+     * 다 깨고 나면 할 게 없다는 문제가 여기서 풀린다.
+     *
+     * @param worldX 손가락이 닿은 가로 위치(볼 좌표계)
+     * @return 이번에 부순 조각 수
+     */
+    fun crushNear(
+        worldX: Float,
+        radius: Float,
+        maxCount: Int,
+        centers: FloatArray,
+        onCrunch: (shardId: Int, pan: Float, sizeHint: Float) -> Unit,
+    ): Int {
+        var crushed = 0
+        for (i in 0 until capacity) {
+            if (crushed >= maxCount) break
+            if (!active[i] || !resting[i]) continue
+            if (crush[i] >= MAX_CRUSH) continue
+
+            val x = rotatedX(i, centers) + ox[i]
+            if (abs(x - worldX) > radius) continue
+
+            crush[i]++
+            crushed++
+            onCrunch(i, x.coerceIn(-1f, 1f), halfSize[i] * (1f - crush[i] * 0.3f))
+
+            // 완전히 가루가 되면 사라진다.
+            if (crush[i] >= MAX_CRUSH) {
+                active[i] = false
+                count--
+            }
+        }
+        return crushed
+    }
+
+    /** 바닥에 자리잡아 뭉갤 수 있는 조각이 남았는지. */
+    fun hasCrushableDebris(): Boolean {
+        for (i in 0 until capacity) {
+            if (active[i] && resting[i] && crush[i] < MAX_CRUSH) return true
+        }
+        return false
+    }
+
     fun clear() {
         java.util.Arrays.fill(active, false)
         java.util.Arrays.fill(resting, false)
         java.util.Arrays.fill(landed, false)
+        java.util.Arrays.fill(hang, 0)
+        java.util.Arrays.fill(crush, 0)
         count = 0
     }
 
@@ -176,6 +243,8 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
     private fun jitter(scale: Float) = (rng.nextFloat() * 2f - 1f) * scale
 
     private companion object {
+        /** 이만큼 뭉개면 가루가 되어 사라진다. */
+        const val MAX_CRUSH = 3
         const val GRAVITY = 9.8f
         const val BOUNCE = 0.25f
         const val FRICTION = 0.55f
