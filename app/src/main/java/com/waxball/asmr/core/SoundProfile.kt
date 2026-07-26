@@ -35,39 +35,61 @@ data class SoundProfile(
 ) {
     companion object {
 
-        /** 굳은 왁스. 기준이 되는 소리. 딱딱하고 금이 잘 번진다. */
+        /*
+         * 아래 수치는 실제 왁뿌볼 녹음 세 개를 분석해 잡았다(2026-07-26).
+         * 종류가 서로 달라서 재질별 성격을 추측이 아니라 실측으로 나눌 수 있었다.
+         *
+         *              파열 간격   중심     감쇠    저역/중역/고역   평탄도
+         *   A(기준)     105ms    3497Hz    80ms    17/44/39%      0.28
+         *   왁뿌볼2     208ms    3487Hz    56ms    21/41/38%      0.18  성기고 음정감 강함
+         *   왁뿌볼3      99ms    6253Hz   216ms     6/20/74%      0.31  압도적으로 밝음
+         *
+         * 처음 감으로 잡았던 값은 크게 틀렸다. 산포가 2.4배 좁았고, 공명이 절반이라
+         * 잡음처럼 들렸고, 파열이 열 배 넘게 촘촘했고, 저역이 아예 없었다.
+         *
+         * 합성 결과를 같은 분석기로 되재서 맞췄다. 설정값과 측정값 사이에는 일정한 배율이
+         * 있어서(중심 ×1.17, 간격 ×11.7, 감쇠 ×3.5, 산포 ×0.84) 목표 수치를 그 배율로
+         * 나눠 설정한다. 이 배율은 합성 구조에서 나오는 것이라 임의로 바꾸면 안 맞는다.
+         */
+
+        /** 굳은 왁스. 녹음 A를 그대로 목표로 삼은 기준 소리. */
         fun hardWax() = SoundProfile(
-            baseFreq = 2600f, freqSpread = 0.8f, q = 6f,
-            decayMsMin = 8f, decayMsMax = 26f, resonance = 0.35f,
-            density = 1.0f, toughness = 1.0f, propagation = 0.45f, brightness = 1.0f,
+            baseFreq = 3000f, freqSpread = 2.36f, q = 8.5f,
+            decayMsMin = 12f, decayMsMax = 36f, resonance = 0.70f,
+            density = 0.35f, toughness = 1.0f, propagation = 0.45f, brightness = 1.0f,
+            body = 1.03f, gapScale = 9.0f,
         )
 
-        /** 무른 왁스. 낮고 둔한 소리, 금이 잘 안 번진다. */
+        /** 무른 왁스. 왁뿌볼2처럼 성기고 음정감이 강한 굵은 뽀각. */
         fun softWax() = SoundProfile(
-            baseFreq = 1300f, freqSpread = 0.7f, q = 4f,
-            decayMsMin = 12f, decayMsMax = 40f, resonance = 0.25f,
-            density = 0.7f, toughness = 0.75f, propagation = 0.22f, brightness = 0.7f,
+            baseFreq = 2200f, freqSpread = 2.49f, q = 5.7f,
+            decayMsMin = 8f, decayMsMax = 24f, resonance = 0.85f,
+            density = 0.25f, toughness = 0.75f, propagation = 0.22f, brightness = 0.7f,
+            body = 1.27f, gapScale = 17.8f,
         )
 
-        /** 반짝이 섞인 왁스. 자잘하고 밝은 소리. */
+        /** 반짝이 섞인 왁스. 왁뿌볼3 계열의 밝고 사각거리는 소리. */
         fun glitter() = SoundProfile(
-            baseFreq = 3800f, freqSpread = 1.0f, q = 8f,
-            decayMsMin = 5f, decayMsMax = 18f, resonance = 0.30f,
-            density = 1.25f, toughness = 0.95f, propagation = 0.40f, brightness = 1.25f,
+            baseFreq = 3600f, freqSpread = 1.50f, q = 11f,
+            decayMsMin = 40f, decayMsMax = 110f, resonance = 0.62f,
+            density = 0.44f, toughness = 0.95f, propagation = 0.40f, brightness = 1.25f,
+            body = 0.36f, gapScale = 6f,
         )
 
-        /** 알갱이가 박힌 껍질. 그레인이 가장 많아 "빠자자작"이 길게 이어진다. */
+        /** 알갱이가 박힌 껍질. 다섯 중 파열이 가장 촘촘하다. */
         fun crunchBeads() = SoundProfile(
-            baseFreq = 1900f, freqSpread = 1.3f, q = 5f,
-            decayMsMin = 6f, decayMsMax = 22f, resonance = 0.50f,
-            density = 1.6f, toughness = 1.10f, propagation = 0.30f, brightness = 0.95f,
+            baseFreq = 2400f, freqSpread = 2.50f, q = 7f,
+            decayMsMin = 13f, decayMsMax = 39f, resonance = 0.80f,
+            density = 0.56f, toughness = 1.10f, propagation = 0.30f, brightness = 0.95f,
+            body = 1.20f, gapScale = 5.1f,
         )
 
-        /** 설탕유리. 가장 높고 뾰족하며 금이 제일 잘 번진다. */
+        /** 설탕유리. 왁뿌볼3의 밝은 쪽 극단. 여운이 가장 길다. */
         fun sugarGlass() = SoundProfile(
-            baseFreq = 5200f, freqSpread = 0.9f, q = 10f,
-            decayMsMin = 4f, decayMsMax = 14f, resonance = 0.55f,
-            density = 1.15f, toughness = 1.25f, propagation = 0.55f, brightness = 1.5f,
+            baseFreq = 4300f, freqSpread = 1.50f, q = 12f,
+            decayMsMin = 55f, decayMsMax = 150f, resonance = 0.62f,
+            density = 0.40f, toughness = 1.25f, propagation = 0.55f, brightness = 1.5f,
+            body = 0.36f, gapScale = 6f,
         )
     }
 }

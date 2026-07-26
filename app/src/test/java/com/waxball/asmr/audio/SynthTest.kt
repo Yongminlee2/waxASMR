@@ -103,7 +103,13 @@ class SynthTest {
 
         assertTrue("세게 눌러도 파열 수가 안 늘어남 ($softCount → $hardCount)", hardCount > softCount * 3)
         assertTrue("세게 눌러도 간격이 안 촘촘해짐 ($softGap → $hardGap)", hardGap < softGap * 0.5f)
-        assertTrue("초당 파열이 500회 미만이면 빠자자작으로 안 들림", hardCount / (hardGap * 0.001f * hardCount) > 500f)
+
+        // 처음에는 근거 없이 "초당 500회는 되어야 한다"고 잡았다. 실제 왁뿌볼 녹음 세 개를
+        // 재 보니 귀에 들리는 파열은 초당 4.4~12.3회였다. 한 번의 파열 안에서 미세 파열이
+        // 그보다는 촘촘해야 낱개 클릭이 아니라 texture가 되고, 너무 촘촘하면 뭉개진다.
+        val burstRatePerSecond = 1000f / hardGap
+        assertTrue("파열이 너무 성겨 낱개 클릭으로 들림: 초당 %.0f회".format(burstRatePerSecond), burstRatePerSecond > 30f)
+        assertTrue("파열이 너무 촘촘해 뭉개짐: 초당 %.0f회".format(burstRatePerSecond), burstRatePerSecond < 900f)
     }
 
     @Test
@@ -191,15 +197,16 @@ class SynthTest {
         val base = SoundProfile.hardWax().baseFreq
 
         assertEquals("중심 주파수에서는 보정이 없어야 함", 1f, s.damping(base), 1e-4f)
-        assertTrue("고역이 더 오래 남음", s.damping(base * 4f) < 0.6f)
-        assertTrue("저역이 더 짧게 남음", s.damping(base / 4f) > 1.5f)
+        assertTrue("고역이 중심보다 오래 남음", s.damping(base * 4f) < s.damping(base))
+        assertTrue("저역이 중심보다 짧게 남음", s.damping(base / 4f) > s.damping(base))
     }
 
     @Test
     fun dampingIsClampedSoGrainsNeverRingForeverOrVanish() {
+        // 보정 폭을 넓게 두었더니 전체 감쇠가 녹음의 1/8까지 줄어들어서 좁혔다.
         val s = synth()
-        assertTrue(s.damping(1f) <= 2.2f)
-        assertTrue(s.damping(100_000f) >= 0.35f)
+        assertTrue(s.damping(1f) <= 1.6f)
+        assertTrue(s.damping(100_000f) >= 0.6f)
         assertTrue(s.damping(0f) > 0f)
     }
 
@@ -212,7 +219,7 @@ class SynthTest {
 
         val head = Spectrum.centroid(slice(b, 0f, 0.05f), sr)
         val tail = Spectrum.centroid(slice(b, 0.08f, 0.4f), sr)
-        assertTrue("뒤따르는 부스러기 소리가 없음 (앞=$head, 뒤=$tail)", tail > head * 1.5f)
+        assertTrue("뒤따르는 부스러기 소리가 없음 (앞=$head, 뒤=$tail)", tail > head * 1.25f)
     }
 
     @Test

@@ -40,7 +40,13 @@ object ReferenceAnalyzer {
             appendLine("파열 간격       평균 %.1fms (편차 %.2f)".format(meanGapMs, gapSpread))
             appendLine("스펙트럼 중심   %.0fHz".format(centroidHz))
             appendLine("음높이 산포     %.2f 옥타브".format(spreadOctaves))
-            appendLine("감쇠 시간       중앙값 %.0fms".format(medianDecayMs))
+            appendLine(
+                if (medianDecayMs < 0f) {
+                    "감쇠 시간       중앙값 %.0fms (신뢰 못 함 — 잡음 바닥에 파묻힘)".format(-medianDecayMs)
+                } else {
+                    "감쇠 시간       중앙값 %.0fms".format(medianDecayMs)
+                }
+            )
             appendLine("대역 에너지     저역 %.0f%% / 중역 %.0f%% / 고역 %.0f%%"
                 .format(lowRatio * 100, midRatio * 100, highRatio * 100))
             appendLine("스펙트럼 평탄도 %.2f  (0=음정 있음, 1=잡음에 가까움)".format(flatness))
@@ -48,8 +54,11 @@ object ReferenceAnalyzer {
 
         /** 바로 붙여 넣을 수 있는 SoundProfile 초안. */
         fun toProfileSource(name: String = "recorded"): String {
-            val decayMin = (medianDecayMs * 0.5f).coerceIn(3f, 60f)
-            val decayMax = (medianDecayMs * 1.9f).coerceIn(decayMin + 2f, 160f)
+            // 감쇠를 못 잰 녹음이면 파열 간격에서 역산한다.
+            // 파열이 낱개로 들린다는 것은 다음 파열 전에 잦아든다는 뜻이다.
+            val decayBase = if (medianDecayMs > 0f) medianDecayMs else meanGapMs * 0.45f
+            val decayMin = (decayBase * 0.5f).coerceIn(3f, 60f)
+            val decayMax = (decayBase * 1.9f).coerceIn(decayMin + 2f, 160f)
             val resonance = (1f - flatness).coerceIn(0.15f, 0.85f)
             val q = (2f + (1f - flatness) * 12f).coerceIn(2f, 12f)
             val density = (onsetsPerSecond / 260f).coerceIn(0.3f, 2.2f)
@@ -233,20 +242,32 @@ object ReferenceAnalyzer {
     /** 파열 두 개를 구분하는 최소 간격. 사람이 낱개로 들을 수 있는 한계쯤이다. */
     private const val MIN_ONSET_FRAMES = 3
 
-    /** 파열 직후 20dB 떨어지는 데 걸리는 시간을 재서 60dB 기준으로 환산한다. */
+    /**
+     * 파열 직후 20dB 떨어지는 데 걸리는 시간을 재서 60dB 기준으로 환산한다.
+     *
+     * 녹음에는 잡음 바닥이 있어서 포락선이 20dB까지 안 내려가는 경우가 많다.
+     * 그런 파열은 측정 상한을 감쇠 시간으로 착각하지 않도록 아예 제외한다.
+     * 제외하지 않으면 실제보다 열 배쯤 긴 값이 나온다.
+     */
     private fun medianDecay(x: FloatArray, sr: Int, onsets: List<Int>, frameSec: Float): Float {
         if (onsets.isEmpty()) return 20f
+
+        val noiseFloor = noiseFloor(x)
         val decays = ArrayList<Float>()
         val limit = (0.25f * sr).toInt()
+        var saturated = 0
 
         for (o in onsets) {
             val start = (o * frameSec * sr).toInt()
             if (start + 64 >= x.size) continue
             var peak = 0f
             for (i in start until minOf(start + 256, x.size)) peak = maxOf(peak, abs(x[i]))
-            if (peak < 1e-4f) continue
+            if (peak < noiseFloor * 4f) continue
 
-            val target = peak * 0.1f      // -20dB
+            // 잡음 바닥에 파묻히기 전까지만 유효하다.
+            val target = maxOf(peak * 0.1f, noiseFloor * 1.8f)
+            if (target >= peak * 0.8f) continue
+
             var hit = -1
             var i = start
             while (i < minOf(start + limit, x.size)) {
@@ -255,11 +276,30 @@ object ReferenceAnalyzer {
                 if (localPeak < target) { hit = i; break }
                 i += 64
             }
-            if (hit > start) decays.add((hit - start) * 3000f / sr)   // T20 → T60
+            if (hit > start) decays.add((hit - start) * 3000f / sr) else saturated++
         }
+
         if (decays.isEmpty()) return 20f
         decays.sort()
-        return decays[decays.size / 2]
+        val median = decays[decays.size / 2]
+        // 절반 넘게 상한에 걸렸으면 그 녹음으로는 감쇠를 잴 수 없다.
+        return if (saturated > decays.size) -median else median
+    }
+
+    /** 조용한 구간의 포락선 수준. 하위 10퍼센타일로 잡는다. */
+    private fun noiseFloor(x: FloatArray): Float {
+        val block = 1024
+        if (x.size < block * 4) return 1e-5f
+        val levels = ArrayList<Float>(x.size / block)
+        var i = 0
+        while (i + block <= x.size) {
+            var peak = 0f
+            for (j in i until i + block) peak = maxOf(peak, abs(x[j]))
+            levels.add(peak)
+            i += block
+        }
+        levels.sort()
+        return levels[(levels.size * 0.1f).toInt().coerceIn(0, levels.size - 1)].coerceAtLeast(1e-6f)
     }
 
     private fun normalize(x: FloatArray): FloatArray {

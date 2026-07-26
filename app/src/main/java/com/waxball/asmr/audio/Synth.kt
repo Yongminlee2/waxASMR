@@ -26,8 +26,14 @@ class Synth(
     private var profile = SoundProfile.hardWax()
     private var rngState = 0x2545_F491
 
-    /** 0~1. 설정의 음량 슬라이더가 조정한다. */
-    var masterGain = 0.85f
+    /**
+     * 0~1. 설정의 음량 슬라이더가 조정한다.
+     *
+     * 리미터가 세게 걸리면 고조파가 생겨 소리가 지직거린다. 공명이 크고 감쇠가 긴
+     * 프로파일에서 그레인이 겹쳐 쌓일 때 특히 심해서, 측정해 보니 중심 주파수가
+     * 그레인 최고 주파수보다 높게 나올 지경이었다. 여유를 두고 낮게 잡는다.
+     */
+    var masterGain = 0.7f
 
     val activeGrains: Int get() = pool.activeCount
 
@@ -68,24 +74,28 @@ class Synth(
         val count = ((5f + 195f * e.pow(1.4f)) * profile.density * (0.6f + 0.18f * level)).toInt()
         // 세게 누를수록 파열이 촘촘해진다. 평균 간격 6ms → 1.2ms
         val meanGapMs = (6f - 4.8f * e) * profile.gapScale
-        val grainAmp = 0.055f * (0.35f + 0.65f * e) * (0.85f + 0.1f * level)
+        // 공명이 큰 재질은 그레인이 서로 더 잘 쌓이므로 진폭을 그만큼 덜어 낸다.
+        val stacking = 1f / (1f + profile.resonance * 1.6f)
+        val grainAmp = 0.055f * stacking * (0.35f + 0.65f * e) * (0.85f + 0.1f * level)
         val sizeShift = sizeShift(areaFrac)
         lastGrainCount = count
         lastMeanGapMs = meanGapMs
 
-        // 왁스가 으스러질 때 깔리는 저역 몸통. 이게 없으면 파쇄음이 아니라
-        // 쉬익거리는 잡음처럼 들린다.
-        if (profile.body > 0.01f && level >= 2) {
-            pool.spawn(
-                delayFrames = msToFrames(exponentialGap(2f)),
-                freq = 110f + 190f * nextFloat(),
-                q = 2.2f,
-                decayMs = 45f + 55f * nextFloat(),
-                amplitude = 0.075f * profile.body * (0.4f + 0.6f * e),
-                pan = pan,
-                resonance = 0.4f,
-                attackMs = 2.5f,
-            )
+        // 왁스가 으스러질 때 깔리는 저역 몸통. 녹음에서 저역이 전체의 14~24%를 차지했는데
+        // 이 층이 없으면 0%가 나오고, 파쇄음이 아니라 쉬익거리는 잡음처럼 들린다.
+        if (profile.body > 0.01f) {
+            repeat(if (level >= 2) 2 else 1) {
+                pool.spawn(
+                    delayFrames = msToFrames(exponentialGap(3f)),
+                    freq = 90f + 170f * nextFloat(),
+                    q = 2.2f,
+                    decayMs = 70f + 80f * nextFloat(),
+                    amplitude = 0.15f * profile.body * (0.4f + 0.6f * e),
+                    pan = pan,
+                    resonance = 0.45f,
+                    attackMs = 2.5f,
+                )
+            }
         }
 
         var t = 0f
@@ -116,7 +126,9 @@ class Synth(
             delayFrames = 0,
             freq = profile.baseFreq * 0.55f * sizeShift,
             q = profile.q * 1.6f,
-            decayMs = profile.decayMsMax * 2.2f * sizeBody,
+            // 녹음에서 잰 파열 감쇠가 100~170ms였다. 큰 조각이라도 그 두 배를 넘으면
+            // 왁스가 아니라 징 소리가 되고, 뒤따르는 부스러기 소리를 통째로 덮어버린다.
+            decayMs = (profile.decayMsMax * 1.2f * sizeBody).coerceAtMost(260f),
             amplitude = 0.16f * (0.5f + 0.5f * energy),
             pan = pan,
             resonance = (profile.resonance * 1.9f).coerceAtMost(0.9f),
@@ -127,7 +139,7 @@ class Synth(
                 delayFrames = 0,
                 freq = 90f + 130f * nextFloat(),
                 q = 2.0f,
-                decayMs = 90f + 90f * sizeBody,
+                decayMs = (70f + 50f * sizeBody).coerceAtMost(200f),
                 amplitude = 0.1f * profile.body,
                 pan = pan,
                 resonance = 0.45f,
@@ -256,13 +268,24 @@ class Synth(
     internal fun damping(freq: Float): Float {
         if (freq <= 1f) return 1f
         val ratio = profile.baseFreq / freq
-        return sqrt(ratio).coerceIn(0.35f, 2.2f)
+        // 보정 폭이 크면 고역 그레인이 지나치게 짧아져 전체 감쇠가 녹음의 1/8까지 줄어든다.
+        return sqrt(ratio).coerceIn(0.6f, 1.6f)
+    }
+
+    private companion object {
+        /** 주파수 분포를 아래로 치우치게 하는 정도(옥타브 배율). */
+        const val SKEW = 0.42f
     }
 
     private fun randomFreq(): Float {
-        // 중심 주파수 주변으로 옥타브 단위로 흩뿌린다.
-        val octaves = (nextFloat() * 2f - 1f) * profile.freqSpread
-        return profile.baseFreq * 2f.pow(octaves)
+        // 옥타브(로그축)에서 대칭으로 뿌리면 실제 스펙트럼 중심은 훨씬 위로 쏠린다.
+        // 고역 성분이 중심 계산에서 더 크게 잡히기 때문이다.
+        // 녹음과 중심 주파수를 맞추려면 아래쪽으로 치우쳐 뿌려야 한다.
+        val octaves = (nextFloat() * 2f - 1f) * profile.freqSpread - profile.freqSpread * SKEW
+        // 산포를 넓게 두면 그레인이 나이퀴스트 근처까지 밀려 올라가 고역만 98%가 되고
+        // 중심 주파수가 설정값의 두 배 넘게 나온다. 실제 왁뿌볼 녹음의 에너지는
+        // 대체로 이 대역 안에 있으므로 여기서 잘라 준다.
+        return (profile.baseFreq * 2f.pow(octaves)).coerceIn(150f, 9000f)
     }
 
     private fun randomDecay() =
