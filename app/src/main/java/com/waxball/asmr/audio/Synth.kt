@@ -42,6 +42,12 @@ class Synth(
      */
     var masterGain = 0.7f
 
+    /**
+     * 쥐고 있는 도구에 따른 음높이 배율. 쇠붙이는 밝게, 뭉툭한 것은 둔하게 들린다.
+     * 파편을 고르는 기준 주파수에 곱해진다.
+     */
+    var toolBrightness = 1f
+
     val activeGrains: Int get() = pool.activeCount
 
     /**
@@ -292,7 +298,7 @@ class Synth(
         // 산포를 넓게 두면 그레인이 나이퀴스트 근처까지 밀려 올라가 고역만 98%가 되고
         // 중심 주파수가 설정값의 두 배 넘게 나온다. 실제 왁뿌볼 녹음의 에너지는
         // 대체로 이 대역 안에 있으므로 여기서 잘라 준다.
-        return (profile.baseFreq * 2f.pow(octaves)).coerceIn(150f, 9000f)
+        return (profile.baseFreq * toolBrightness * 2f.pow(octaves)).coerceIn(150f, 9000f)
     }
 
     private fun randomDecay() =

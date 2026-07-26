@@ -52,17 +52,26 @@ data class SoundProfile(
          * 나눠 설정한다. 이 배율은 합성 구조에서 나오는 것이라 임의로 바꾸면 안 맞는다.
          */
 
-        /** 굳은 왁스. 녹음 A를 그대로 목표로 삼은 기준 소리. */
+        /**
+         * 굳은 왁스. 기본 볼(노른자)이 쓴다.
+         *
+         * 녹음의 스펙트럼 중심이 3107Hz, 산포 1.79옥타브였다. 파편을 고르는 기준을
+         * 여기에 맞춰야 녹음에 실제로 들어 있는 소리가 나온다. 임의로 다른 값을 주면
+         * 뱅크의 한쪽 끝에 있는 파편만 골라서 녹음과 다른 소리가 된다.
+         */
         fun hardWax() = SoundProfile(
-            baseFreq = 3000f, freqSpread = 2.36f, q = 8.5f,
+            baseFreq = 3107f, freqSpread = 1.79f, q = 8.5f,
             decayMsMin = 12f, decayMsMax = 36f, resonance = 0.70f,
             density = 0.35f, toughness = 1.0f, propagation = 0.45f, brightness = 1.0f,
             body = 1.03f, gapScale = 9.0f,
         )
 
-        /** 무른 왁스. 왁뿌볼2처럼 성기고 음정감이 강한 굵은 뽀각. */
+        /**
+         * 무른 왁스. 기본 볼(찹쌀떡)이 쓴다.
+         * 녹음 범위 안에서 조금 낮은 쪽 파편을 고르되, 벗어나지는 않는다.
+         */
         fun softWax() = SoundProfile(
-            baseFreq = 2200f, freqSpread = 2.49f, q = 5.7f,
+            baseFreq = 2600f, freqSpread = 1.70f, q = 5.7f,
             decayMsMin = 8f, decayMsMax = 24f, resonance = 0.85f,
             density = 0.25f, toughness = 0.75f, propagation = 0.22f, brightness = 0.7f,
             body = 1.27f, gapScale = 17.8f,

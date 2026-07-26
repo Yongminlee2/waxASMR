@@ -3,7 +3,11 @@ package com.waxball.asmr.ui
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.waxball.asmr.R
@@ -21,6 +25,7 @@ import com.waxball.asmr.core.QualityProbe
 import com.waxball.asmr.core.ShardSplitter
 import com.waxball.asmr.core.ShardState
 import com.waxball.asmr.core.Vec3
+import com.waxball.asmr.core.Weapon
 import com.waxball.asmr.databinding.ActivityPlayBinding
 import com.waxball.asmr.gl.BallGeometry
 import com.waxball.asmr.gl.BallScene
@@ -60,6 +65,7 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
     private val probe = QualityProbe()
 
     private var quality = 1
+    private var weapon = Weapon.FINGER
     private var resultShown = false
     private var nextBallPending = false
     private var uiVisible = true
@@ -97,6 +103,9 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         binding.lockButton.setOnClickListener { toggleOrbitLock() }
         updateLockLabel()
 
+        weapon = Weapon.byId(progressState.weaponId)
+        buildWeaponBar()
+
         binding.playView.renderer.onFrame = ::onFrame
         loadBall(Random.nextLong())
         scheduleHide()
@@ -109,6 +118,7 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         super.onResume()
         binding.playView.onResume()
         audio.setProfile(spec.soundProfile())
+        audio.setToolBrightness(weapon.brightness)
         audio.start()
     }
 
@@ -255,9 +265,15 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         when {
             id >= 0 -> {
                 // 조각 하나만 콕 누르는 건 손가락이 아니라 바늘이다. 닿은 면적만큼 한꺼번에 누른다.
+                // 찍는 도구(망치·주먹)는 문지르는 동안 계속 먹히면 안 된다.
+                // 손가락을 처음 댄 순간(dt=0)만 들어간다.
+                val fresh = dt <= 0f
+                if (!weapon.continuous && !fresh) return
+
+                val appliedForce = force * weapon.forceScale * (if (weapon.continuous) 1f else 2.2f)
                 val hit = Picker.hitDirection(origin, dir)
-                if (hit != null) s.model.pressArea(hit, BRUSH_RADIUS_COS, force, step, pan)
-                else s.model.press(id, force, step, pan)
+                if (hit != null) s.model.pressArea(hit, weapon.contactCos, appliedForce, step, pan)
+                else s.model.press(id, appliedForce, step, pan)
                 if (speed > 0.5f) s.model.rub(speed / 6f, pan)
 
                 val broken = spawnFreshlyDetached()
@@ -335,7 +351,7 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
     private fun reactToBreak(area: Float) {
         if (area <= 0f) return
         // 조각 하나가 전체의 3%만 돼도 큰 판이다. 그 지점에서 최대가 되도록 잡는다.
-        val magnitude = (area / 0.03f).coerceIn(0f, 1f)
+        val magnitude = ((area / 0.03f) * weapon.impactScale).coerceIn(0f, 1f)
         binding.playView.renderer.shake(magnitude)
         if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
     }
@@ -358,6 +374,51 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
     }
 
     // --- UI ---
+
+    /** 도구 고르는 줄. 화면 안에서 바로 바꿔야 이것저것 시도하게 된다. */
+    private fun buildWeaponBar() {
+        binding.weaponBar.removeAllViews()
+        for (w in Weapon.entries) {
+            val chip = TextView(this).apply {
+                text = "${w.icon}\n${w.labelKo}"
+                gravity = Gravity.CENTER
+                textSize = 11f
+                setPadding(dp(10), dp(8), dp(10), dp(8))
+                setOnClickListener { selectWeapon(w) }
+            }
+            binding.weaponBar.addView(
+                chip,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
+            )
+        }
+        refreshWeaponBar()
+    }
+
+    private fun selectWeapon(w: Weapon) {
+        weapon = w
+        progressState.weaponId = w.ordinal
+        store.save(progressState)
+        audio.setToolBrightness(w.brightness)
+        refreshWeaponBar()
+        Toast.makeText(this, "${w.icon} ${w.labelKo} — ${w.descKo}", Toast.LENGTH_SHORT).show()
+        showUi()
+    }
+
+    private fun refreshWeaponBar() {
+        for (i in 0 until binding.weaponBar.childCount) {
+            val chip = binding.weaponBar.getChildAt(i) as TextView
+            val selected = i == weapon.ordinal
+            chip.background = if (selected) getDrawable(R.drawable.bg_card) else null
+            chip.alpha = if (selected) 1f else 0.45f
+            chip.setTextColor(
+                resources.getColor(
+                    if (selected) R.color.accent else R.color.text_primary, theme,
+                )
+            )
+        }
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun toggleOrbitLock() {
         router.orbitLocked = !router.orbitLocked

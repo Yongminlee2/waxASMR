@@ -26,6 +26,9 @@ class Progress private constructor() {
     var seenHeadphoneTip: Boolean = false
     var seenControlsTip: Boolean = false
 
+    /** 마지막에 고른 뿌시는 도구. */
+    var weaponId: Int = 0
+
     /** 조각 수와 완파 여부로 코인을 준다. 소모품이 없으니 용처는 볼 해금뿐이다. */
     fun awardForRun(detachedShards: Int, cleared: Boolean): Int =
         detachedShards / 10 + if (cleared) CLEAR_BONUS else 0
@@ -68,6 +71,8 @@ class Progress private constructor() {
         append("orbitLocked=").append(if (orbitLocked) 1 else 0).append('\n')
         append("headphoneTip=").append(if (seenHeadphoneTip) 1 else 0).append('\n')
         append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
+        append("weapon=").append(weaponId).append('\n')
+        append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
     }
 
     companion object {
@@ -103,6 +108,7 @@ class Progress private constructor() {
                     "orbitLocked" -> p.orbitLocked = value == "1"
                     "headphoneTip" -> p.seenHeadphoneTip = value == "1"
                     "controlsTip" -> p.seenControlsTip = value == "1"
+                    "weapon" -> value.toIntOrNull()?.let { p.weaponId = it.coerceIn(0, Weapon.entries.size - 1) }
                 }
             }
             return p

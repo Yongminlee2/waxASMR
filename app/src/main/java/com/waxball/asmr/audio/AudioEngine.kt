@@ -66,6 +66,9 @@ class AudioEngine(context: Context) {
 
     fun setVolume(v: Float) { synth.masterGain = v.coerceIn(0f, 1f) }
 
+    /** 쥐고 있는 도구에 따라 음색을 밝게/둔하게 옮긴다. */
+    fun setToolBrightness(v: Float) { synth.toolBrightness = v.coerceIn(0.5f, 2f) }
+
     /** 터치 순간을 표시해 두면 지연을 측정할 수 있다. */
     fun markTouch() { touchMarkNs = System.nanoTime() }
 
