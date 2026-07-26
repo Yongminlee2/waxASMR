@@ -274,10 +274,15 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
                 val fresh = dt <= 0f
                 if (!weapon.continuous && !fresh) return
 
-                val appliedForce = force * weapon.forceScale * (if (weapon.continuous) 1f else 2.2f)
                 val hit = Picker.hitDirection(origin, dir)
-                if (hit != null) s.model.pressArea(hit, weapon.contactCos, appliedForce, step, pan)
-                else s.model.press(id, appliedForce, step, pan)
+                if (hit == null) {
+                    s.model.press(id, force * weapon.forceScale, step, pan)
+                } else if (weapon.continuous) {
+                    s.model.pressArea(hit, weapon.contactCos, force * weapon.forceScale, step, pan)
+                } else {
+                    // 타격은 시간에 비례하지 않는다. 정해진 충격량이 한꺼번에 들어간다.
+                    s.model.strikeArea(hit, weapon.contactCos, weapon.strikeDamage, pan)
+                }
                 if (speed > 0.5f) s.model.rub(speed / 6f, pan)
 
                 val broken = spawnFreshlyDetached()

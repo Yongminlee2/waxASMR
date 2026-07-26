@@ -138,6 +138,31 @@ class BreakModel(
         )
     }
 
+    /**
+     * 한 번 내려친다. 누르는 것과 달리 시간에 비례하지 않고 정해진 충격량이 한꺼번에 들어간다.
+     *
+     * 망치질을 "한 프레임 동안 누르기"로 다루면 손상이 힘×0.016초라 터무니없이 작아진다.
+     * 실제로 그렇게 만들었더니 망치로 찍어도 아무것도 안 깨졌다.
+     *
+     * @param damage 한가운데에 들어가는 손상. 가장자리로 갈수록 줄어든다
+     */
+    fun strikeArea(hit: Vec3, radiusCos: Float, damage: Float, pan: Float) {
+        if (damage <= 0f) return
+        val span = (1f - radiusCos).coerceAtLeast(1e-4f)
+
+        beginDetachBatch()
+        for (s in shards.shards) {
+            if (state[s.id] >= ShardState.DETACHED) continue
+            val d = hit dot s.center
+            if (d < radiusCos) continue
+            val falloff = ((d - radiusCos) / span).coerceIn(0f, 1f)
+
+            this.damage[s.id] += damage * (0.25f + 0.75f * falloff)
+            advance(s.id, min(1f, damage * 0.5f), pan, spread = true)
+        }
+        endDetachBatch(pan)
+    }
+
     /** 코어를 누른다. 껍질이 다 벗겨진 뒤에만 소리가 난다. */
     fun squeezeCore(amount: Float, pan: Float) {
         if (!coreExposed) return

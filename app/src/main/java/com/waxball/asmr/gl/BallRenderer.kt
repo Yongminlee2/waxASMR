@@ -173,7 +173,9 @@ class BallRenderer : GLSurfaceView.Renderer {
         val shortAxisLimit = tanHalf * minOf(1f, aspect)
         val fitDistance = scale * 1.05f / (BALL_SCREEN_FILL * shortAxisLimit)
         cameraDistance = fitDistance * zoomFactor
-        floorY = -(scale + 1.5f)
+        // 부스러기가 쌓이는 높이. 화면 맨 아래에 두면 도구 줄과 버튼에 가려서
+        // 문질러 뭉갤 수가 없다. 볼 바로 아래, 하단 바 위쪽에 앉힌다.
+        floorY = -(scale + 0.85f)
 
         ballScreenRadius = viewportHeight * 0.5f * (scale * 1.02f) / (cameraDistance * tanHalf)
 
