@@ -176,6 +176,45 @@ class SynthTest {
         assertTrue("두 번의 파열이 완전히 동일함", identical < a.size / 2)
     }
 
+    /** 스테레오 버퍼에서 [fromSec, toSec) 구간만 잘라 낸다. */
+    private fun slice(stereo: FloatArray, fromSec: Float, toSec: Float): FloatArray {
+        val a = (fromSec * sr).toInt() * 2
+        val b = ((toSec * sr).toInt() * 2).coerceAtMost(stereo.size)
+        return stereo.copyOfRange(a.coerceIn(0, b), b)
+    }
+
+    @Test
+    fun highFrequencyGrainsAreDampedShorterThanLowOnes() {
+        // 왁스 같은 점탄성 재질에서는 고역이 먼저 죽는다. 감쇠가 주파수와 무관하면
+        // 파쇄음이 아니라 잡음 뭉치처럼 들린다.
+        val s = synth(SoundProfile.hardWax())
+        val base = SoundProfile.hardWax().baseFreq
+
+        assertEquals("중심 주파수에서는 보정이 없어야 함", 1f, s.damping(base), 1e-4f)
+        assertTrue("고역이 더 오래 남음", s.damping(base * 4f) < 0.6f)
+        assertTrue("저역이 더 짧게 남음", s.damping(base / 4f) > 1.5f)
+    }
+
+    @Test
+    fun dampingIsClampedSoGrainsNeverRingForeverOrVanish() {
+        val s = synth()
+        assertTrue(s.damping(1f) <= 2.2f)
+        assertTrue(s.damping(100_000f) >= 0.35f)
+        assertTrue(s.damping(0f) > 0f)
+    }
+
+    @Test
+    fun bigShardGivesALowThudFollowedByBrighterCrumbs() {
+        // 큰 조각이 떨어지면 낮은 "뽀각"이 먼저 오고, 잘게 부서진 부스러기가 밝게 뒤따른다.
+        val s = synth()
+        s.on(EventKind.DETACH, 0, 4, 1f, 0f, 0.18f)
+        val b = s.renderOffline(0.8f)
+
+        val head = Spectrum.centroid(slice(b, 0f, 0.05f), sr)
+        val tail = Spectrum.centroid(slice(b, 0.08f, 0.4f), sr)
+        assertTrue("뒤따르는 부스러기 소리가 없음 (앞=$head, 뒤=$tail)", tail > head * 1.5f)
+    }
+
     @Test
     fun renderDoesNotLeakBetweenBuffers() {
         val s = synth()

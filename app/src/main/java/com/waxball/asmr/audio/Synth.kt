@@ -6,6 +6,7 @@ import com.waxball.asmr.core.SoundProfile
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 /**
  * 파괴 이벤트를 소리로 바꾼다.
@@ -75,11 +76,12 @@ class Synth(
         var t = 0f
         repeat(count) {
             t += exponentialGap(meanGapMs)
+            val freq = randomFreq() * sizeShift
             pool.spawn(
                 delayFrames = msToFrames(t),
-                freq = randomFreq() * sizeShift,
+                freq = freq,
                 q = profile.q * jitter(0.25f),
-                decayMs = randomDecay() * (1f + 0.12f * level),
+                decayMs = randomDecay() * damping(freq) * (1f + 0.12f * level),
                 amplitude = grainAmp * jitter(0.5f),
                 pan = pan + jitter01() * 0.06f,
                 resonance = profile.resonance * (0.5f + 0.2f * level),
@@ -109,11 +111,12 @@ class Synth(
         var t = 0f
         repeat(tail) {
             t += exponentialGap(4.5f)
+            val freq = randomFreq() * sizeShift * 1.15f
             pool.spawn(
                 delayFrames = msToFrames(t),
-                freq = randomFreq() * sizeShift * 1.15f,
+                freq = freq,
                 q = profile.q * jitter(0.3f),
-                decayMs = randomDecay() * 0.7f,
+                decayMs = randomDecay() * damping(freq) * 0.7f,
                 amplitude = 0.03f * jitter(0.6f),
                 pan = pan + jitter01() * 0.12f,
                 resonance = profile.resonance * 0.4f,
@@ -216,6 +219,17 @@ class Synth(
     // --- 잡다한 수치 도우미 ---
 
     private fun sizeShift(areaFrac: Float) = 1f / (1f + 6f * areaFrac.coerceIn(0f, 0.3f))
+
+    /**
+     * 점탄성 감쇠. 왁스 같은 무른 재질에서는 고주파 성분이 먼저 급격히 사라지고
+     * 저주파만 남는다. 감쇠 시간을 주파수와 무관하게 두면 파쇄음이 아니라
+     * 잡음 뭉치처럼 들린다.
+     */
+    internal fun damping(freq: Float): Float {
+        if (freq <= 1f) return 1f
+        val ratio = profile.baseFreq / freq
+        return sqrt(ratio).coerceIn(0.35f, 2.2f)
+    }
 
     private fun randomFreq(): Float {
         // 중심 주파수 주변으로 옥타브 단위로 흩뿌린다.
