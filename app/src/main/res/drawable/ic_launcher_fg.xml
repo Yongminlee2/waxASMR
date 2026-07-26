@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 왁스 껍질 -->
+    <path
+        android:fillColor="#E8D9B8"
+        android:pathData="M54,26 A28,28 0 1,0 54,82 A28,28 0 1,0 54,26 Z" />
+
+    <!-- 깨져 벗겨진 자리로 드러난 속살 -->
+    <path
+        android:fillColor="#59D499"
+        android:pathData="M54,54 L70,38 A28,28 0 0,1 76,58 L54,54 Z" />
+    <path
+        android:fillColor="#3FB07C"
+        android:pathData="M54,54 L76,58 A28,28 0 0,1 62,79 L54,54 Z" />
+
+    <!-- 금 -->
+    <path
+        android:strokeColor="#8C7A55"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M54,54 L38,40" />
+    <path
+        android:strokeColor="#8C7A55"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M54,54 L31,60" />
+    <path
+        android:strokeColor="#8C7A55"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M54,54 L45,78" />
+
+    <!-- 떨어진 조각 -->
+    <path
+        android:fillColor="#D8C69F"
+        android:pathData="M24,84 l7,-4 5,6 -8,3 z" />
+    <path
+        android:fillColor="#C9B68C"
+        android:pathData="M78,82 l6,-3 3,6 -7,1 z" />
+</vector>
