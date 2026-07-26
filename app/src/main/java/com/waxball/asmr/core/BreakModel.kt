@@ -33,6 +33,10 @@ class BreakModel(
     var detachedCount = 0
         private set
 
+    /** 상태가 한 단계 넘어간 총 횟수. 미션이 "금이 끊기지 않았는지" 볼 때 쓴다. */
+    var transitions = 0
+        private set
+
     init {
         for (s in shards.shards) {
             val q = quadrantIndex(s.center)
@@ -93,6 +97,7 @@ class BreakModel(
         ) {
             val level = state[shardId] + 1
             state[shardId] = level
+            transitions++
 
             val shard = shards.shards[shardId]
             if (level >= ShardState.DETACHED) {

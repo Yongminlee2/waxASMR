@@ -3,8 +3,56 @@
     <string name="app_name">왁뿌볼 ASMR</string>
 
     <string name="back">나가기</string>
+    <string name="retry">다시 하기</string>
+    <string name="close">닫기</string>
     <string name="orbit_unlocked">굴리기 켜짐</string>
     <string name="orbit_locked">굴리기 잠금</string>
     <string name="progress_percent">%d%%</string>
-    <string name="play">시작하기</string>
+
+    <string name="mission_with_time">%1$s · %2$d초 남음 · %3$d%%</string>
+    <string name="mission_plain">%1$s · %2$d%%</string>
+    <string name="mission_cleared">성공!</string>
+    <string name="mission_failed">실패</string>
+    <string name="mission_try_again">페널티는 없습니다. 다시 해보세요.</string>
+    <string name="reward_coins">코인 %d개를 받았습니다</string>
+
+    <string name="home_coins">코인 %d</string>
+    <string name="home_missions">오늘의 미션</string>
+    <string name="home_balls">볼 고르기</string>
+    <string name="home_collection">도감</string>
+    <string name="home_settings">설정</string>
+    <string name="mission_done">완료</string>
+
+    <string name="locked_price">%d코인</string>
+    <string name="buy_title">%s 열기</string>
+    <string name="buy_message">코인 %1$d개를 써서 엽니다. 지금 %2$d개 있습니다.</string>
+    <string name="buy_confirm">열기</string>
+    <string name="cancel">취소</string>
+    <string name="not_enough_coins">코인이 부족합니다. 더 깨고 오세요.</string>
+
+    <string name="headphone_tip_title">이어폰을 껴 보세요</string>
+    <string name="headphone_tip_message">손가락 위치에 따라 소리가 좌우로 움직입니다. 이어폰으로 들어야 제맛입니다.</string>
+    <string name="ok">알겠어요</string>
+
+    <string name="collection_title">도감</string>
+    <string name="collection_count">30개 중 %d개</string>
+    <!-- 값이 물음표로 시작하면 aapt가 테마 속성 참조로 읽어 버려서 이스케이프한다 -->
+    <string name="collection_unknown">\?\?\?</string>
+    <string name="collection_locked_hint">아직 열지 않은 볼입니다.</string>
+
+    <string name="settings_title">설정</string>
+    <string name="settings_haptics">진동</string>
+    <string name="settings_volume">음량</string>
+    <string name="settings_quality">화질</string>
+    <string name="settings_quality_auto">자동</string>
+    <string name="settings_quality_low">낮음</string>
+    <string name="settings_quality_medium">보통</string>
+    <string name="settings_quality_high">높음</string>
+    <string name="settings_orbit_lock">굴리기 잠금</string>
+    <string name="settings_reset">기록 전부 지우기</string>
+    <string name="settings_reset_confirm">코인·해금·도감이 전부 사라집니다. 되돌릴 수 없습니다.</string>
+    <string name="settings_reset_done">기록을 지웠습니다.</string>
+
+    <string name="audio_failed">이 기기에서 소리를 낼 수 없어 무음으로 진행합니다.</string>
+    <string name="gl_unsupported">이 기기는 OpenGL ES 3.0을 지원하지 않아 실행할 수 없습니다.</string>
 </resources>
