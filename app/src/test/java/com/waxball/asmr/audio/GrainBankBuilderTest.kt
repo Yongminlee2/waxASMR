@@ -30,14 +30,16 @@ class GrainBankBuilderTest {
         }
 
         val all = ArrayList<GrainExtractor.Fragment>()
+        val log = StringBuilder()
         for ((i, file) in sources.withIndex()) {
             val wav = WavReader.read(file)
-            val fragments = GrainExtractor.extract(wav, sourceIndex = i, limit = 220)
-            println("[그레인] ${file.name}: 파편 ${fragments.size}개")
+            val fragments = GrainExtractor.extract(wav, sourceIndex = i, limit = 600)
+            log.appendLine("${file.name}: 파편 ${fragments.size}개 · ${GrainExtractor.lastRejections}")
             all.addAll(fragments)
         }
+        File("build/grain-report.txt").apply { parentFile?.mkdirs(); writeText(log.toString()) }
 
-        assertTrue("파편을 하나도 못 잘라냄", all.size >= 60)
+        assertTrue("파편이 너무 적음: ${all.size}개\n$log", all.size >= 60)
 
         GrainExtractor.writeBank(
             all,

@@ -33,10 +33,28 @@ object GrainExtractor {
      * 파열 하나를 다음 파열 직전까지, 최대 [MAX_MS]까지 잘라낸다.
      * 너무 짧거나 잡음 바닥에 묻힌 것은 버린다.
      */
+    /** 왜 버려졌는지 세어 둔다. 필터가 과하면 여기서 바로 보인다. */
+    class Rejections {
+        var tooShort = 0
+        var tooQuiet = 0
+        var slowAttack = 0
+        var tooDark = 0
+        var weakBody = 0
+        var onsets = 0
+        override fun toString() =
+            "온셋 $onsets · 버림: 짧음 $tooShort, 작음 $tooQuiet, 어택느림 $slowAttack, 어두움 $tooDark, 약함 $weakBody"
+    }
+
+    var lastRejections = Rejections()
+        private set
+
     fun extract(wav: LoadedWav, sourceIndex: Int, limit: Int = 400): List<Fragment> {
         val sr = wav.sampleRate
         val x = wav.samples
         val onsets = ReferenceAnalyzer.onsetSamples(wav)
+        val reject = Rejections()
+        lastRejections = reject
+        reject.onsets = onsets.size
         if (onsets.isEmpty()) return emptyList()
 
         val floor = noiseFloor(x)
@@ -52,26 +70,29 @@ object GrainExtractor {
             val nextOnset = if (i + 1 < onsets.size) onsets[i + 1] else x.size
             val end = min(min(start + maxLen, nextOnset - (0.002f * sr).toInt()), x.size)
             val len = end - start
-            if (len < minLen) continue
+            if (len < minLen) { reject.tooShort++; continue }
 
             var peak = 0f
             for (j in start until end) peak = maxOf(peak, abs(x[j]))
-            if (peak < floor * 5f) continue         // 잡음만 있는 구간
-            if (peak < 0.02f) continue              // 너무 작아 쓸모없음
+            if (peak < floor * 5f) { reject.tooQuiet++; continue }   // 잡음만 있는 구간
+            if (peak < 0.02f) { reject.tooQuiet++; continue }        // 너무 작아 쓸모없음
 
             val frag = FloatArray(len)
             for (j in 0 until len) frag[j] = x[start + j] / peak   // 정규화
 
             // 영상에는 목소리·배경음·자막 효과음이 섞여 있다. 그대로 두면 그것까지 파편이 된다.
             // 파열음은 앞머리가 1ms 안에 서지만 목소리나 음악은 그렇지 않다. 이걸로 가른다.
-            // 자르는 시작점이 검출점보다 4ms 앞이라 그만큼 여유를 준다.
-            if (attackMs(frag, sr) > 14f) continue
+            // 목소리·배경음을 걸러내려고 둔 조건이다. 여운이 긴 녹음에서는 앞 파열의 꼬리가
+            // 아직 울리는 중에 다음 파열이 시작돼서, 멀쩡한 파편도 어택이 느리다고 오판된다.
+            // 실제로 이 값이 14ms였을 때 온셋 491개 중 404개를 버렸다.
+            // 지속음(목소리·음악)만 걸러낼 만큼만 남긴다.
+            if (attackMs(frag, sr) > 45f) { reject.slowAttack++; continue }
             // 사람 목소리 대역에 에너지가 몰린 것도 뺀다.
             val centroid = centroidOf(frag, sr)
-            if (centroid < 900f) continue
+            if (centroid < 900f) { reject.tooDark++; continue }
 
             applyFades(frag, sr)
-            if (rms(frag) < 0.02f) continue
+            if (rms(frag) < 0.02f) { reject.weakBody++; continue }
 
             out.add(
                 Fragment(
