@@ -110,13 +110,13 @@ class Synth(
      */
     private fun detach(energy: Float, pan: Float, areaFrac: Float) {
         val sizeShift = sizeShift(areaFrac)
-        val body = 1f + 8f * areaFrac.coerceIn(0f, 0.25f)
+        val sizeBody = 1f + 8f * areaFrac.coerceIn(0f, 0.25f)
 
         pool.spawn(
             delayFrames = 0,
             freq = profile.baseFreq * 0.55f * sizeShift,
             q = profile.q * 1.6f,
-            decayMs = profile.decayMsMax * 2.2f * body,
+            decayMs = profile.decayMsMax * 2.2f * sizeBody,
             amplitude = 0.16f * (0.5f + 0.5f * energy),
             pan = pan,
             resonance = (profile.resonance * 1.9f).coerceAtMost(0.9f),
@@ -127,7 +127,7 @@ class Synth(
                 delayFrames = 0,
                 freq = 90f + 130f * nextFloat(),
                 q = 2.0f,
-                decayMs = 90f + 90f * body,
+                decayMs = 90f + 90f * sizeBody,
                 amplitude = 0.1f * profile.body,
                 pan = pan,
                 resonance = 0.45f,

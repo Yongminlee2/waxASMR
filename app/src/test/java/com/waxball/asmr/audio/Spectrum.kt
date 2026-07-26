@@ -56,7 +56,7 @@ object Spectrum {
     }
 
     /** 제자리 radix-2 FFT. */
-    private fun fft(re: FloatArray, im: FloatArray) {
+    fun fft(re: FloatArray, im: FloatArray) {
         val n = re.size
         var j = 0
         for (i in 1 until n) {
