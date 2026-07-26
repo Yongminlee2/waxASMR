@@ -94,6 +94,9 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         binding.playView.renderer.onFrame = ::onFrame
         loadBall(Random.nextLong())
         scheduleHide()
+
+        // 깨기와 굴리기가 영역으로 갈려서, 설명 없이는 굴리는 법을 못 찾는다.
+        ControlsGuide.showOnce(this, store)
     }
 
     override fun onResume() {

@@ -45,6 +45,7 @@ class AudioEngine(context: Context) {
         private set
 
     private var touchMarkNs = 0L
+    private var lastLatencyLogNs = 0L
 
     init {
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -111,6 +112,13 @@ class AudioEngine(context: Context) {
                     val bufferMs = frames * 1000f / sampleRate
                     measuredLatencyMs = queueDelayMs + bufferMs * 2f
                     touchMarkNs = 0L
+
+                    // 손가락과 소리가 어긋나면 뇌가 가짜로 인식한다. 실측값을 남겨 둔다.
+                    val now = System.nanoTime()
+                    if (now - lastLatencyLogNs > 2_000_000_000L) {
+                        lastLatencyLogNs = now
+                        Log.i(TAG, "지연 %.1fms (큐 %.1f + 버퍼 %.1f×2)".format(measuredLatencyMs, queueDelayMs, bufferMs))
+                    }
                 }
                 queue.drain(synth)
             }

@@ -38,6 +38,7 @@ class HomeActivity : AppCompatActivity() {
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+        binding.controlsButton.setOnClickListener { ControlsGuide.show(this) }
     }
 
     override fun onResume() {

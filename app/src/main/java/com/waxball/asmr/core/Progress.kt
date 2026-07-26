@@ -24,6 +24,7 @@ class Progress private constructor() {
     var qualitySetting: Int = -1
     var orbitLocked: Boolean = false
     var seenHeadphoneTip: Boolean = false
+    var seenControlsTip: Boolean = false
 
     /** 조각 수와 완파 여부로 코인을 준다. 소모품이 없으니 용처는 볼 해금뿐이다. */
     fun awardForRun(detachedShards: Int, cleared: Boolean): Int =
@@ -66,6 +67,7 @@ class Progress private constructor() {
         append("quality=").append(qualitySetting).append('\n')
         append("orbitLocked=").append(if (orbitLocked) 1 else 0).append('\n')
         append("headphoneTip=").append(if (seenHeadphoneTip) 1 else 0).append('\n')
+        append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
     }
 
     companion object {
@@ -100,6 +102,7 @@ class Progress private constructor() {
                     "quality" -> value.toIntOrNull()?.let { p.qualitySetting = it.coerceIn(-1, 2) }
                     "orbitLocked" -> p.orbitLocked = value == "1"
                     "headphoneTip" -> p.seenHeadphoneTip = value == "1"
+                    "controlsTip" -> p.seenControlsTip = value == "1"
                 }
             }
             return p

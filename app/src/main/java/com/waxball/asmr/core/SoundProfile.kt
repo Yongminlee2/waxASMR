@@ -15,6 +15,8 @@ package com.waxball.asmr.core
  * @param toughness 파괴 임계 배율. 클수록 잘 안 깨진다
  * @param propagation 전이 시 이웃 조각에 전달되는 압력 비율
  * @param brightness 고역 강조. 착지음·문지름 소리의 밝기에 쓴다
+ * @param body 으스러질 때 깔리는 저역 몸통의 양 0~1. 이게 없으면 파쇄음이 아니라
+ *   쉬익거리는 잡음으로 들린다
  */
 data class SoundProfile(
     val baseFreq: Float,
@@ -27,6 +29,9 @@ data class SoundProfile(
     val toughness: Float,
     val propagation: Float,
     val brightness: Float,
+    val body: Float = 0.5f,
+    /** 파열 간격 배율. 크면 하나하나 굵게 터지고, 작으면 촘촘히 뭉쳐서 터진다. */
+    val gapScale: Float = 1f,
 ) {
     companion object {
 

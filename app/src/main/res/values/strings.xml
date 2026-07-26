@@ -34,6 +34,10 @@
     <string name="headphone_tip_message">손가락 위치에 따라 소리가 좌우로 움직입니다. 이어폰으로 들어야 제맛입니다.</string>
     <string name="ok">알겠어요</string>
 
+    <string name="controls">조작법</string>
+    <string name="controls_title">조작법</string>
+    <string name="controls_body">깨기\n· 볼 위를 톡 치면 그 자리가 깨집니다\n· 꾹 누르고 있으면 힘이 쌓여 깊게 깨집니다\n· 볼 위를 쭉 문지르면 지나간 자리가 줄줄이 까입니다\n\n굴리기\n· 볼 <b>바깥 여백</b>을 끌면 볼이 굴러갑니다\n· 두 손가락으로는 어디서든 굴릴 수 있습니다\n· 뒤통수까지 굴려서 까야 다 깝니다\n\n그 밖에\n· 두 손가락을 벌리면 확대됩니다\n· 오른쪽 아래 “굴리기 잠금”을 켜면 화면 전체가 깨기 영역이 됩니다\n· 껍질을 다 벗기면 안쪽 말랑이가 나옵니다. 눌러 보세요\n\n이어폰을 끼면 손가락 위치에 따라 소리가 좌우로 움직입니다.</string>
+
     <string name="collection_title">도감</string>
     <string name="collection_count">30개 중 %d개</string>
     <!-- 값이 물음표로 시작하면 aapt가 테마 속성 참조로 읽어 버려서 이스케이프한다 -->

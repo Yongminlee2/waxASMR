@@ -67,11 +67,26 @@ class Synth(
         val e = energy.coerceIn(0f, 1f)
         val count = ((5f + 195f * e.pow(1.4f)) * profile.density * (0.6f + 0.18f * level)).toInt()
         // 세게 누를수록 파열이 촘촘해진다. 평균 간격 6ms → 1.2ms
-        val meanGapMs = 6f - 4.8f * e
+        val meanGapMs = (6f - 4.8f * e) * profile.gapScale
         val grainAmp = 0.055f * (0.35f + 0.65f * e) * (0.85f + 0.1f * level)
         val sizeShift = sizeShift(areaFrac)
         lastGrainCount = count
         lastMeanGapMs = meanGapMs
+
+        // 왁스가 으스러질 때 깔리는 저역 몸통. 이게 없으면 파쇄음이 아니라
+        // 쉬익거리는 잡음처럼 들린다.
+        if (profile.body > 0.01f && level >= 2) {
+            pool.spawn(
+                delayFrames = msToFrames(exponentialGap(2f)),
+                freq = 110f + 190f * nextFloat(),
+                q = 2.2f,
+                decayMs = 45f + 55f * nextFloat(),
+                amplitude = 0.075f * profile.body * (0.4f + 0.6f * e),
+                pan = pan,
+                resonance = 0.4f,
+                attackMs = 2.5f,
+            )
+        }
 
         var t = 0f
         repeat(count) {
@@ -106,6 +121,19 @@ class Synth(
             pan = pan,
             resonance = (profile.resonance * 1.9f).coerceAtMost(0.9f),
         )
+
+        if (profile.body > 0.01f) {
+            pool.spawn(
+                delayFrames = 0,
+                freq = 90f + 130f * nextFloat(),
+                q = 2.0f,
+                decayMs = 90f + 90f * body,
+                amplitude = 0.1f * profile.body,
+                pan = pan,
+                resonance = 0.45f,
+                attackMs = 3f,
+            )
+        }
 
         val tail = (10f + 22f * profile.density).toInt()
         var t = 0f

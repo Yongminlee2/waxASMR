@@ -64,6 +64,9 @@ class BallRenderer : GLSurfaceView.Renderer {
     @Volatile var cameraDistance = 4.2f
         private set
 
+    /** 1이 기본 거리. 핀치로만 바뀐다. */
+    @Volatile private var zoomFactor = 1f
+
     /** 코어를 누르는 지점과 깊이. 셰이더가 그만큼 눌러 준다. */
     @Volatile private var pressPoint = Vec3.ZERO
     @Volatile private var pressAmount = 0f
@@ -89,7 +92,8 @@ class BallRenderer : GLSurfaceView.Renderer {
     }
 
     fun zoom(scale: Float) {
-        cameraDistance = (cameraDistance / scale).coerceIn(2.6f, 7.5f)
+        if (scale <= 0f) return
+        zoomFactor = (zoomFactor / scale).coerceIn(0.55f, 1.7f)
     }
 
     fun setPress(point: Vec3, amount: Float) {
@@ -136,8 +140,17 @@ class BallRenderer : GLSurfaceView.Renderer {
         Mat4.multiply(viewProj, projMatrix, viewMatrix)
 
         val scale = s.spec.size.radius
-        ballScreenRadius = viewportHeight * 0.5f * (scale * 1.02f) /
-            (cameraDistance * tan(Math.toRadians(FOV_DEG / 2.0)).toFloat())
+        val tanHalf = tan(Math.toRadians(FOV_DEG / 2.0)).toFloat()
+
+        // 세로 화면에서는 가로가 먼저 잘린다. 짧은 축을 기준으로 볼을 맞춰야
+        // 좌우가 안 잘리고, 굴리기용 여백도 남는다.
+        val aspect = viewportWidth.toFloat() / viewportHeight
+        val shortAxisLimit = tanHalf * minOf(1f, aspect)
+        val fitDistance = scale * 1.05f / (BALL_SCREEN_FILL * shortAxisLimit)
+        cameraDistance = fitDistance * zoomFactor
+        floorY = -(scale + 1.5f)
+
+        ballScreenRadius = viewportHeight * 0.5f * (scale * 1.02f) / (cameraDistance * tanHalf)
 
         updateTransforms(s)
         drawShell(s, scale)
@@ -162,7 +175,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         xformBuffer = GlUtil.allocFloatBuffer(xformData.size)
 
         ballRotation = Quat.IDENTITY
-        cameraDistance = 4.2f
+        zoomFactor = 1f
         pressAmount = 0f
     }
 
@@ -330,5 +343,8 @@ class BallRenderer : GLSurfaceView.Renderer {
     private companion object {
         const val FOV_DEG = 42f
         const val XFORM_ROWS = 4
+
+        /** 화면 짧은 축을 볼이 차지하는 비율. 나머지는 굴리기용 여백이다. */
+        const val BALL_SCREEN_FILL = 0.82f
     }
 }
