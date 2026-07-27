@@ -33,15 +33,6 @@ class Progress private constructor() {
     fun awardForRun(detachedShards: Int, cleared: Boolean): Int =
         detachedShards / 10 + if (cleared) CLEAR_BONUS else 0
 
-    fun canBuy(spec: BallSpec): Boolean = spec.id !in unlocked && coins >= spec.price
-
-    fun buy(spec: BallSpec): Boolean {
-        if (!canBuy(spec)) return false
-        coins -= spec.price
-        unlocked.add(spec.id)
-        return true
-    }
-
     fun isUnlocked(id: Int) = id in unlocked
 
     fun markCompleted(id: Int) {
@@ -78,8 +69,15 @@ class Progress private constructor() {
     companion object {
         private const val CLEAR_BONUS = 20
 
+        /**
+         * 볼은 처음부터 전부 열려 있다.
+         *
+         * 코인을 모아 여는 구조를 뒀었는데, 소리를 들으려고 켜는 앱에서
+         * 듣고 싶은 소리를 막아 두는 게 아무 의미가 없었다.
+         * 코인은 미션 보상 기록으로만 남긴다.
+         */
         fun fresh(): Progress = Progress().apply {
-            unlocked.addAll(BallCatalog.free)
+            unlocked.addAll(BallCatalog.all.map { it.id })
         }
 
         /**
@@ -97,7 +95,8 @@ class Progress private constructor() {
                 val value = line.substring(sep + 1)
                 when (key) {
                     "coins" -> value.toIntOrNull()?.let { p.coins = it.coerceAtLeast(0) }
-                    "unlocked" -> { p.unlocked.clear(); p.unlocked.addAll(intList(value)); p.unlocked.addAll(BallCatalog.free) }
+                    // 예전에 저장된 기록이 있어도 전부 열어 준다.
+                    "unlocked" -> p.unlocked.addAll(intList(value))
                     "completed" -> { p.completed.clear(); p.completed.addAll(intList(value)) }
                     "missionDay" -> value.toLongOrNull()?.let { p.missionDay = it }
                     "missions" -> { p.missionIds.clear(); p.missionIds.addAll(intList(value)) }

@@ -93,6 +93,7 @@ uniform mat3 uRot;
 uniform float uRadius;
 uniform vec3 uPressPoint;
 uniform float uPressAmount;
+uniform vec3 uOffset;
 
 out vec3 vNormal;
 out vec3 vWorld;
@@ -102,7 +103,8 @@ void main() {
     float d = max(0.0, 1.0 - length(p - uPressPoint) / 0.85);
     p -= normalize(uPressPoint + vec3(0.0001)) * (d * d) * uPressAmount;
 
-    vec3 world = (uRot * p) * uRadius;
+    // 여러 개를 흩어 놓을 때 껍질과 같은 자리로 옮겨야 한다.
+    vec3 world = (uRot * p) * uRadius + uOffset;
     vNormal = normalize(uRot * aPos);
     vWorld = world;
     gl_Position = uViewProj * vec4(world, 1.0);

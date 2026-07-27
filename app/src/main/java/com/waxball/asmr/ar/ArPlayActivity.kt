@@ -62,6 +62,9 @@ class ArPlayActivity : AppCompatActivity() {
 
         /** 볼을 손 너비의 이 비율로 놓는다. 1을 넘으면 손 밖으로 삐져나온다. */
         private const val BALL_TO_HAND = 0.9f
+
+        /** 손바닥 위에 한꺼번에 올릴 수 있는 공 개수. 더 늘리면 하나하나가 너무 작아진다. */
+        private const val MAX_BALLS = 3
     }
 
     private lateinit var binding: ActivityArPlayBinding
@@ -74,7 +77,10 @@ class ArPlayActivity : AppCompatActivity() {
     private val ui = Handler(Looper.getMainLooper())
 
     private var spec: BallSpec = BallCatalog.all[0]
-    private var scene: BallScene? = null
+
+    /** 손 위에 올라간 공들. 쥐면 전부 한꺼번에 으스러진다. */
+    private val scenes = ArrayList<BallScene>()
+    private var ballCount = 1
     private var nextBallPending = false
     private var lostSince = 0L
 
@@ -109,7 +115,9 @@ class ArPlayActivity : AppCompatActivity() {
 
         binding.arView.renderer.onFrame = ::onFrame
         buildBallPicker(progress)
-        loadBall(Random.nextLong())
+        updateCountLabel()
+        binding.arCountButton.setOnClickListener { cycleBallCount() }
+        loadBalls(Random.nextLong())
 
         if (hasCameraPermission()) startCamera()
         else requestCamera.launch(Manifest.permission.CAMERA)
@@ -146,7 +154,18 @@ class ArPlayActivity : AppCompatActivity() {
         spec = next
         audio.setProfile(spec.soundProfile())
         buildBallPicker(progress)
-        loadBall(Random.nextLong())
+        loadBalls(Random.nextLong())
+    }
+
+    /** 손바닥 위에 올릴 공 개수를 1~3으로 돌린다. */
+    private fun cycleBallCount() {
+        ballCount = if (ballCount >= MAX_BALLS) 1 else ballCount + 1
+        updateCountLabel()
+        loadBalls(Random.nextLong())
+    }
+
+    private fun updateCountLabel() {
+        binding.arCountButton.text = getString(R.string.ar_count, ballCount)
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
@@ -197,26 +216,54 @@ class ArPlayActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    /** 볼 만들기는 기존 모드와 똑같다. */
-    private fun loadBall(seed: Long) {
+    /**
+     * 볼을 [ballCount] 개 만든다. 볼 하나하나는 기존 모드와 똑같이 만든다.
+     *
+     * 개수가 늘면 조각도 그만큼 늘어난다. 손바닥 위라 볼 하나가 작게 보이므로
+     * 개수에 따라 조각 수를 줄여도 티가 안 나고, 프레임이 버틴다.
+     */
+    private fun loadBalls(seed: Long) {
         nextBallPending = false
         val target = spec
+        val count = ballCount
+        val quality = if (count >= 3) 0 else if (count == 2) 1 else 1
+
         Thread({
-            val base = Icosphere.build(target.baseSubdivision(1))
-            val shards = ShardSplitter.split(base, target.shardCount(1), Random(seed))
-            val geometry = BallGeometry.build(shards, target.shellThickness, target.shape::warp)
-            val model = BreakModel(shards, target.soundProfile(), audio.queue)
-            val debris = Debris(shards.size, Random(seed + 1))
-            val next = BallScene(target, shards, geometry, model, debris)
+            val built = ArrayList<BallScene>(count)
+            for (i in 0 until count) {
+                val ballSeed = seed + i * 7919L
+                val base = Icosphere.build(target.baseSubdivision(quality))
+                val shards = ShardSplitter.split(base, target.shardCount(quality), Random(ballSeed))
+                val geometry = BallGeometry.build(shards, target.shellThickness, target.shape::warp)
+                val model = BreakModel(shards, target.soundProfile(), audio.queue)
+                val debris = Debris(shards.size, Random(ballSeed + 1))
+                built.add(BallScene(target, shards, geometry, model, debris))
+            }
             runOnUiThread {
-                scene = next
-                binding.arView.renderer.setScene(next)
+                scenes.clear()
+                scenes.addAll(built)
+                binding.arView.renderer.setScenes(built)
             }
         }, "ArBallBuilder").start()
     }
 
+    /**
+     * 공 여러 개를 손바닥 주위에 흩어 놓는다.
+     *
+     * 전부 같은 자리에 두면 하나로 겹쳐 보인다. 손 크기에 비례해 벌려야
+     * 손이 멀어져도 배치가 유지된다.
+     */
+    private fun clusterOffset(index: Int, count: Int, spread: Float, out: FloatArray) {
+        if (count <= 1) { out[0] = 0f; out[1] = 0f; return }
+        val angle = (index.toFloat() / count) * 2f * Math.PI.toFloat() - Math.PI.toFloat() / 2f
+        out[0] = kotlin.math.cos(angle) * spread
+        out[1] = kotlin.math.sin(angle) * spread * 0.6f
+    }
+
+    private val offsetScratch = FloatArray(2)
+
     private fun onFrame(dt: Float) {
-        val s = scene ?: return
+        if (scenes.isEmpty()) return
         val renderer = binding.arView.renderer
 
         pose.update(latestHand, dt)
@@ -224,17 +271,29 @@ class ArPlayActivity : AppCompatActivity() {
         if (pose.hasHand) {
             val width = binding.arView.width.coerceAtLeast(1)
             val height = binding.arView.height.coerceAtLeast(1)
-            renderer.placeAt(
-                pose.centerX * width,
-                pose.centerY * height,
-                pose.span * width * BALL_TO_HAND,
-            )
+
+            // 개수가 늘면 하나하나는 작아진다. 손바닥을 넘치지 않게 한다.
+            val perBall = BALL_TO_HAND / (1f + 0.55f * (scenes.size - 1))
+            val radiusPx = pose.span * width * perBall
+            val spreadPx = pose.span * width * 0.55f
+
+            for (i in scenes.indices) {
+                clusterOffset(i, scenes.size, spreadPx, offsetScratch)
+                renderer.placeAt(
+                    i,
+                    pose.centerX * width + offsetScratch[0],
+                    pose.centerY * height + offsetScratch[1],
+                    radiusPx,
+                )
+            }
 
             if (pose.force > 0f) {
                 audio.markTouch()
-                s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
-
-                val broken = DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+                var broken = 0f
+                for (s in scenes) {
+                    s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
+                    broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+                }
                 if (broken > 0f) {
                     val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
                     renderer.shake(magnitude)
@@ -242,16 +301,19 @@ class ArPlayActivity : AppCompatActivity() {
                 }
             }
         } else {
-            renderer.hideBall()
+            renderer.hideBalls()
         }
 
-        s.debris.update(dt, renderer.floorY, s.geometry.shardCenters) { id, pan, _ ->
-            s.model.land(id, pan, s.shards.shards[id].areaFrac)
+        for (s in scenes) {
+            s.debris.update(dt, renderer.floorY, s.geometry.shardCenters) { id, pan, _ ->
+                s.model.land(id, pan, s.shards.shards[id].areaFrac)
+            }
         }
 
-        if (s.model.shellProgress >= 0.999f && !nextBallPending) {
+        // 전부 다 부서져야 새로 깐다. 하나만 남아도 계속 만질 거리가 있다.
+        if (scenes.all { it.model.shellProgress >= 0.999f } && !nextBallPending) {
             nextBallPending = true
-            ui.postDelayed({ if (!isFinishing) loadBall(Random.nextLong()) }, 2600)
+            ui.postDelayed({ if (!isFinishing) loadBalls(Random.nextLong()) }, 2600)
         }
 
         ui.post { updateHint() }

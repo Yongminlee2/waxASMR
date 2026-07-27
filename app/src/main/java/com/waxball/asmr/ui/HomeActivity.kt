@@ -116,64 +116,40 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    /** 볼은 전부 열려 있다. 듣고 싶은 소리를 막아 둘 이유가 없다. */
     private fun ballCard(spec: BallSpec): View {
-        val unlocked = progress.isUnlocked(spec.id)
-
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
             background = getDrawable(R.drawable.bg_card)
             setPadding(dp(12), dp(14), dp(12), dp(14))
-            setOnClickListener { if (unlocked) startPlay(spec.id, -1) else confirmBuy(spec) }
+            setOnClickListener { startPlay(spec.id, -1) }
         }
 
         val swatch = View(this).apply {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(if (unlocked) spec.shellColor else Color.parseColor("#20242C"))
-                setStroke(dp(1), if (unlocked) spec.fleshColor else Color.parseColor("#2C323C"))
+                setColor(spec.shellColor)
+                setStroke(dp(1), spec.fleshColor)
             }
         }
         column.addView(swatch, LinearLayout.LayoutParams(dp(56), dp(56)))
 
         column.addView(TextView(this).apply {
-            text = if (unlocked) spec.nameKo else getString(R.string.collection_unknown)
+            text = spec.nameKo
             setTextColor(resources.getColor(R.color.text_primary, theme))
             textSize = 13f
             gravity = Gravity.CENTER
         }, rowParams(top = 8))
 
         column.addView(TextView(this).apply {
-            text = if (unlocked) spec.material.labelKo else getString(R.string.locked_price, spec.price)
-            setTextColor(resources.getColor(if (unlocked) R.color.text_muted else R.color.accent_warm, theme))
+            text = spec.material.labelKo
+            setTextColor(resources.getColor(R.color.text_muted, theme))
             textSize = 11f
             gravity = Gravity.CENTER
         }, rowParams(top = 2))
 
         return column
-    }
-
-    private fun confirmBuy(spec: BallSpec) {
-        if (progress.coins < spec.price) {
-            AlertDialog.Builder(this)
-                .setMessage(R.string.not_enough_coins)
-                .setPositiveButton(R.string.ok, null)
-                .show()
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.buy_title, spec.nameKo))
-            .setMessage(getString(R.string.buy_message, spec.price, progress.coins))
-            .setPositiveButton(R.string.buy_confirm) { _, _ ->
-                if (progress.buy(spec)) {
-                    store.save(progress)
-                    binding.coinLabel.text = getString(R.string.home_coins, progress.coins)
-                    buildBalls()
-                    startPlay(spec.id, -1)
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun startPlay(ballId: Int, missionId: Int) {

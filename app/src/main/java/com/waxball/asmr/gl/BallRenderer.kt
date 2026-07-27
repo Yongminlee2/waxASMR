@@ -26,33 +26,75 @@ class BallScene(
 
 class BallRenderer : GLSurfaceView.Renderer {
 
+    /**
+     * GL에 올라간 볼 하나. 버퍼와 텍스처를 자기가 들고 있다.
+     *
+     * 여러 개를 동시에 그리려면 볼마다 자기 자원이 필요하다. 하나만 두고 매 프레임
+     * 바꿔 올리면 그때마다 수십만 개 정점을 다시 보내야 해서 못 쓴다.
+     */
+    private class LoadedBall(val scene: BallScene) {
+        var vboPos = 0
+        var vboNormal = 0
+        var vboShrink = 0
+        var vboShard = 0
+        var ibo = 0
+        var indexCount = 0
+
+        var xformTexture = 0
+        var xformWidth = 0
+        var xformData = FloatArray(0)
+        var xformBuffer = GlUtil.allocFloatBuffer(4)
+
+        /** 세계 좌표에서의 자리. 여러 개를 흩어 놓을 때 쓴다. */
+        var offsetX = 0f
+        var offsetY = 0f
+        var offsetZ = 0f
+
+        /** 그릴 때의 크기 배율. */
+        var drawScale = 1f
+
+        /** 손을 놓쳤을 때처럼 잠시 감출 때. */
+        var visible = true
+
+        fun upload() {
+            val g = scene.geometry
+            vboPos = GlUtil.createFloatBuffer(g.positions)
+            vboNormal = GlUtil.createFloatBuffer(g.normals)
+            vboShrink = GlUtil.createFloatBuffer(g.shrink)
+            vboShard = GlUtil.createFloatBuffer(g.shardAndFace)
+            ibo = GlUtil.createIndexBuffer(g.indices)
+            indexCount = g.indices.size
+
+            xformWidth = scene.shards.size
+            xformTexture = GlUtil.createFloatTexture(xformWidth, XFORM_ROWS)
+            xformData = FloatArray(xformWidth * XFORM_ROWS * 4)
+            xformBuffer = GlUtil.allocFloatBuffer(xformData.size)
+            drawScale = scene.spec.size.radius
+        }
+
+        fun release() {
+            GlUtil.deleteBuffers(vboPos, vboNormal, vboShrink, vboShard, ibo)
+            if (xformTexture != 0) GLES30.glDeleteTextures(1, intArrayOf(xformTexture), 0)
+            vboPos = 0; vboNormal = 0; vboShrink = 0; vboShard = 0; ibo = 0; xformTexture = 0
+        }
+    }
+
     /** GL 스레드 밖에서 넘겨받아 다음 프레임에 반영한다. */
-    private val pendingScene = AtomicReference<BallScene?>(null)
-    private var scene: BallScene? = null
+    private val pendingScenes = AtomicReference<List<BallScene>?>(null)
+    private val balls = ArrayList<LoadedBall>()
 
     private var shellProgram = 0
     private var coreProgram = 0
-
-    private var vboPos = 0
-    private var vboNormal = 0
-    private var vboShrink = 0
-    private var vboShard = 0
-    private var ibo = 0
-    private var indexCount = 0
 
     private var coreVbo = 0
     private var coreIbo = 0
     private var coreIndexCount = 0
 
-    private var xformTexture = 0
-    private var xformData = FloatArray(0)
-    private var xformBuffer = GlUtil.allocFloatBuffer(4)
-    private var xformWidth = 0
-
     private val viewMatrix = FloatArray(16)
     private val projMatrix = FloatArray(16)
     private val viewProj = FloatArray(16)
     private val rotMatrix = FloatArray(9)
+    private val scratchMatrix = FloatArray(12)
 
     private var viewportWidth = 1
     private var viewportHeight = 1
@@ -76,36 +118,12 @@ class BallRenderer : GLSurfaceView.Renderer {
     /** AR 화면은 카메라 영상 위에 겹치므로 배경을 비워야 한다. */
     var transparentBackground = false
 
-    /**
-     * 볼을 화면의 특정 자리에 특정 크기로 놓는다. AR 모드가 쓴다.
-     *
-     * 볼을 옮기는 대신 카메라를 옮긴다. 그러면 셰이더를 건드리지 않아도 되고,
-     * 기존 그리기 경로를 그대로 쓸 수 있다.
-     */
-    fun placeAt(screenX: Float, screenY: Float, radiusPx: Float) {
-        arPlacement = true
-        arVisible = true
-        arScreenX = screenX
-        arScreenY = screenY
-        arRadiusPx = radiusPx.coerceAtLeast(8f)
-    }
-
-    /**
-     * 손을 놓쳤을 때 볼을 감춘다.
-     *
-     * 손이 없는데 볼만 허공에 떠 있으면 "손 위에 올려놓은 것"이 아니라
-     * 그냥 화면에 붙은 그림으로 보인다.
-     */
-    fun hideBall() {
-        arVisible = false
-    }
-
-    @Volatile private var arVisible = false
-
+    /** AR에서는 볼을 세계 좌표에 흩어 놓는다. 일반 모드는 원점 하나뿐이다. */
     @Volatile private var arPlacement = false
-    @Volatile private var arScreenX = 0f
-    @Volatile private var arScreenY = 0f
-    @Volatile private var arRadiusPx = 100f
+
+    private class Placement(var screenX: Float, var screenY: Float, var radiusPx: Float, var visible: Boolean)
+
+    private val placements = ArrayList<Placement>()
 
     /** 마지막 프레임에서 잰 화면상 볼 반지름(픽셀). 터치 라우팅이 쓴다. */
     @Volatile var ballScreenRadius = 1f
@@ -114,9 +132,43 @@ class BallRenderer : GLSurfaceView.Renderer {
     var onFrame: ((dt: Float) -> Unit)? = null
 
     private var lastFrameNs = 0L
+    @Volatile private var shakeAmount = 0f
+    private var shakePhase = 0f
 
     fun setScene(next: BallScene) {
-        pendingScene.set(next)
+        pendingScenes.set(listOf(next))
+    }
+
+    /** 여러 개를 한꺼번에 올린다. AR에서 공 여러 개를 쥘 때 쓴다. */
+    fun setScenes(next: List<BallScene>) {
+        pendingScenes.set(next.toList())
+    }
+
+    /**
+     * [index] 번째 볼을 화면의 특정 자리에 특정 크기로 놓는다. AR 모드가 쓴다.
+     *
+     * 볼 하나였을 때는 카메라를 옮겨서 해결했지만, 여러 개를 각자 다른 자리에 놓으려면
+     * 카메라 하나로는 안 된다. 그래서 볼을 세계 좌표에 직접 놓는다.
+     */
+    fun placeAt(index: Int, screenX: Float, screenY: Float, radiusPx: Float) {
+        arPlacement = true
+        while (placements.size <= index) placements.add(Placement(0f, 0f, 100f, false))
+        placements[index].apply {
+            this.screenX = screenX
+            this.screenY = screenY
+            this.radiusPx = radiusPx.coerceAtLeast(8f)
+            visible = true
+        }
+    }
+
+    /**
+     * 볼을 전부 감춘다.
+     *
+     * 손이 없는데 볼만 허공에 떠 있으면 "손 위에 올려놓은 것"이 아니라
+     * 그냥 화면에 붙은 그림으로 보인다.
+     */
+    fun hideBalls() {
+        for (p in placements) p.visible = false
     }
 
     fun rotate(dx: Float, dy: Float) {
@@ -146,9 +198,6 @@ class BallRenderer : GLSurfaceView.Renderer {
         shakeAmount = maxOf(shakeAmount, s * MAX_SHAKE)
     }
 
-    @Volatile private var shakeAmount = 0f
-    private var shakePhase = 0f
-
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         if (transparentBackground) GLES30.glClearColor(0f, 0f, 0f, 0f)
         else GLES30.glClearColor(0.027f, 0.031f, 0.043f, 1f)
@@ -161,8 +210,8 @@ class BallRenderer : GLSurfaceView.Renderer {
         buildCoreMesh()
 
         // 표면이 다시 만들어지면 GL 자원이 전부 날아간다. 장면을 다시 올려야 한다.
-        scene?.let { pendingScene.set(it) }
-        scene = null
+        if (balls.isNotEmpty()) pendingScenes.set(balls.map { it.scene })
+        balls.clear()
         lastFrameNs = 0L
     }
 
@@ -174,7 +223,7 @@ class BallRenderer : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        pendingScene.getAndSet(null)?.let { adopt(it) }
+        pendingScenes.getAndSet(null)?.let { adopt(it) }
 
         val now = System.nanoTime()
         val dt = if (lastFrameNs == 0L) 0.016f else ((now - lastFrameNs) / 1e9f).coerceIn(0.001f, 0.05f)
@@ -182,9 +231,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         onFrame?.invoke(dt)
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
-
-        val s = scene ?: return
-        if (transparentBackground && !arVisible) return
+        if (balls.isEmpty()) return
 
         // 흔들림은 빠르게 진동하다 잦아든다. 오래 끌면 멀미가 난다.
         var shakeX = 0f
@@ -197,92 +244,109 @@ class BallRenderer : GLSurfaceView.Renderer {
             if (shakeAmount < 1e-4f) shakeAmount = 0f
         }
 
-        val scale = s.spec.size.radius
         val tanHalf = tan(Math.toRadians(FOV_DEG / 2.0)).toFloat()
         val aspect = viewportWidth.toFloat() / viewportHeight
 
-        var eyeX = shakeX
-        var eyeY = shakeY
-
         if (arPlacement) {
-            // 볼을 옮기는 대신 카메라를 옮겨서 원하는 자리·크기에 보이게 한다.
-            // 볼은 원점에 그대로 두므로 파괴·조각 계산이 전부 그대로 통한다.
-            cameraDistance = viewportHeight * 0.5f * (scale * 1.02f) / (arRadiusPx * tanHalf)
-            val ndcX = 2f * arScreenX / viewportWidth - 1f
-            val ndcY = 1f - 2f * arScreenY / viewportHeight
-            eyeX += -ndcX * cameraDistance * tanHalf * aspect
-            eyeY += -ndcY * cameraDistance * tanHalf
+            cameraDistance = AR_CAMERA_DISTANCE
+            placeForAr(tanHalf, aspect)
             // 손 위에 올라간 볼은 부스러기가 바닥에 쌓일 자리가 없다. 화면 밖으로 떨군다.
-            floorY = -(scale + 6f)
+            floorY = -(AR_CAMERA_DISTANCE + 6f)
         } else {
             // 세로 화면에서는 가로가 먼저 잘린다. 짧은 축을 기준으로 볼을 맞춰야
             // 좌우가 안 잘리고, 굴리기용 여백도 남는다.
+            val scale = balls[0].scene.spec.size.radius
             val shortAxisLimit = tanHalf * minOf(1f, aspect)
             val fitDistance = scale * 1.05f / (BALL_SCREEN_FILL * shortAxisLimit)
             cameraDistance = fitDistance * zoomFactor
+            balls[0].drawScale = scale
+            balls[0].offsetX = 0f; balls[0].offsetY = 0f; balls[0].offsetZ = 0f
+            balls[0].visible = true
             // 부스러기가 쌓이는 높이. 화면 맨 아래에 두면 도구 줄과 버튼에 가려서
             // 문질러 뭉갤 수가 없다. 볼 바로 아래, 하단 바 위쪽에 앉힌다.
             floorY = -(scale + 0.85f)
+            ballScreenRadius = viewportHeight * 0.5f * (scale * 1.02f) / (cameraDistance * tanHalf)
         }
 
-        Mat4.lookAt(viewMatrix, Vec3(eyeX, eyeY, cameraDistance), Vec3(eyeX, eyeY, 0f), Vec3.UP)
+        Mat4.lookAt(viewMatrix, Vec3(shakeX, shakeY, cameraDistance), Vec3(shakeX, shakeY, 0f), Vec3.UP)
         Mat4.multiply(viewProj, projMatrix, viewMatrix)
 
-        ballScreenRadius = viewportHeight * 0.5f * (scale * 1.02f) / (cameraDistance * tanHalf)
+        ballRotation.toMatrix3(rotMatrix, 0)
 
-        updateTransforms(s)
-        drawShell(s, scale)
-        if (s.model.shellProgress > 0.02f) drawCore(s, scale)
+        for (ball in balls) {
+            if (!ball.visible) continue
+            updateTransforms(ball)
+            drawShell(ball)
+            if (ball.scene.model.shellProgress > 0.02f) drawCore(ball)
+        }
     }
 
-    private fun adopt(next: BallScene) {
-        releaseSceneBuffers()
-        scene = next
+    /** 화면 위치와 원하는 크기를 세계 좌표 자리와 배율로 바꾼다. */
+    private fun placeForAr(tanHalf: Float, aspect: Float) {
+        val halfHeight = viewportHeight * 0.5f
+        for (i in balls.indices) {
+            val ball = balls[i]
+            val p = placements.getOrNull(i)
+            if (p == null || !p.visible) { ball.visible = false; continue }
 
-        val g = next.geometry
-        vboPos = GlUtil.createFloatBuffer(g.positions)
-        vboNormal = GlUtil.createFloatBuffer(g.normals)
-        vboShrink = GlUtil.createFloatBuffer(g.shrink)
-        vboShard = GlUtil.createFloatBuffer(g.shardAndFace)
-        ibo = GlUtil.createIndexBuffer(g.indices)
-        indexCount = g.indices.size
+            ball.visible = true
+            val ndcX = 2f * p.screenX / viewportWidth - 1f
+            val ndcY = 1f - 2f * p.screenY / viewportHeight
+            ball.offsetX = ndcX * AR_CAMERA_DISTANCE * tanHalf * aspect
+            ball.offsetY = ndcY * AR_CAMERA_DISTANCE * tanHalf
+            ball.offsetZ = 0f
+            ball.drawScale = p.radiusPx * AR_CAMERA_DISTANCE * tanHalf / (halfHeight * 1.02f)
 
-        xformWidth = next.shards.size
-        xformTexture = GlUtil.createFloatTexture(xformWidth, XFORM_ROWS)
-        xformData = FloatArray(xformWidth * XFORM_ROWS * 4)
-        xformBuffer = GlUtil.allocFloatBuffer(xformData.size)
+            if (i == 0) ballScreenRadius = p.radiusPx
+        }
+    }
+
+    private fun adopt(next: List<BallScene>) {
+        for (ball in balls) ball.release()
+        balls.clear()
+
+        for (scene in next) {
+            balls.add(LoadedBall(scene).apply { upload() })
+        }
 
         ballRotation = Quat.IDENTITY
         zoomFactor = 1f
         pressAmount = 0f
+        if (placements.size > balls.size) placements.subList(balls.size, placements.size).clear()
     }
 
     /**
      * 조각별 3x4 변환과 (수축량, 투명도)를 텍스처에 밀어 넣는다.
      * 붙어 있는 조각은 볼 회전을 그대로, 떨어진 조각은 자기 낙하 상태를 쓴다.
      */
-    private fun updateTransforms(s: BallScene) {
+    private fun updateTransforms(ball: LoadedBall) {
+        val s = ball.scene
         val n = s.shards.size
-        ballRotation.toMatrix3(rotMatrix, 0)
-
         val rowStride = n * 4
+        val data = ball.xformData
+
+        // 셰이더가 (M·p)에 배율을 곱하므로, 옮길 거리는 배율로 나눠서 넣어야 한다.
+        val scale = ball.drawScale.coerceAtLeast(1e-4f)
+        val tx = ball.offsetX / scale
+        val ty = ball.offsetY / scale
+        val tz = ball.offsetZ / scale
+
         for (i in 0 until n) {
             val detached = s.model.state[i] >= ShardState.DETACHED && s.debris.isActive(i)
 
             if (detached) {
                 s.debris.writeMatrix(i, s.geometry.shardCenters, scratchMatrix, 0)
-                writeRow(0, i, rowStride, scratchMatrix, 0)
-                writeRow(1, i, rowStride, scratchMatrix, 4)
-                writeRow(2, i, rowStride, scratchMatrix, 8)
+                writeRow(data, 0, i, rowStride, scratchMatrix, 0, tx)
+                writeRow(data, 1, i, rowStride, scratchMatrix, 4, ty)
+                writeRow(data, 2, i, rowStride, scratchMatrix, 8, tz)
             } else {
-                writeRotationRow(0, i, rowStride)
-                writeRotationRow(1, i, rowStride)
-                writeRotationRow(2, i, rowStride)
+                writeRotationRow(data, 0, i, rowStride, tx)
+                writeRotationRow(data, 1, i, rowStride, ty)
+                writeRotationRow(data, 2, i, rowStride, tz)
             }
 
             // 금이 갈수록 조각이 자기 중심으로 조금씩 줄어들어 틈이 벌어진다.
-            val level = s.model.state[i]
-            val shrink = when (level) {
+            val shrink = when (s.model.state[i]) {
                 ShardState.HAIRLINE -> 0.008f
                 ShardState.CRACKED -> 0.018f
                 ShardState.LOOSE -> 0.032f
@@ -292,65 +356,73 @@ class BallRenderer : GLSurfaceView.Renderer {
             val alpha = if (s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i)) 0f else 1f
 
             val base = 3 * rowStride + i * 4
-            xformData[base] = shrink
-            xformData[base + 1] = alpha
-            xformData[base + 2] = 0f
-            xformData[base + 3] = 0f
+            data[base] = shrink
+            data[base + 1] = alpha
+            data[base + 2] = 0f
+            data[base + 3] = 0f
         }
 
-        GlUtil.uploadFloatTexture(xformTexture, xformWidth, XFORM_ROWS, xformData, xformBuffer)
+        GlUtil.uploadFloatTexture(ball.xformTexture, ball.xformWidth, XFORM_ROWS, data, ball.xformBuffer)
     }
 
-    private val scratchMatrix = FloatArray(12)
-
-    private fun writeRow(row: Int, shard: Int, rowStride: Int, src: FloatArray, srcOffset: Int) {
+    private fun writeRow(
+        data: FloatArray,
+        row: Int,
+        shard: Int,
+        rowStride: Int,
+        src: FloatArray,
+        srcOffset: Int,
+        translate: Float,
+    ) {
         val base = row * rowStride + shard * 4
-        xformData[base] = src[srcOffset]
-        xformData[base + 1] = src[srcOffset + 1]
-        xformData[base + 2] = src[srcOffset + 2]
-        xformData[base + 3] = src[srcOffset + 3]
+        data[base] = src[srcOffset]
+        data[base + 1] = src[srcOffset + 1]
+        data[base + 2] = src[srcOffset + 2]
+        data[base + 3] = src[srcOffset + 3] + translate
     }
 
-    private fun writeRotationRow(row: Int, shard: Int, rowStride: Int) {
+    private fun writeRotationRow(data: FloatArray, row: Int, shard: Int, rowStride: Int, translate: Float) {
         val base = row * rowStride + shard * 4
-        xformData[base] = rotMatrix[row * 3]
-        xformData[base + 1] = rotMatrix[row * 3 + 1]
-        xformData[base + 2] = rotMatrix[row * 3 + 2]
-        xformData[base + 3] = 0f
+        data[base] = rotMatrix[row * 3]
+        data[base + 1] = rotMatrix[row * 3 + 1]
+        data[base + 2] = rotMatrix[row * 3 + 2]
+        data[base + 3] = translate
     }
 
-    private fun drawShell(s: BallScene, scale: Float) {
+    private fun drawShell(ball: LoadedBall) {
+        val spec = ball.scene.spec
         GLES30.glUseProgram(shellProgram)
 
-        bindAttrib(vboPos, 0, 3)
-        bindAttrib(vboNormal, 1, 3)
-        bindAttrib(vboShrink, 2, 3)
-        bindAttrib(vboShard, 3, 2)
+        bindAttrib(ball.vboPos, 0, 3)
+        bindAttrib(ball.vboNormal, 1, 3)
+        bindAttrib(ball.vboShrink, 2, 3)
+        bindAttrib(ball.vboShard, 3, 2)
 
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, xformTexture)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, ball.xformTexture)
         GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uXform"), 0)
 
         GLES30.glUniformMatrix4fv(GLES30.glGetUniformLocation(shellProgram, "uViewProj"), 1, false, viewProj, 0)
-        GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uScale"), scale)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uScale"), ball.drawScale)
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(shellProgram, "uShellColor"),
-            GlUtil.red(s.spec.shellColor), GlUtil.green(s.spec.shellColor), GlUtil.blue(s.spec.shellColor),
+            GlUtil.red(spec.shellColor), GlUtil.green(spec.shellColor), GlUtil.blue(spec.shellColor),
         )
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(shellProgram, "uFleshColor"),
-            GlUtil.red(s.spec.fleshColor), GlUtil.green(s.spec.fleshColor), GlUtil.blue(s.spec.fleshColor),
+            GlUtil.red(spec.fleshColor), GlUtil.green(spec.fleshColor), GlUtil.blue(spec.fleshColor),
         )
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uLightDir"), 0.45f, 0.8f, 0.6f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uCamPos"), 0f, 0f, cameraDistance)
 
-        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, ibo)
-        GLES30.glDrawElements(GLES30.GL_TRIANGLES, indexCount, GLES30.GL_UNSIGNED_INT, 0)
+        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, ball.ibo)
+        GLES30.glDrawElements(GLES30.GL_TRIANGLES, ball.indexCount, GLES30.GL_UNSIGNED_INT, 0)
 
         for (i in 0 until 4) GLES30.glDisableVertexAttribArray(i)
     }
 
-    private fun drawCore(s: BallScene, scale: Float) {
+    private fun drawCore(ball: LoadedBall) {
+        val spec = ball.scene.spec
         GLES30.glUseProgram(coreProgram)
         bindAttrib(coreVbo, 0, 3)
 
@@ -358,11 +430,15 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUniformMatrix3fv(GLES30.glGetUniformLocation(coreProgram, "uRot"), 1, true, rotMatrix, 0)
         GLES30.glUniform1f(
             GLES30.glGetUniformLocation(coreProgram, "uRadius"),
-            scale * (1f - s.spec.shellThickness - 0.03f),
+            ball.drawScale * (1f - spec.shellThickness - 0.03f),
+        )
+        GLES30.glUniform3f(
+            GLES30.glGetUniformLocation(coreProgram, "uOffset"),
+            ball.offsetX, ball.offsetY, ball.offsetZ,
         )
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(coreProgram, "uColor"),
-            GlUtil.red(s.spec.coreColor), GlUtil.green(s.spec.coreColor), GlUtil.blue(s.spec.coreColor),
+            GlUtil.red(spec.coreColor), GlUtil.green(spec.coreColor), GlUtil.blue(spec.coreColor),
         )
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uLightDir"), 0.45f, 0.8f, 0.6f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uCamPos"), 0f, 0f, cameraDistance)
@@ -388,19 +464,13 @@ class BallRenderer : GLSurfaceView.Renderer {
         coreIndexCount = mesh.indices.size
     }
 
-    private fun releaseSceneBuffers() {
-        GlUtil.deleteBuffers(vboPos, vboNormal, vboShrink, vboShard, ibo)
-        if (xformTexture != 0) GLES30.glDeleteTextures(1, intArrayOf(xformTexture), 0)
-        vboPos = 0; vboNormal = 0; vboShrink = 0; vboShard = 0; ibo = 0; xformTexture = 0
-    }
-
     /**
      * 화면 좌표를 볼 좌표계 광선으로 바꾼다. 결과는 [out]에 원점 3개 + 방향 3개.
      * GL 스레드가 아니어도 호출할 수 있게 마지막 프레임 값을 그대로 쓴다.
      */
     fun screenToRay(x: Float, y: Float, out: FloatArray) {
-        val s = scene ?: return
-        val scale = s.spec.size.radius
+        val ball = balls.firstOrNull() ?: return
+        val scale = ball.drawScale.coerceAtLeast(1e-4f)
         val tanHalf = tan(Math.toRadians(FOV_DEG / 2.0)).toFloat()
         val aspect = viewportWidth.toFloat() / viewportHeight
 
@@ -428,5 +498,8 @@ class BallRenderer : GLSurfaceView.Renderer {
 
         /** 흔들림 최대 진폭(볼 좌표계). 이보다 크면 화면이 요동쳐서 거슬린다. */
         const val MAX_SHAKE = 0.075f
+
+        /** AR에서 카메라를 고정해 두는 거리. 볼을 세계 좌표로 옮겨 배치한다. */
+        const val AR_CAMERA_DISTANCE = 6f
     }
 }
