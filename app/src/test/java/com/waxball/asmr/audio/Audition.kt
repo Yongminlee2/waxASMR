@@ -22,11 +22,17 @@ object Audition {
      * 실제 플레이를 흉내낸다. 손가락이 볼 위를 옮겨다니며 조각을 깨고,
      * 문지르는 마찰음과 떨어진 조각의 착지음까지 섞는다.
      */
-    fun playSession(profile: SoundProfile, seconds: Float, seed: Int): FloatArray {
+    fun playSession(
+        profile: SoundProfile,
+        seconds: Float,
+        seed: Int,
+        /** 실제 출시 경로(파편 재생)로 재려면 뱅크를 넘긴다. */
+        bank: GrainBank? = null,
+    ): FloatArray {
         val queue = EventQueue(8192)
         val shards = ShardSplitter.split(Icosphere.build(3), 120, Random(seed.toLong()))
         val model = BreakModel(shards, profile, queue)
-        val synth = Synth(SAMPLE_RATE).apply { setProfile(profile) }
+        val synth = Synth(SAMPLE_RATE, bank = bank).apply { setProfile(profile) }
 
         val frames = (seconds * SAMPLE_RATE).toInt()
         val chunk = FloatArray(512 * 2)

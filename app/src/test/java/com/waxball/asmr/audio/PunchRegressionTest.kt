@@ -23,6 +23,12 @@ class PunchRegressionTest {
 
     private val sr = Audition.SAMPLE_RATE
 
+    /**
+     * 실제로 출시되는 것은 파편 재생 경로다. 여기를 지켜야 의미가 있다.
+     * 뱅크가 없으면 노이즈 합성으로 떨어지는데, 그때도 납작해지면 안 되는 건 같다.
+     */
+    private val bank = TestGrainBank.load()
+
     private fun crestOf(stereo: FloatArray): Float {
         val mono = Spectrum.left(stereo)
         var peak = 0f
@@ -43,7 +49,7 @@ class PunchRegressionTest {
     fun everyMaterialKeepsItsPunch() {
         // 납작해지면 "터뜨리는 맛"이 사라진다. 녹음이 13.8이므로 그 언저리는 지켜야 한다.
         for ((name, profile) in materials()) {
-            val crest = crestOf(Audition.playSession(profile, 6f, 7))
+            val crest = crestOf(Audition.playSession(profile, 6f, 7, bank))
             assertTrue("$name 소리가 납작함: 크레스트 %.1f".format(crest), crest >= 10f)
         }
     }
@@ -52,7 +58,7 @@ class PunchRegressionTest {
     fun lowEndStaysInRange() {
         // 저역이 없으면 얇고, 과하면 웅웅거려 시원함이 죽는다. 녹음은 12%다.
         for ((name, profile) in materials()) {
-            val low = lowRatioOf(Audition.playSession(profile, 6f, 7))
+            val low = lowRatioOf(Audition.playSession(profile, 6f, 7, bank))
             assertTrue("$name 저역이 과함: %.0f%%".format(low * 100), low <= 0.30f)
             assertTrue("$name 저역이 너무 얇음: %.0f%%".format(low * 100), low >= 0.03f)
         }

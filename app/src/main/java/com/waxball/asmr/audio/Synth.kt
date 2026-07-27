@@ -83,6 +83,7 @@ class Synth(
      * 단계가 올라갈수록(실금 → 쩍 갈라짐 → 들뜸) 저음이 붙고 길어진다.
      */
     private fun crack(level: Int, energy: Float, pan: Float, areaFrac: Float) {
+        if (usingRecordedGrains) { crackFromRecording(level, energy, pan, areaFrac); return }
         val e = energy.coerceIn(0f, 1f)
         val count = ((5f + 195f * e.pow(1.4f)) * profile.density * (0.6f + 0.18f * level)).toInt()
         // 세게 누를수록 파열이 촘촘해진다. 평균 간격 6ms → 1.2ms
@@ -128,10 +129,82 @@ class Synth(
     }
 
     /**
+     * 녹음 파편으로 낼 때의 크랙.
+     *
+     * 파편 하나가 이미 완성된 파열음이다. 노이즈 시절처럼 수십 개를 뿌리면
+     * 파열이 겹겹이 쌓여 자갈이 쏟아지는 소리가 된다. 실제로 크랙 한 번에
+     * 67개를 뿌리고 있었고, 그래서 공사장 콘크리트 깨는 소리처럼 들렸다.
+     *
+     * 세게 눌러도 두세 개까지만 겹친다. 그 이상은 왁스가 아니라 무더기가 된다.
+     */
+    private fun crackFromRecording(level: Int, energy: Float, pan: Float, areaFrac: Float) {
+        val e = energy.coerceIn(0f, 1f)
+        val count = (1 + (e * 2.2f).toInt()).coerceIn(1, MAX_FRAGMENTS_PER_CRACK)
+        val sizeShift = sizeShift(areaFrac)
+
+        lastGrainCount = count
+        lastMeanGapMs = FRAGMENT_GAP_MS
+
+        var t = 0f
+        repeat(count) {
+            pool.spawn(
+                delayFrames = msToFrames(t),
+                freq = randomFreq() * sizeShift,
+                q = profile.q,
+                // 파편이 가진 길이를 그대로 쓴다. 잘라 내면 앞머리만 남아 딱딱해진다.
+                decayMs = profile.decayMsMax * 3f,
+                amplitude = FRAGMENT_AMP * (0.45f + 0.55f * e) * (0.85f + 0.08f * level),
+                pan = pan + jitter01() * 0.05f,
+                resonance = profile.resonance,
+            )
+            // 겹칠 때도 앞 파편이 어느 정도 지난 뒤에 놓는다. 붙여 놓으면 뭉친다.
+            t += FRAGMENT_GAP_MS * jitter(0.4f)
+        }
+    }
+
+    /**
      * 조각이 떨어져 나가는 순간. 큰 조각일수록 낮고 여운이 길다.
      * 작은 파열 무리가 뒤따라 부스러기가 흩어지는 느낌을 만든다.
      */
+    /**
+     * 녹음 파편으로 낼 때의 조각 분리.
+     *
+     * 큰 조각이 떨어지는 소리도 결국 파열음 하나다. 부스러기가 뒤따르는 느낌만
+     * 두어 개로 덧붙인다. 노이즈 시절에는 잔파편을 서른 개까지 뿌렸는데,
+     * 파편 방식에서 그러면 조각 하나 떨어질 때마다 무더기가 쏟아진다.
+     */
+    private fun detachFromRecording(energy: Float, pan: Float, areaFrac: Float) {
+        val sizeShift = sizeShift(areaFrac)
+
+        pool.spawn(
+            delayFrames = 0,
+            freq = profile.baseFreq * 0.8f * sizeShift,
+            q = profile.q,
+            decayMs = profile.decayMsMax * 4f,
+            amplitude = FRAGMENT_AMP * 1.3f * (0.5f + 0.5f * energy),
+            pan = pan,
+            resonance = profile.resonance,
+        )
+
+        // 넓은 판일수록 부스러기가 더 따라온다.
+        val tail = if (areaFrac > 0.02f) 2 else 1
+        var t = FRAGMENT_GAP_MS * 1.4f
+        repeat(tail) {
+            pool.spawn(
+                delayFrames = msToFrames(t),
+                freq = randomFreq() * sizeShift * 1.2f,
+                q = profile.q,
+                decayMs = profile.decayMsMax * 2f,
+                amplitude = FRAGMENT_AMP * 0.5f * jitter(0.3f),
+                pan = pan + jitter01() * 0.15f,
+                resonance = profile.resonance * 0.7f,
+            )
+            t += FRAGMENT_GAP_MS * jitter(0.5f)
+        }
+    }
+
     private fun detach(energy: Float, pan: Float, areaFrac: Float) {
+        if (usingRecordedGrains) { detachFromRecording(energy, pan, areaFrac); return }
         val sizeShift = sizeShift(areaFrac)
         val sizeBody = 1f + 8f * areaFrac.coerceIn(0f, 0.25f)
 
@@ -179,7 +252,9 @@ class Synth(
 
     /** 떨어진 조각이 바닥에 닿는 소리. 작고 건조하게 계속 깔린다. */
     private fun land(pan: Float, areaFrac: Float) {
-        val count = 2 + (3f * (areaFrac / 0.02f).coerceIn(0f, 2f)).toInt()
+        // 파편 하나가 이미 완성된 소리다. 착지마다 여러 개를 뿌리면 바닥이 소란스러워진다.
+        val count = if (usingRecordedGrains) 1
+        else 2 + (3f * (areaFrac / 0.02f).coerceIn(0f, 2f)).toInt()
         var t = 0f
         repeat(count) {
             t += exponentialGap(3f)
@@ -198,7 +273,8 @@ class Synth(
     /** 손가락이 표면을 스치는 마찰음. 빠르게 문지를수록 촘촘해진다. */
     private fun rub(speed: Float, pan: Float) {
         val s = speed.coerceIn(0f, 1f)
-        val count = (2 + 10 * s).toInt()
+        // 문지르는 소리는 계속 나므로 파편 방식에서는 하나씩만 얹는다.
+        val count = if (usingRecordedGrains) 1 else (2 + 10 * s).toInt()
         var t = 0f
         repeat(count) {
             t += exponentialGap(9f - 6f * s)
@@ -288,6 +364,18 @@ class Synth(
     private companion object {
         /** 주파수 분포를 아래로 치우치게 하는 정도(옥타브 배율). */
         const val SKEW = 0.42f
+
+        /**
+         * 녹음 파편으로 낼 때 크랙 한 번에 겹치는 최대 개수.
+         * 파편 하나가 이미 완성된 파열음이라, 이 이상 겹치면 무더기가 쏟아지는 소리가 된다.
+         */
+        const val MAX_FRAGMENTS_PER_CRACK = 3
+
+        /** 겹칠 때 파편 사이 간격(ms). 붙여 놓으면 뭉친다. */
+        const val FRAGMENT_GAP_MS = 26f
+
+        /** 파편 하나의 기본 진폭. 개수가 적으니 하나가 커야 한다. */
+        const val FRAGMENT_AMP = 0.34f
     }
 
     private fun randomFreq(): Float {

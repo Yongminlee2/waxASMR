@@ -38,6 +38,47 @@ class PunchProbeTest {
         return report.lowRatio
     }
 
+    /**
+     * 귀에 들리는 파열이 초당 몇 번인지 녹음과 맞대 본다.
+     *
+     * 녹음은 초당 8회쯤이다. 합성이 그보다 훨씬 잦으면 파열이 겹겹이 쌓여
+     * 낱개 소리가 아니라 자갈이 쏟아지는 소음으로 들린다.
+     */
+    @Test
+    fun compareOnsetRateAgainstTheRecording() {
+        val lines = StringBuilder()
+
+        val reference = File("reference/src1.wav")
+        if (reference.exists()) {
+            val wav = WavReader.read(reference)
+            val r = ReferenceAnalyzer.analyze(wav)
+            lines.appendLine("녹음        초당 %.1f회".format(r.onsetsPerSecond))
+        }
+
+        val bank = TestGrainBank.load()
+        lines.appendLine(if (bank != null) "파편 뱅크 ${bank.size}개로 측정" else "뱅크 없음 — 노이즈 합성으로 측정")
+
+        for ((name, profile) in listOf(
+            "굳은왁스" to SoundProfile.hardWax(),
+            "무른왁스" to SoundProfile.softWax(),
+            "설탕유리" to SoundProfile.sugarGlass(),
+        )) {
+            val stereo = Audition.playSession(profile, 6f, 7, bank)
+            val r = ReferenceAnalyzer.analyze(LoadedWav(Spectrum.left(stereo), sr, 1))
+            lines.appendLine("%-10s 초당 %.1f회".format(name, r.onsetsPerSecond))
+        }
+
+        // 한 번의 크랙이 파편 몇 개를 뿌리는지도 같이 본다.
+        val synth = Synth(sr, bank = bank).apply { setProfile(SoundProfile.hardWax()) }
+        synth.on(com.waxball.asmr.core.EventKind.CRACK, 0, 2, 1f, 0f, 0.02f)
+        lines.appendLine("크랙 1회에 뿌리는 파편 수: ${synth.lastGrainCount}개")
+
+        File("build/onset-report.txt").apply {
+            parentFile?.mkdirs()
+            writeText(lines.toString())
+        }
+    }
+
     @Test
     fun comparePunchAgainstTheRecording() {
         val lines = StringBuilder()
@@ -54,19 +95,21 @@ class PunchProbeTest {
             )
         }
 
+        val bank = TestGrainBank.load()
+
         for ((name, profile) in listOf(
             "굳은왁스" to SoundProfile.hardWax(),
             "무른왁스" to SoundProfile.softWax(),
             "설탕유리" to SoundProfile.sugarGlass(),
         )) {
-            val stereo = Audition.playSession(profile, 6f, 7)
+            val stereo = Audition.playSession(profile, 6f, 7, bank)
             lines.appendLine(
                 "%-10s 크레스트 %.1f · 저역 %.0f%%".format(name, crest(Spectrum.left(stereo)), lowRatio(stereo) * 100)
             )
         }
 
         // 한 번의 큰 분리음만 따로. 여기가 "터뜨리는 맛"이 가장 잘 드러난다.
-        val single = Synth(sr).apply { setProfile(SoundProfile.hardWax()) }
+        val single = Synth(sr, bank = bank).apply { setProfile(SoundProfile.hardWax()) }
         single.on(com.waxball.asmr.core.EventKind.DETACH, 0, 4, 1f, 0f, 0.18f)
         val burst = single.renderOffline(1f)
         lines.appendLine(
