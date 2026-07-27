@@ -63,7 +63,7 @@ data class SoundProfile(
             baseFreq = 3107f, freqSpread = 1.79f, q = 8.5f,
             decayMsMin = 12f, decayMsMax = 36f, resonance = 0.70f,
             density = 0.35f, toughness = 1.0f, propagation = 0.45f, brightness = 1.0f,
-            body = 1.03f, gapScale = 9.0f,
+            body = 0.45f, gapScale = 9.0f,
         )
 
         /**
@@ -74,7 +74,7 @@ data class SoundProfile(
             baseFreq = 2600f, freqSpread = 1.70f, q = 5.7f,
             decayMsMin = 8f, decayMsMax = 24f, resonance = 0.85f,
             density = 0.25f, toughness = 0.75f, propagation = 0.22f, brightness = 0.7f,
-            body = 1.27f, gapScale = 17.8f,
+            body = 0.50f, gapScale = 17.8f,
         )
 
         /** 반짝이 섞인 왁스. 왁뿌볼3 계열의 밝고 사각거리는 소리. */
@@ -90,7 +90,7 @@ data class SoundProfile(
             baseFreq = 2400f, freqSpread = 2.50f, q = 7f,
             decayMsMin = 13f, decayMsMax = 39f, resonance = 0.80f,
             density = 0.56f, toughness = 1.10f, propagation = 0.30f, brightness = 0.95f,
-            body = 1.20f, gapScale = 5.1f,
+            body = 0.55f, gapScale = 5.1f,
         )
 
         /** 설탕유리. 왁뿌볼3의 밝은 쪽 극단. 여운이 가장 길다. */
@@ -98,7 +98,7 @@ data class SoundProfile(
             baseFreq = 4300f, freqSpread = 1.50f, q = 12f,
             decayMsMin = 55f, decayMsMax = 150f, resonance = 0.62f,
             density = 0.40f, toughness = 1.25f, propagation = 0.55f, brightness = 1.5f,
-            body = 0.36f, gapScale = 6f,
+            body = 0.50f, gapScale = 6f,
         )
     }
 }
