@@ -108,11 +108,48 @@ class ArPlayActivity : AppCompatActivity() {
         }
 
         binding.arView.renderer.onFrame = ::onFrame
+        buildBallPicker(progress)
         loadBall(Random.nextLong())
 
         if (hasCameraPermission()) startCamera()
         else requestCamera.launch(Manifest.permission.CAMERA)
     }
+
+    /**
+     * 카메라를 켠 채로 공을 바꾼다.
+     *
+     * 공을 바꾸려고 화면을 나갔다 들어오면 카메라가 다시 뜨는 동안 흐름이 끊긴다.
+     * 손을 든 채로 바로 바꿀 수 있어야 한다.
+     */
+    private fun buildBallPicker(progress: com.waxball.asmr.core.Progress) {
+        binding.arBallList.removeAllViews()
+        val unlocked = BallCatalog.all.filter { progress.isUnlocked(it.id) }
+
+        for (candidate in unlocked) {
+            val swatch = android.view.View(this).apply {
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.OVAL
+                    setColor(candidate.shellColor)
+                    setStroke(dp(2), if (candidate.id == spec.id) 0xFFFFFFFF.toInt() else 0x40FFFFFF)
+                }
+                contentDescription = candidate.nameKo
+                setOnClickListener { switchBall(candidate, progress) }
+            }
+            val params = android.widget.LinearLayout.LayoutParams(dp(40), dp(40))
+            params.marginEnd = dp(10)
+            binding.arBallList.addView(swatch, params)
+        }
+    }
+
+    private fun switchBall(next: BallSpec, progress: com.waxball.asmr.core.Progress) {
+        if (next.id == spec.id) return
+        spec = next
+        audio.setProfile(spec.soundProfile())
+        buildBallPicker(progress)
+        loadBall(Random.nextLong())
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     override fun onResume() {
         super.onResume()
