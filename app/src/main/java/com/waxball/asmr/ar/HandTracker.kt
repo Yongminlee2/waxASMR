@@ -35,6 +35,7 @@ class HandTracker(
      * 눈으로 봐야 알 수 있다. 한 장만 남기면 하필 어두울 때 찍혀 판정이 안 된다.
      */
     private fun dumpPeriodically(bitmap: Bitmap, rotation: Int, srcW: Int, srcH: Int) {
+        if (!DIAGNOSTICS) return
         lastBrightness = averageBrightness(bitmap)
         val now = System.currentTimeMillis()
         if (now - lastDumpAt < 2000L) return
@@ -186,5 +187,11 @@ class HandTracker(
     private companion object {
         const val TAG = "WaxBall"
         const val MODEL = "hand_landmarker.task"
+
+        /**
+         * 인식이 안 될 때 원인을 찾으려고 프레임을 저장하고 밝기를 잰다.
+         * 평소에는 꺼 둔다. 켜 두면 2초마다 PNG가 쌓이고 매 프레임 픽셀을 훑는다.
+         */
+        const val DIAGNOSTICS = false
     }
 }

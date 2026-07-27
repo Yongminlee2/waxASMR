@@ -60,11 +60,6 @@ class ArPlayActivity : AppCompatActivity() {
         private val FACING = Vec3(0f, 0f, 1f)
         private const val SQUEEZE_CONTACT_COS = -1f
 
-        /** 볼을 손 너비의 이 비율로 놓는다. 1을 넘으면 손 밖으로 삐져나온다. */
-        private const val BALL_TO_HAND = 0.9f
-
-        /** 손바닥 위에 한꺼번에 올릴 수 있는 공 개수. 더 늘리면 하나하나가 너무 작아진다. */
-        private const val MAX_BALLS = 3
     }
 
     private lateinit var binding: ActivityArPlayBinding
@@ -159,7 +154,7 @@ class ArPlayActivity : AppCompatActivity() {
 
     /** 손바닥 위에 올릴 공 개수를 1~3으로 돌린다. */
     private fun cycleBallCount() {
-        ballCount = if (ballCount >= MAX_BALLS) 1 else ballCount + 1
+        ballCount = ArLayout.nextCount(ballCount)
         updateCountLabel()
         loadBalls(Random.nextLong())
     }
@@ -226,7 +221,7 @@ class ArPlayActivity : AppCompatActivity() {
         nextBallPending = false
         val target = spec
         val count = ballCount
-        val quality = if (count >= 3) 0 else if (count == 2) 1 else 1
+        val quality = ArLayout.qualityFor(count)
 
         Thread({
             val built = ArrayList<BallScene>(count)
@@ -247,19 +242,6 @@ class ArPlayActivity : AppCompatActivity() {
         }, "ArBallBuilder").start()
     }
 
-    /**
-     * 공 여러 개를 손바닥 주위에 흩어 놓는다.
-     *
-     * 전부 같은 자리에 두면 하나로 겹쳐 보인다. 손 크기에 비례해 벌려야
-     * 손이 멀어져도 배치가 유지된다.
-     */
-    private fun clusterOffset(index: Int, count: Int, spread: Float, out: FloatArray) {
-        if (count <= 1) { out[0] = 0f; out[1] = 0f; return }
-        val angle = (index.toFloat() / count) * 2f * Math.PI.toFloat() - Math.PI.toFloat() / 2f
-        out[0] = kotlin.math.cos(angle) * spread
-        out[1] = kotlin.math.sin(angle) * spread * 0.6f
-    }
-
     private val offsetScratch = FloatArray(2)
 
     private fun onFrame(dt: Float) {
@@ -272,13 +254,11 @@ class ArPlayActivity : AppCompatActivity() {
             val width = binding.arView.width.coerceAtLeast(1)
             val height = binding.arView.height.coerceAtLeast(1)
 
-            // 개수가 늘면 하나하나는 작아진다. 손바닥을 넘치지 않게 한다.
-            val perBall = BALL_TO_HAND / (1f + 0.55f * (scenes.size - 1))
-            val radiusPx = pose.span * width * perBall
-            val spreadPx = pose.span * width * 0.55f
+            val handSpanPx = pose.span * width
+            val radiusPx = ArLayout.radiusPx(handSpanPx, scenes.size)
 
             for (i in scenes.indices) {
-                clusterOffset(i, scenes.size, spreadPx, offsetScratch)
+                ArLayout.offsetPx(i, scenes.size, handSpanPx, offsetScratch)
                 renderer.placeAt(
                     i,
                     pose.centerX * width + offsetScratch[0],
