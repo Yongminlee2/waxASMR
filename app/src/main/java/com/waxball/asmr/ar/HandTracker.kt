@@ -21,10 +21,55 @@ import kotlin.math.sqrt
  * 안내하고 물러나면 된다. 앱이 죽는 것보다 낫다.
  */
 class HandTracker(
-    context: Context,
+    private val context: Context,
     private val onHand: (HandLandmarks?) -> Unit,
 ) {
     private var landmarker: HandLandmarker? = null
+    private var lastDumpAt = 0L
+    private var lastBrightness = 0f
+
+    /**
+     * 모델에 들어가는 이미지를 주기적으로 덮어써 남긴다.
+     *
+     * 인식이 안 될 때 원인이 이미지인지(뒤집힘·뭉개짐·너무 어두움) 모델인지는
+     * 눈으로 봐야 알 수 있다. 한 장만 남기면 하필 어두울 때 찍혀 판정이 안 된다.
+     */
+    private fun dumpPeriodically(bitmap: Bitmap, rotation: Int, srcW: Int, srcH: Int) {
+        lastBrightness = averageBrightness(bitmap)
+        val now = System.currentTimeMillis()
+        if (now - lastDumpAt < 2000L) return
+        lastDumpAt = now
+        try {
+            val file = java.io.File(context.getExternalFilesDir(null), "handframe.png")
+            java.io.FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+            Log.i(
+                TAG,
+                "진단 프레임: 원본 ${srcW}x${srcH}, 회전 ${rotation}도, " +
+                    "입력 ${bitmap.width}x${bitmap.height}, 밝기 %.0f".format(lastBrightness),
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "진단 프레임 저장 실패: ${e.message}")
+        }
+    }
+
+    /** 0~255. 너무 어두우면 인식이 안 되는 게 당연하므로 같이 재야 판정이 된다. */
+    private fun averageBrightness(bitmap: Bitmap): Float {
+        val step = 16
+        var sum = 0L
+        var count = 0
+        var y = 0
+        while (y < bitmap.height) {
+            var x = 0
+            while (x < bitmap.width) {
+                val c = bitmap.getPixel(x, y)
+                sum += ((c shr 16 and 0xFF) + (c shr 8 and 0xFF) + (c and 0xFF)) / 3
+                count++
+                x += step
+            }
+            y += step
+        }
+        return if (count == 0) 0f else sum.toFloat() / count
+    }
 
     val ready: Boolean get() = landmarker != null
 
@@ -61,6 +106,7 @@ class HandTracker(
         try {
             val bitmap = image.toBitmap()
             val rotated = rotate(bitmap, image.imageInfo.rotationDegrees)
+            dumpPeriodically(rotated, image.imageInfo.rotationDegrees, image.width, image.height)
             engine.detectAsync(BitmapImageBuilder(rotated).build(), System.currentTimeMillis())
         } catch (e: Exception) {
             Log.w(TAG, "프레임 처리 실패: ${e.message}")
@@ -126,7 +172,7 @@ class HandTracker(
         val now = System.currentTimeMillis()
         if (windowStart == 0L) { windowStart = now; return }
         if (now - windowStart >= 1000L) {
-            Log.i(TAG, "손 인식 ${frames}프레임 중 ${detections}회 검출")
+            Log.i(TAG, "손 인식 ${frames}프레임 중 ${detections}회 검출 (밝기 %.0f)".format(lastBrightness))
             frames = 0; detections = 0; windowStart = now
         }
     }

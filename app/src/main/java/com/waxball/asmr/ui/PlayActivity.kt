@@ -30,6 +30,7 @@ import com.waxball.asmr.databinding.ActivityPlayBinding
 import com.waxball.asmr.gl.BallGeometry
 import com.waxball.asmr.gl.BallScene
 import com.waxball.asmr.gl.Debris
+import com.waxball.asmr.gl.DebrisSpawner
 import com.waxball.asmr.gl.Picker
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -314,18 +315,7 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
      */
     private fun spawnFreshlyDetached(): Float {
         val s = scene ?: return 0f
-        val rotation = binding.playView.renderer.ballRotation
-        var area = 0f
-        var order = 0
-        for (i in s.model.state.indices) {
-            if (s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i)) {
-                val shard = s.shards.shards[i]
-                s.debris.spawn(i, shard.center, shard.areaFrac, rotation, hangFrames = order * 3)
-                area += shard.areaFrac
-                order++
-            }
-        }
-        return area
+        return DebrisSpawner.spawnFreshlyDetached(s, binding.playView.renderer.ballRotation)
     }
 
     /**

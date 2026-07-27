@@ -73,6 +73,40 @@ class BallRenderer : GLSurfaceView.Renderer {
 
     var floorY = -2.4f
 
+    /** AR 화면은 카메라 영상 위에 겹치므로 배경을 비워야 한다. */
+    var transparentBackground = false
+
+    /**
+     * 볼을 화면의 특정 자리에 특정 크기로 놓는다. AR 모드가 쓴다.
+     *
+     * 볼을 옮기는 대신 카메라를 옮긴다. 그러면 셰이더를 건드리지 않아도 되고,
+     * 기존 그리기 경로를 그대로 쓸 수 있다.
+     */
+    fun placeAt(screenX: Float, screenY: Float, radiusPx: Float) {
+        arPlacement = true
+        arVisible = true
+        arScreenX = screenX
+        arScreenY = screenY
+        arRadiusPx = radiusPx.coerceAtLeast(8f)
+    }
+
+    /**
+     * 손을 놓쳤을 때 볼을 감춘다.
+     *
+     * 손이 없는데 볼만 허공에 떠 있으면 "손 위에 올려놓은 것"이 아니라
+     * 그냥 화면에 붙은 그림으로 보인다.
+     */
+    fun hideBall() {
+        arVisible = false
+    }
+
+    @Volatile private var arVisible = false
+
+    @Volatile private var arPlacement = false
+    @Volatile private var arScreenX = 0f
+    @Volatile private var arScreenY = 0f
+    @Volatile private var arRadiusPx = 100f
+
     /** 마지막 프레임에서 잰 화면상 볼 반지름(픽셀). 터치 라우팅이 쓴다. */
     @Volatile var ballScreenRadius = 1f
         private set
@@ -116,7 +150,8 @@ class BallRenderer : GLSurfaceView.Renderer {
     private var shakePhase = 0f
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        GLES30.glClearColor(0.027f, 0.031f, 0.043f, 1f)
+        if (transparentBackground) GLES30.glClearColor(0f, 0f, 0f, 0f)
+        else GLES30.glClearColor(0.027f, 0.031f, 0.043f, 1f)
         GLES30.glEnable(GLES30.GL_DEPTH_TEST)
         GLES30.glEnable(GLES30.GL_CULL_FACE)
         GLES30.glCullFace(GLES30.GL_BACK)
@@ -149,6 +184,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
 
         val s = scene ?: return
+        if (transparentBackground && !arVisible) return
 
         // 흔들림은 빠르게 진동하다 잦아든다. 오래 끌면 멀미가 난다.
         var shakeX = 0f
@@ -161,21 +197,36 @@ class BallRenderer : GLSurfaceView.Renderer {
             if (shakeAmount < 1e-4f) shakeAmount = 0f
         }
 
-        Mat4.lookAt(viewMatrix, Vec3(shakeX, shakeY, cameraDistance), Vec3(shakeX, shakeY, 0f), Vec3.UP)
-        Mat4.multiply(viewProj, projMatrix, viewMatrix)
-
         val scale = s.spec.size.radius
         val tanHalf = tan(Math.toRadians(FOV_DEG / 2.0)).toFloat()
-
-        // 세로 화면에서는 가로가 먼저 잘린다. 짧은 축을 기준으로 볼을 맞춰야
-        // 좌우가 안 잘리고, 굴리기용 여백도 남는다.
         val aspect = viewportWidth.toFloat() / viewportHeight
-        val shortAxisLimit = tanHalf * minOf(1f, aspect)
-        val fitDistance = scale * 1.05f / (BALL_SCREEN_FILL * shortAxisLimit)
-        cameraDistance = fitDistance * zoomFactor
-        // 부스러기가 쌓이는 높이. 화면 맨 아래에 두면 도구 줄과 버튼에 가려서
-        // 문질러 뭉갤 수가 없다. 볼 바로 아래, 하단 바 위쪽에 앉힌다.
-        floorY = -(scale + 0.85f)
+
+        var eyeX = shakeX
+        var eyeY = shakeY
+
+        if (arPlacement) {
+            // 볼을 옮기는 대신 카메라를 옮겨서 원하는 자리·크기에 보이게 한다.
+            // 볼은 원점에 그대로 두므로 파괴·조각 계산이 전부 그대로 통한다.
+            cameraDistance = viewportHeight * 0.5f * (scale * 1.02f) / (arRadiusPx * tanHalf)
+            val ndcX = 2f * arScreenX / viewportWidth - 1f
+            val ndcY = 1f - 2f * arScreenY / viewportHeight
+            eyeX += -ndcX * cameraDistance * tanHalf * aspect
+            eyeY += -ndcY * cameraDistance * tanHalf
+            // 손 위에 올라간 볼은 부스러기가 바닥에 쌓일 자리가 없다. 화면 밖으로 떨군다.
+            floorY = -(scale + 6f)
+        } else {
+            // 세로 화면에서는 가로가 먼저 잘린다. 짧은 축을 기준으로 볼을 맞춰야
+            // 좌우가 안 잘리고, 굴리기용 여백도 남는다.
+            val shortAxisLimit = tanHalf * minOf(1f, aspect)
+            val fitDistance = scale * 1.05f / (BALL_SCREEN_FILL * shortAxisLimit)
+            cameraDistance = fitDistance * zoomFactor
+            // 부스러기가 쌓이는 높이. 화면 맨 아래에 두면 도구 줄과 버튼에 가려서
+            // 문질러 뭉갤 수가 없다. 볼 바로 아래, 하단 바 위쪽에 앉힌다.
+            floorY = -(scale + 0.85f)
+        }
+
+        Mat4.lookAt(viewMatrix, Vec3(eyeX, eyeY, cameraDistance), Vec3(eyeX, eyeY, 0f), Vec3.UP)
+        Mat4.multiply(viewProj, projMatrix, viewMatrix)
 
         ballScreenRadius = viewportHeight * 0.5f * (scale * 1.02f) / (cameraDistance * tanHalf)
 

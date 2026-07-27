@@ -3,7 +3,10 @@ package com.waxball.asmr.ar
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -13,8 +16,24 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.waxball.asmr.R
+import com.waxball.asmr.audio.AudioEngine
+import com.waxball.asmr.audio.Haptics
+import com.waxball.asmr.core.BallCatalog
+import com.waxball.asmr.core.BallSpec
+import com.waxball.asmr.core.BreakModel
+import com.waxball.asmr.core.Icosphere
+import com.waxball.asmr.core.Quat
+import com.waxball.asmr.core.ShardSplitter
+import com.waxball.asmr.core.Vec3
 import com.waxball.asmr.databinding.ActivityArPlayBinding
+import com.waxball.asmr.gl.BallGeometry
+import com.waxball.asmr.gl.BallScene
+import com.waxball.asmr.gl.Debris
+import com.waxball.asmr.gl.DebrisSpawner
 import com.waxball.asmr.ui.Insets
+import com.waxball.asmr.ui.PrefsProgressStore
+import java.util.concurrent.Executors
+import kotlin.random.Random
 
 /**
  * 손바닥 위에 볼을 올려놓고 쥐어서 부수는 화면.
@@ -30,11 +49,28 @@ class ArPlayActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_BALL_ID = "ballId"
         private const val TAG = "WaxBall"
+
+        /** 손에 쥐면 닿는 면 전체가 으스러진다. 카메라 쪽 반구를 통째로 누른다. */
+        private val FACING = Vec3(0f, 0f, 1f)
+        private const val SQUEEZE_CONTACT_COS = 0.1f
+
+        /** 볼을 손 너비의 이 비율로 놓는다. 1을 넘으면 손 밖으로 삐져나온다. */
+        private const val BALL_TO_HAND = 0.9f
     }
 
     private lateinit var binding: ActivityArPlayBinding
     private lateinit var tracker: HandTracker
-    private val cameraExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+    private lateinit var audio: AudioEngine
+    private lateinit var haptics: Haptics
+
+    private val cameraExecutor = Executors.newSingleThreadExecutor()
+    private val pose = PalmPose()
+    private val ui = Handler(Looper.getMainLooper())
+
+    private var spec: BallSpec = BallCatalog.all[0]
+    private var scene: BallScene? = null
+    private var nextBallPending = false
+    private var lostSince = 0L
 
     /** 인식 스레드가 쓰고 화면 스레드가 읽는다. */
     @Volatile private var latestHand: HandLandmarks? = null
@@ -53,14 +89,37 @@ class ArPlayActivity : AppCompatActivity() {
 
         binding.arBackButton.setOnClickListener { finish() }
 
+        val progress = PrefsProgressStore(this).load()
+        spec = BallCatalog.byId(intent.getIntExtra(EXTRA_BALL_ID, 0))
+
+        audio = AudioEngine(this).apply { setVolume(progress.volume) }
+        haptics = Haptics(this).apply { enabled = progress.hapticsOn }
+
         tracker = HandTracker(this) { hand -> latestHand = hand }
         if (!tracker.ready) {
             refuse(R.string.ar_no_camera)
             return
         }
 
+        binding.arView.renderer.onFrame = ::onFrame
+        loadBall(Random.nextLong())
+
         if (hasCameraPermission()) startCamera()
         else requestCamera.launch(Manifest.permission.CAMERA)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.arView.onResume()
+        audio.setProfile(spec.soundProfile())
+        audio.start()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        audio.stop()
+        haptics.cancel()
+        binding.arView.onPause()
     }
 
     private fun hasCameraPermission() =
@@ -88,7 +147,6 @@ class ArPlayActivity : AppCompatActivity() {
                     preview,
                     analysis,
                 )
-                startHintLoop()
             } catch (e: Exception) {
                 Log.e(TAG, "카메라를 열지 못함: ${e.message}")
                 refuse(R.string.ar_no_camera)
@@ -96,27 +154,92 @@ class ArPlayActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    /** 손이 잡히면 안내를 숨기고, 놓치면 다시 보인다. */
-    private fun startHintLoop() {
-        val ui = android.os.Handler(android.os.Looper.getMainLooper())
-        val tick = object : Runnable {
-            override fun run() {
-                binding.hint.visibility = if (latestHand == null) android.view.View.VISIBLE
-                else android.view.View.GONE
-                ui.postDelayed(this, 200)
+    /** 볼 만들기는 기존 모드와 똑같다. */
+    private fun loadBall(seed: Long) {
+        nextBallPending = false
+        val target = spec
+        Thread({
+            val base = Icosphere.build(target.baseSubdivision(1))
+            val shards = ShardSplitter.split(base, target.shardCount(1), Random(seed))
+            val geometry = BallGeometry.build(shards, target.shellThickness, target.shape::warp)
+            val model = BreakModel(shards, target.soundProfile(), audio.queue)
+            val debris = Debris(shards.size, Random(seed + 1))
+            val next = BallScene(target, shards, geometry, model, debris)
+            runOnUiThread {
+                scene = next
+                binding.arView.renderer.setScene(next)
             }
-        }
-        ui.post(tick)
-        hintLoop = tick
-        hintHandler = ui
+        }, "ArBallBuilder").start()
     }
 
-    private var hintLoop: Runnable? = null
-    private var hintHandler: android.os.Handler? = null
+    private fun onFrame(dt: Float) {
+        val s = scene ?: return
+        val renderer = binding.arView.renderer
+
+        pose.update(latestHand, dt)
+
+        if (pose.hasHand) {
+            val width = binding.arView.width.coerceAtLeast(1)
+            val height = binding.arView.height.coerceAtLeast(1)
+            renderer.placeAt(
+                pose.centerX * width,
+                pose.centerY * height,
+                pose.span * width * BALL_TO_HAND,
+            )
+
+            if (pose.force > 0f) {
+                audio.markTouch()
+                s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
+
+                val broken = DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+                if (broken > 0f) {
+                    val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
+                    renderer.shake(magnitude)
+                    if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
+                }
+            }
+        } else {
+            renderer.hideBall()
+        }
+
+        s.debris.update(dt, renderer.floorY, s.geometry.shardCenters) { id, pan, _ ->
+            s.model.land(id, pan, s.shards.shards[id].areaFrac)
+        }
+
+        if (s.model.shellProgress >= 0.999f && !nextBallPending) {
+            nextBallPending = true
+            ui.postDelayed({ if (!isFinishing) loadBall(Random.nextLong()) }, 2600)
+        }
+
+        ui.post { updateHint() }
+    }
+
+    /** 손을 놓치면 안내를 되살리고, 잡았는데 안 쥐고 있으면 쥐라고 알려 준다. */
+    private fun updateHint() {
+        if (isFinishing) return
+        val now = System.currentTimeMillis()
+        if (!pose.hasHand) {
+            if (lostSince == 0L) lostSince = now
+            if (now - lostSince > 500L) {
+                binding.hint.setText(R.string.ar_show_palm)
+                binding.hint.visibility = View.VISIBLE
+            }
+            return
+        }
+
+        lostSince = 0L
+        if (pose.squeeze < 0.1f) {
+            binding.hint.setText(R.string.ar_squeeze)
+            binding.hint.visibility = View.VISIBLE
+        } else {
+            binding.hint.visibility = View.GONE
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
-        hintLoop?.let { hintHandler?.removeCallbacks(it) }
+        binding.arView.renderer.onFrame = null
+        ui.removeCallbacksAndMessages(null)
         tracker.close()
         cameraExecutor.shutdown()
     }

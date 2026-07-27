@@ -9,6 +9,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <com.waxball.asmr.ar.ArPlayView
+        android:id="@+id/arView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <TextView
         android:id="@+id/hint"
         android:layout_width="match_parent"
