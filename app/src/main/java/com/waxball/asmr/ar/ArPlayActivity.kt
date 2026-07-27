@@ -50,9 +50,15 @@ class ArPlayActivity : AppCompatActivity() {
         const val EXTRA_BALL_ID = "ballId"
         private const val TAG = "WaxBall"
 
-        /** 손에 쥐면 닿는 면 전체가 으스러진다. 카메라 쪽 반구를 통째로 누른다. */
+        /**
+         * 손에 쥐면 손가락이 볼을 감싸므로 뒷면까지 전부 으스러진다.
+         *
+         * 처음에는 카메라 쪽 반구만 눌렀는데(0.1), 그러면 앞쪽 뚜껑만 깨지고
+         * 가장자리는 멀쩡히 남아서 쥐는 게 아니라 파는 것처럼 보였다.
+         * -1이면 구 전체가 대상이 되고, 닿는 세기만 앞쪽이 조금 더 강하다.
+         */
         private val FACING = Vec3(0f, 0f, 1f)
-        private const val SQUEEZE_CONTACT_COS = 0.1f
+        private const val SQUEEZE_CONTACT_COS = -1f
 
         /** 볼을 손 너비의 이 비율로 놓는다. 1을 넘으면 손 밖으로 삐져나온다. */
         private const val BALL_TO_HAND = 0.9f

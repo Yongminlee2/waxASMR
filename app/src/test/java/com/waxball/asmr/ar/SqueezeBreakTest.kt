@@ -23,9 +23,9 @@ class SqueezeBreakTest {
         EventQueue(16384),
     )
 
-    /** 손바닥 모드가 하는 것과 같은 호출. 카메라 쪽 반구 전체를 누른다. */
+    /** 손바닥 모드가 하는 것과 같은 호출. 손가락이 감싸므로 구 전체가 대상이다. */
     private fun squeeze(m: BreakModel, force: Float, dt: Float = 1f / 60f) {
-        m.pressArea(Vec3(0f, 0f, 1f), 0.1f, force, dt, 0f)
+        m.pressArea(Vec3(0f, 0f, 1f), -1f, force, dt, 0f)
     }
 
     @Test
@@ -49,6 +49,35 @@ class SqueezeBreakTest {
         repeat(30) { squeeze(m, 3f) }
         val touched = m.state.count { it > 0 }
         assertTrue("한 점만 부서짐 (${touched}개)", touched >= 15)
+    }
+
+    @Test
+    fun squeezingReachesTheFarSideToo() {
+        // 손에 쥐면 손가락이 감싸므로 뒤쪽도 부서져야 한다.
+        // 앞쪽 뚜껑만 깨지면 쥐는 게 아니라 파는 것처럼 보인다.
+        val m = model()
+        repeat(60) { squeeze(m, 3f) }
+
+        val back = m.shards.shards.filter { it.center.z < -0.5f }
+        assertTrue("뒤쪽 조각이 없는 볼이라 판정 불가", back.size >= 5)
+        assertTrue(
+            "뒤쪽은 하나도 안 부서짐",
+            back.count { m.state[it.id] > 0 } >= back.size / 2,
+        )
+    }
+
+    @Test
+    fun theFrontStillCrushesHarderThanTheBack() {
+        // 전체가 대상이되 닿는 세기는 앞쪽이 강해야 자연스럽다.
+        // 오래 쥐면 앞뒤가 다 완파돼서 차이를 잴 수 없다. 포화 전에 본다.
+        val m = model()
+        repeat(8) { squeeze(m, 2f) }
+
+        val front = m.shards.shards.filter { it.center.z > 0.5f }
+        val back = m.shards.shards.filter { it.center.z < -0.5f }
+        val frontDamage = front.sumOf { m.state[it.id] }.toFloat() / front.size
+        val backDamage = back.sumOf { m.state[it.id] }.toFloat() / back.size
+        assertTrue("앞뒤 세기가 같음 (앞 $frontDamage, 뒤 $backDamage)", frontDamage > backDamage)
     }
 
     @Test
