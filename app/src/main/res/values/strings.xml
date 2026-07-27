@@ -57,6 +57,12 @@
     <string name="settings_reset_confirm">코인·해금·도감이 전부 사라집니다. 되돌릴 수 없습니다.</string>
     <string name="settings_reset_done">기록을 지웠습니다.</string>
 
+    <string name="ar_mode">손바닥에 올리기</string>
+    <string name="ar_show_palm">손바닥을 펴서 카메라에 보여주세요</string>
+    <string name="ar_squeeze">손을 쥐어서 부수세요</string>
+    <string name="ar_no_camera">카메라를 쓸 수 없어 손바닥 모드를 열 수 없습니다</string>
+    <string name="ar_permission_needed">카메라 권한이 있어야 손바닥에 올릴 수 있습니다</string>
+
     <string name="audio_failed">이 기기에서 소리를 낼 수 없어 무음으로 진행합니다.</string>
     <string name="gl_unsupported">이 기기는 OpenGL ES 3.0을 지원하지 않아 실행할 수 없습니다.</string>
 </resources>

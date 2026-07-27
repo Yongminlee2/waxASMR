@@ -41,6 +41,15 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         binding.controlsButton.setOnClickListener { ControlsGuide.show(this) }
+        binding.arButton.setOnClickListener {
+            startActivity(
+                Intent(this, com.waxball.asmr.ar.ArPlayActivity::class.java)
+                    .putExtra(
+                        com.waxball.asmr.ar.ArPlayActivity.EXTRA_BALL_ID,
+                        progress.unlocked.minOrNull() ?: 0,
+                    )
+            )
+        }
     }
 
     override fun onResume() {
