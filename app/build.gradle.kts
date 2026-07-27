@@ -12,6 +12,13 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        // 손 인식 라이브러리가 아키텍처마다 네이티브 코드를 싣는다. 전부 담으면
+        // x86 20.5MB, armeabi-v7a 8.1MB가 그냥 따라와 APK가 60MB를 넘는다.
+        // x86은 에뮬레이터 전용이고, 요즘 폰은 전부 arm64다.
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     buildTypes {
