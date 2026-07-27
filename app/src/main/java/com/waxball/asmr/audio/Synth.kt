@@ -30,6 +30,13 @@ class Synth(
 
     /** 실제 파편을 쓰고 있는지. 로그와 테스트용. */
     val usingRecordedGrains: Boolean = pool is SampleGrainPool
+
+    /**
+     * 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 비교용이다.
+     * 소리가 이상할 때 원인이 뿌리는 방식인지 원본 자체인지 가른다.
+     */
+    var raw: RawRecording? = null
+    var useRaw = false
     private var profile = SoundProfile.hardWax()
     private var rngState = 0x2545_F491
 
@@ -69,6 +76,11 @@ class Synth(
     }
 
     override fun on(kind: Int, shardId: Int, level: Int, energy: Float, pan: Float, areaFrac: Float) {
+        if (useRaw) {
+            // 원본 그대로 듣는 모드. 부수는 동안만 녹음이 흐른다.
+            if (kind != EventKind.RUB) raw?.keepAlive()
+            return
+        }
         when (kind) {
             EventKind.CRACK -> crack(level, energy, pan, areaFrac)
             EventKind.DETACH -> detach(energy, pan, areaFrac)
@@ -151,8 +163,7 @@ class Synth(
                 delayFrames = msToFrames(t),
                 freq = randomFreq() * sizeShift,
                 q = profile.q,
-                // 파편이 가진 길이를 그대로 쓴다. 잘라 내면 앞머리만 남아 딱딱해진다.
-                decayMs = profile.decayMsMax * 3f,
+                decayMs = FULL_FRAGMENT_MS,
                 amplitude = FRAGMENT_AMP * (0.45f + 0.55f * e) * (0.85f + 0.08f * level),
                 pan = pan + jitter01() * 0.05f,
                 resonance = profile.resonance,
@@ -180,7 +191,7 @@ class Synth(
             delayFrames = 0,
             freq = profile.baseFreq * 0.8f * sizeShift,
             q = profile.q,
-            decayMs = profile.decayMsMax * 4f,
+            decayMs = FULL_FRAGMENT_MS,
             amplitude = FRAGMENT_AMP * 1.3f * (0.5f + 0.5f * energy),
             pan = pan,
             resonance = profile.resonance,
@@ -194,7 +205,7 @@ class Synth(
                 delayFrames = msToFrames(t),
                 freq = randomFreq() * sizeShift * 1.2f,
                 q = profile.q,
-                decayMs = profile.decayMsMax * 2f,
+                decayMs = FULL_FRAGMENT_MS,
                 amplitude = FRAGMENT_AMP * 0.5f * jitter(0.3f),
                 pan = pan + jitter01() * 0.15f,
                 resonance = profile.resonance * 0.7f,
@@ -317,7 +328,7 @@ class Synth(
      */
     fun render(out: FloatArray, frames: Int) {
         java.util.Arrays.fill(out, 0, frames * 2, 0f)
-        pool.render(out, frames)
+        if (useRaw) raw?.render(out, frames, RAW_GAIN) else pool.render(out, frames)
 
         // 소프트 리미터. 그레인이 한꺼번에 몰려도 하드클립으로 찢어지지 않게 한다.
         val g = masterGain
@@ -374,8 +385,20 @@ class Synth(
         /** 겹칠 때 파편 사이 간격(ms). 붙여 놓으면 뭉친다. */
         const val FRAGMENT_GAP_MS = 26f
 
-        /** 파편 하나의 기본 진폭. 개수가 적으니 하나가 커야 한다. */
-        const val FRAGMENT_AMP = 0.34f
+        /**
+         * 파편 하나의 기본 진폭.
+         *
+         * 파편이 저마다 녹음에서 가지고 있던 크기를 그대로 들고 있다(전에는 하나하나
+         * 최대로 키워 놨었다). 그래서 예전 값보다 올려야 같은 음량이 된다.
+         * 측정값은 build/punch-report.txt를 본다.
+         */
+        const val FRAGMENT_AMP = 0.62f
+
+        /** 파편을 끝까지 틀라는 뜻. 어떤 파편보다도 길다. */
+        const val FULL_FRAGMENT_MS = 5000f
+
+        /** 원본을 통째로 틀 때의 크기. 녹음이 이미 정규화돼 있어 그대로 두면 크다. */
+        const val RAW_GAIN = 0.8f
     }
 
     private fun randomFreq(): Float {

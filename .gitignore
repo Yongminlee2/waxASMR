@@ -9,3 +9,4 @@ app/reference/*.wav
 app/src/main/assets/grains.bin
 app/src/main/assets/grains.idx
 app/src/main/assets/hand_landmarker.task
+app/src/main/assets/original.pcm

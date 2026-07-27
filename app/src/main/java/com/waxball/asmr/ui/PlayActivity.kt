@@ -124,6 +124,7 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         binding.playView.onResume()
         audio.setProfile(spec.soundProfile())
         audio.setToolBrightness(weapon.brightness)
+        audio.setRawPlayback(progressState.rawPlayback)
         audio.start()
     }
 

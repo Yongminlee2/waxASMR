@@ -104,7 +104,7 @@ class GrainBankBuilderTest {
             val centroid = parts[2].toInt()
 
             assertEquals("파편이 이어져 있지 않음", expectedOffset, offset)
-            assertTrue("파편 길이가 비정상: $length", length in 1000..7000)
+            assertTrue("파편 길이가 비정상: $length", length in 1000..12000)
             assertTrue("밝기가 비정상: $centroid", centroid in 100..20000)
             expectedOffset += length
         }

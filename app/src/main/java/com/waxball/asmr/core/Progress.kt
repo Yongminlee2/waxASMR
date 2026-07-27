@@ -29,6 +29,9 @@ class Progress private constructor() {
     /** 마지막에 고른 뿌시는 도구. */
     var weaponId: Int = 0
 
+    /** 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 소리 비교용. */
+    var rawPlayback: Boolean = false
+
     /** 조각 수와 완파 여부로 코인을 준다. 소모품이 없으니 용처는 볼 해금뿐이다. */
     fun awardForRun(detachedShards: Int, cleared: Boolean): Int =
         detachedShards / 10 + if (cleared) CLEAR_BONUS else 0
@@ -63,6 +66,7 @@ class Progress private constructor() {
         append("headphoneTip=").append(if (seenHeadphoneTip) 1 else 0).append('\n')
         append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
         append("weapon=").append(weaponId).append('\n')
+        append("rawPlayback=").append(if (rawPlayback) 1 else 0).append('\n')
         append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
     }
 
@@ -107,6 +111,7 @@ class Progress private constructor() {
                     "orbitLocked" -> p.orbitLocked = value == "1"
                     "headphoneTip" -> p.seenHeadphoneTip = value == "1"
                     "controlsTip" -> p.seenControlsTip = value == "1"
+                    "rawPlayback" -> p.rawPlayback = value == "1"
                     "weapon" -> value.toIntOrNull()?.let { p.weaponId = it.coerceIn(0, Weapon.entries.size - 1) }
                 }
             }

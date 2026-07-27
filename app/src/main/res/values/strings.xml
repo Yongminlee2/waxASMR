@@ -53,6 +53,8 @@
     <string name="settings_quality_medium">보통</string>
     <string name="settings_quality_high">높음</string>
     <string name="settings_orbit_lock">굴리기 잠금</string>
+    <string name="settings_raw_playback">녹음 원본 그대로 재생</string>
+    <string name="settings_raw_hint">파편으로 쪼개지 않고 녹음을 통째로 틉니다. 소리 비교용입니다.</string>
     <string name="settings_reset">기록 전부 지우기</string>
     <string name="settings_reset_confirm">코인·해금·도감이 전부 사라집니다. 되돌릴 수 없습니다.</string>
     <string name="settings_reset_done">기록을 지웠습니다.</string>

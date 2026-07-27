@@ -169,6 +169,7 @@ class ArPlayActivity : AppCompatActivity() {
         super.onResume()
         binding.arView.onResume()
         audio.setProfile(spec.soundProfile())
+        audio.setRawPlayback(PrefsProgressStore(this).load().rawPlayback)
         audio.start()
     }
 

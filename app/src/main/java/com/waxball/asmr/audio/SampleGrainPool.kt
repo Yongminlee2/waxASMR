@@ -62,11 +62,12 @@ class SampleGrainPool(
         val fragLen = bank.lengthOf(index)
 
         // 고른 파편의 밝기와 목표가 어긋난 만큼 재생 속도로 메운다.
-        // 반음 셋을 넘기면 늘어지거나 쇳소리가 나서 티가 난다.
+        // 반음 셋까지 허용했더니 왁스 음색 자체가 변했다. 녹음을 통째로 틀었을 때가
+        // 더 낫게 들린 이유 중 하나다. 반음 하나 안쪽으로만 민다.
         val ratio = (freq / bank.centroidOf(index).coerceAtLeast(1f))
             .coerceIn(PITCH_MIN, PITCH_MAX)
         // 같은 파편이라도 매번 조금씩 다르게 들리도록 흔든다.
-        val jitter = 1f + (nextFloat() * 2f - 1f) * 0.04f
+        val jitter = 1f + (nextFloat() * 2f - 1f) * 0.015f
 
         start[slot] = bank.offsetOf(index)
         length[slot] = fragLen
@@ -78,9 +79,12 @@ class SampleGrainPool(
         attackFrames[slot] = (sampleRate * attackMs * 0.001f).toInt().coerceAtLeast(1)
 
         // decayMs가 파편보다 짧으면 그만큼만 쓰고 부드럽게 끊는다.
+        // 끝까지 틀고 싶으면 파편보다 긴 값을 넘기면 된다. 파열음은 그래야 한다 —
+        // 감쇠값 36ms로 240ms짜리 파편을 자르면 앞머리만 남아 딱딱하고 메마르게 들린다.
         val wanted = (decayMs * 0.001f * sampleRate * rate[slot]).coerceAtLeast(64f)
         val usable = minOf(wanted, fragLen.toFloat())
-        fadeLen[slot] = (usable * 0.35f).coerceIn(64f, 2400f)
+        // 잦아드는 구간을 길게 잡으면 파편이 제 감쇠로 사라지기 전에 먼저 깎인다.
+        fadeLen[slot] = (usable * 0.18f).coerceIn(48f, 1200f)
         fadeFrom[slot] = (usable - fadeLen[slot]).coerceAtLeast(0f)
 
         val angle = (pan.coerceIn(-1f, 1f) + 1f) * (Math.PI.toFloat() / 4f)
@@ -184,8 +188,8 @@ class SampleGrainPool(
         /** 밝기 순 이웃 몇 개까지 후보로 볼지. 넓을수록 음색이 흩어진다. */
         const val SPREAD = 6
 
-        /** 재생 속도 범위. 반음 셋 정도를 넘기면 티가 난다. */
-        const val PITCH_MIN = 0.84f
-        const val PITCH_MAX = 1.19f
+        /** 재생 속도 범위. 반음 하나. 이보다 넓히면 왁스가 아닌 다른 재질처럼 들린다. */
+        const val PITCH_MIN = 0.944f
+        const val PITCH_MAX = 1.059f
     }
 }
