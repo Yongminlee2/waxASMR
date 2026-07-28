@@ -41,41 +41,12 @@ class PalmPose {
     var roll = 0f
         private set
 
-    /**
-     * 엄지 끝과 검지 끝 사이 거리 ÷ 손 폭. 집으면 작아진다.
-     * 비율이라 손이 카메라에서 멀어져도 값이 유지된다.
-     */
-    var pinchRatio = 1f
-        private set
-
-    /** 손끝 화면 좌표. 만진 자리를 정할 때 쓴다. */
-    var indexTipX = 0f
-        private set
-    var indexTipY = 0f
-        private set
-    var thumbTipX = 0f
-        private set
-    var thumbTipY = 0f
-        private set
-
-    /**
-     * 검지 끝이 손바닥 기준으로 움직이는 속도. 손 폭을 1로 본 초당 배율.
-     *
-     * 손 전체가 움직이는 것은 긁는 게 아니다. 그래서 절대 좌표가 아니라
-     * 손바닥 중심에서 본 상대 위치의 변화로 잰다.
-     */
-    var tipSpeed = 0f
-        private set
-
     private var started = false
     private var previousSqueeze = 0f
 
     // 각도를 직접 평활하면 ±π 경계에서 한 바퀴 튄다. 벡터로 평활한 뒤 각도를 낸다.
     private var rollX = 1f
     private var rollY = 0f
-
-    private var previousRelX = 0f
-    private var previousRelY = 0f
 
     fun reset() {
         hasHand = false
@@ -84,12 +55,7 @@ class PalmPose {
         started = false
         previousSqueeze = 0f
         roll = 0f
-        pinchRatio = 1f
-        indexTipX = 0f; indexTipY = 0f
-        thumbTipX = 0f; thumbTipY = 0f
-        tipSpeed = 0f
         rollX = 1f; rollY = 0f
-        previousRelX = 0f; previousRelY = 0f
     }
 
     /**
@@ -102,7 +68,6 @@ class PalmPose {
             // 손을 잠깐 놓쳤다고 볼이 사라지거나 튀면 거슬린다.
             hasHand = false
             force = 0f
-            tipSpeed = 0f
             previousSqueeze = squeeze
             return
         }
@@ -130,13 +95,6 @@ class PalmPose {
 
             rollX = rawRollX; rollY = rawRollY
             roll = angleOf(rollX, rollY)
-            readTips(hand)
-            val firstWidth = span.coerceAtLeast(1e-4f)
-            pinchRatio = distance(hand, HandLandmarks.THUMB_TIP, HandLandmarks.INDEX_TIP) / firstWidth
-            // 첫 프레임에 손끝 속도가 폭발하면 대뜸 긁는 것으로 잡힌다.
-            previousRelX = (indexTipX - rawCenterX) / firstWidth
-            previousRelY = (indexTipY - rawCenterY) / firstWidth
-            tipSpeed = 0f
             return
         }
 
@@ -160,30 +118,6 @@ class PalmPose {
         rollX += (rawRollX - rollX) * SMOOTH
         rollY += (rawRollY - rollY) * SMOOTH
         roll = angleOf(rollX, rollY)
-
-        readTips(hand)
-
-        val width = span.coerceAtLeast(1e-4f)
-        pinchRatio = distance(hand, HandLandmarks.THUMB_TIP, HandLandmarks.INDEX_TIP) / width
-
-        // 상대 위치는 평활 전 중심으로 잰다. 평활된 중심은 손을 따라오는 데 몇 프레임
-        // 걸리는데, 그 지연이 그대로 "손끝이 손바닥 위를 미끄러졌다"로 잡혀서
-        // 손을 통째로 옮기기만 해도 긁는 것으로 판정된다.
-        val relX = (indexTipX - rawCenterX) / width
-        val relY = (indexTipY - rawCenterY) / width
-        val moveX = relX - previousRelX
-        val moveY = relY - previousRelY
-        val rawSpeed = if (dt > 1e-4f) sqrt(moveX * moveX + moveY * moveY) / dt else 0f
-        tipSpeed += (rawSpeed - tipSpeed) * SMOOTH
-        previousRelX = relX
-        previousRelY = relY
-    }
-
-    private fun readTips(hand: HandLandmarks) {
-        indexTipX = hand.x[HandLandmarks.INDEX_TIP]
-        indexTipY = hand.y[HandLandmarks.INDEX_TIP]
-        thumbTipX = hand.x[HandLandmarks.THUMB_TIP]
-        thumbTipY = hand.y[HandLandmarks.THUMB_TIP]
     }
 
     /** 길이가 0인 벡터에서 atan2를 부르면 방향이 제멋대로 나온다. */

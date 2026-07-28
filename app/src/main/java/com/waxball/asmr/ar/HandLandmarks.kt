@@ -12,7 +12,6 @@ class HandLandmarks(val x: FloatArray, val y: FloatArray) {
         const val COUNT = 21
 
         const val WRIST = 0
-        const val THUMB_TIP = 4
         const val INDEX_MCP = 5
         const val INDEX_TIP = 8
         const val MIDDLE_MCP = 9
