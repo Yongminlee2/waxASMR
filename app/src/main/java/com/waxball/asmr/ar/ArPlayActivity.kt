@@ -30,6 +30,7 @@ import com.waxball.asmr.gl.BallGeometry
 import com.waxball.asmr.gl.BallScene
 import com.waxball.asmr.gl.Debris
 import com.waxball.asmr.gl.DebrisSpawner
+import com.waxball.asmr.gl.Picker
 import com.waxball.asmr.ui.Insets
 import com.waxball.asmr.ui.PrefsProgressStore
 import java.util.concurrent.Executors
@@ -60,6 +61,23 @@ class ArPlayActivity : AppCompatActivity() {
         private val FACING = Vec3(0f, 0f, 1f)
         private const val SQUEEZE_CONTACT_COS = -1f
 
+        /** 손바닥 위에 남겨 두는 부스러기 수. 넘으면 오래된 것부터 흘러넘친다. */
+        private const val DEBRIS_CAP = 60
+
+        /**
+         * 집기·긁기로 넣는 힘.
+         *
+         * 쥐기는 손이 오므라드는 속도에서 힘이 나오지만, 손끝을 대고 있는 동작에는
+         * 그런 신호가 없다. BreakModel이 기대하는 힘은 1~4이고, 조각에 금이 가는
+         * 임계가 0.22라 0.2초쯤 대고 있으면 넘어가는 세기로 잡는다.
+         */
+        private const val CONTACT_FORCE = 1.4f
+
+        /** 이만큼 한꺼번에 떨어지면 잠깐 느리게 보여 준다. */
+        private const val SLOW_MOTION_AREA = 0.03f
+
+        /** 손바닥 기울기를 부스러기가 미끄러지는 속도로 바꾸는 배율. */
+        private const val SLIDE_TO_WORLD = 1.6f
     }
 
     private lateinit var binding: ActivityArPlayBinding
@@ -69,7 +87,16 @@ class ArPlayActivity : AppCompatActivity() {
 
     private val cameraExecutor = Executors.newSingleThreadExecutor()
     private val pose = PalmPose()
+    private val gesture = HandGesture()
+    private val physics = PalmPhysics()
+    private val session = ArSession()
     private val ui = Handler(Looper.getMainLooper())
+
+    /** 손끝 광선. 매 프레임 쓰므로 미리 잡아 둔다. */
+    private val rayScratch = FloatArray(6)
+
+    /** 직전 프레임의 손 모양. 찍는 도구를 한 번만 먹이려면 바뀐 순간을 알아야 한다. */
+    private var previousGrip = Grip.NONE
 
     private var spec: BallSpec = BallCatalog.all[0]
 
@@ -93,6 +120,7 @@ class ArPlayActivity : AppCompatActivity() {
         binding = ActivityArPlayBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Insets.applyBottom(binding.arBottomBar)
+        Insets.applyTop(binding.arCombo)
 
         binding.arBackButton.setOnClickListener { finish() }
 
@@ -177,6 +205,9 @@ class ArPlayActivity : AppCompatActivity() {
         super.onPause()
         audio.stop()
         haptics.cancel()
+        // 나갔다 오면 볼이 굴러 있던 자리에서 시작하지 않도록 되돌린다.
+        physics.reset()
+        gesture.reset()
         binding.arView.onPause()
     }
 
@@ -220,6 +251,7 @@ class ArPlayActivity : AppCompatActivity() {
      */
     private fun loadBalls(seed: Long) {
         nextBallPending = false
+        session.onNewBall(System.currentTimeMillis())
         val target = spec
         val count = ballCount
         val quality = ArLayout.qualityFor(count)
@@ -248,8 +280,12 @@ class ArPlayActivity : AppCompatActivity() {
     private fun onFrame(dt: Float) {
         if (scenes.isEmpty()) return
         val renderer = binding.arView.renderer
+        val now = System.currentTimeMillis()
 
         pose.update(latestHand, dt)
+        if (pose.hasHand) gesture.update(pose) else gesture.reset()
+        physics.update(pose.roll, pose.hasHand, dt)
+        session.tick(dt, now)
 
         if (pose.hasHand) {
             val width = binding.arView.width.coerceAtLeast(1)
@@ -257,47 +293,115 @@ class ArPlayActivity : AppCompatActivity() {
 
             val handSpanPx = pose.span * width
             val radiusPx = ArLayout.radiusPx(handSpanPx, scenes.size)
+            val slidePx = physics.slideX * handSpanPx
 
             for (i in scenes.indices) {
                 ArLayout.offsetPx(i, scenes.size, handSpanPx, offsetScratch)
                 renderer.placeAt(
                     i,
-                    pose.centerX * width + offsetScratch[0],
+                    pose.centerX * width + offsetScratch[0] + slidePx,
                     pose.centerY * height + offsetScratch[1],
                     radiusPx,
                 )
             }
+            renderer.setSpin(physics.spin)
 
-            if (pose.force > 0f) {
-                audio.markTouch()
-                var broken = 0f
-                for (s in scenes) {
-                    s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
-                    broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
-                }
-                if (broken > 0f) {
-                    val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
-                    renderer.shake(magnitude)
-                    if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
-                }
-            }
+            applyGrip(dt, width, height, now)
         } else {
             renderer.hideBalls()
         }
 
+        var piled = 0
         for (s in scenes) {
             s.debris.update(dt, renderer.floorY, s.geometry.shardCenters) { id, pan, _ ->
                 s.model.land(id, pan, s.shards.shards[id].areaFrac)
+            }
+            // 손바닥을 기울이면 쌓인 부스러기가 낮은 쪽으로 흘러내린다.
+            s.debris.slideResting(physics.slideX * SLIDE_TO_WORLD * dt)
+            piled += s.debris.count
+        }
+        // 손바닥 위에는 바닥이 없다. 넘치면 오래된 것부터 흘러넘긴다.
+        if (piled > DEBRIS_CAP) {
+            var over = piled - DEBRIS_CAP
+            for (s in scenes) {
+                if (over <= 0) break
+                over -= s.debris.trimTo((s.debris.count - over).coerceAtLeast(0))
             }
         }
 
         // 전부 다 부서져야 새로 깐다. 하나만 남아도 계속 만질 거리가 있다.
         if (scenes.all { it.model.shellProgress >= 0.999f } && !nextBallPending) {
             nextBallPending = true
+            session.onCleared(now)
             ui.postDelayed({ if (!isFinishing) loadBalls(Random.nextLong()) }, 2600)
         }
 
-        ui.post { updateHint() }
+        ui.post { updateOverlay() }
+    }
+
+    /**
+     * 손 모양에 맞는 도구로, 손끝이 닿은 자리를 부순다.
+     *
+     * 예전에는 손 모양과 무관하게 늘 구 전체를 눌렀다. 그래서 어딜 만져도 똑같이
+     * 부서졌고, 도구 다섯 종을 하나도 쓰지 않았다.
+     */
+    private fun applyGrip(dt: Float, width: Int, height: Int, now: Long) {
+        val renderer = binding.arView.renderer
+        val grip = gesture.grip
+        val weapon = grip.weapon()
+        val fresh = grip != previousGrip
+        previousGrip = grip
+        if (weapon == null) return
+
+        // 쥐는 것은 손 전체가 볼을 감싸는 동작이라 힘이 손 모양에서 나온다.
+        // 집기·긁기는 손끝이 닿아 있는 동안 계속 먹인다.
+        val force = if (grip == Grip.SQUEEZE) pose.force else CONTACT_FORCE
+        if (force <= 0f) return
+
+        // 집기는 엄지와 검지 사이, 긁기는 검지 끝이 닿은 자리다.
+        val tipX = when (grip) {
+            Grip.PINCH -> (pose.indexTipX + pose.thumbTipX) * 0.5f * width
+            else -> pose.indexTipX * width
+        }
+        val tipY = when (grip) {
+            Grip.PINCH -> (pose.indexTipY + pose.thumbTipY) * 0.5f * height
+            else -> pose.indexTipY * height
+        }
+        val pan = ((tipX / width) * 2f - 1f).coerceIn(-1f, 1f)
+
+        audio.markTouch()
+        var broken = 0f
+        for (i in scenes.indices) {
+            val s = scenes[i]
+
+            // 쥐면 손가락이 볼을 감싸므로 구 전체가 대상이다. 그 밖에는 닿은 자리만.
+            val hit = if (grip == Grip.SQUEEZE) FACING else {
+                renderer.screenToRayFor(i, tipX, tipY, rayScratch)
+                Picker.hitDirection(
+                    Vec3(rayScratch[0], rayScratch[1], rayScratch[2]),
+                    Vec3(rayScratch[3], rayScratch[4], rayScratch[5]),
+                ) ?: continue
+            }
+            val contact = if (grip == Grip.SQUEEZE) SQUEEZE_CONTACT_COS else weapon.contactCos
+
+            if (weapon.continuous) {
+                s.model.pressArea(hit, contact, force * weapon.forceScale, dt, pan)
+            } else if (fresh) {
+                // 찍는 도구는 대고 있는 동안 계속 먹이면 손맛이 사라진다.
+                s.model.strikeArea(hit, contact, weapon.strikeDamage, pan)
+            }
+            if (grip == Grip.SCRATCH) s.model.rub((pose.tipSpeed / 6f).coerceAtMost(1f), pan)
+
+            broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+        }
+
+        if (broken > 0f) {
+            session.onBreak(now)
+            val magnitude = ((broken / 0.03f) * weapon.impactScale).coerceIn(0f, 1f)
+            renderer.shake(magnitude)
+            if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
+            if (broken >= SLOW_MOTION_AREA) renderer.startSlowMotion()
+        }
     }
 
     /** 손을 놓치면 안내를 되살리고, 잡았는데 안 쥐고 있으면 쥐라고 알려 준다. */
@@ -314,11 +418,27 @@ class ArPlayActivity : AppCompatActivity() {
         }
 
         lostSince = 0L
-        if (pose.squeeze < 0.1f) {
-            binding.hint.setText(R.string.ar_squeeze)
+        if (gesture.grip == Grip.NONE) {
+            binding.hint.setText(R.string.ar_gestures)
             binding.hint.visibility = View.VISIBLE
         } else {
             binding.hint.visibility = View.GONE
+        }
+    }
+
+    /** 콤보와 최고 기록. 화면 구석에 작게. ASMR을 방해하면 안 된다. */
+    private fun updateOverlay() {
+        if (isFinishing) return
+        updateHint()
+        if (session.combo >= 2) {
+            binding.arCombo.text = getString(R.string.ar_combo, session.combo)
+            binding.arCombo.visibility = View.VISIBLE
+        } else if (session.bestClearSec > 0f) {
+            binding.arCombo.text =
+                getString(R.string.ar_best, session.bestCombo, session.bestClearSec)
+            binding.arCombo.visibility = View.VISIBLE
+        } else {
+            binding.arCombo.visibility = View.GONE
         }
     }
 

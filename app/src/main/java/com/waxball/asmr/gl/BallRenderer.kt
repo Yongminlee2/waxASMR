@@ -135,6 +135,26 @@ class BallRenderer : GLSurfaceView.Renderer {
     @Volatile private var shakeAmount = 0f
     private var shakePhase = 0f
 
+    /** 손바닥 위에서 볼이 굴러간 각도(라디안). */
+    @Volatile private var palmSpin = 0f
+
+    /** 남은 슬로모션 시간(초). */
+    @Volatile private var slowMotionLeft = 0f
+
+    /** 손바닥 기울기를 따라 볼이 굴러간 각도. 손바닥 모드에서만 쓴다. */
+    fun setSpin(radians: Float) {
+        palmSpin = radians
+    }
+
+    /**
+     * 큰 판이 떨어졌을 때 잠깐 느리게 보여 준다.
+     * 소리는 늦추지 않는다 — 파열음은 이미 한순간에 끝난 충격이라,
+     * 늦추면 왁스가 아니라 다른 것이 된다.
+     */
+    fun startSlowMotion() {
+        slowMotionLeft = SLOW_MOTION_SEC
+    }
+
     fun setScene(next: BallScene) {
         pendingScenes.set(listOf(next))
     }
@@ -226,9 +246,22 @@ class BallRenderer : GLSurfaceView.Renderer {
         pendingScenes.getAndSet(null)?.let { adopt(it) }
 
         val now = System.nanoTime()
-        val dt = if (lastFrameNs == 0L) 0.016f else ((now - lastFrameNs) / 1e9f).coerceIn(0.001f, 0.05f)
+        val raw = if (lastFrameNs == 0L) 0.016f else ((now - lastFrameNs) / 1e9f).coerceIn(0.001f, 0.05f)
         lastFrameNs = now
+
+        // 큰 판이 떨어진 직후에는 잠깐 느리게 흐른다. 소리 이벤트는 이미 나간 뒤라
+        // 늘어지지 않고, 부서지는 장면만 천천히 보인다.
+        var dt = raw
+        if (slowMotionLeft > 0f) {
+            slowMotionLeft -= raw
+            dt = raw * SLOW_MOTION_SCALE
+        }
         onFrame?.invoke(dt)
+
+        // 손바닥을 기울이면 볼이 화면 안에서 굴러간다.
+        if (arPlacement && palmSpin != 0f) {
+            ballRotation = Quat.axisAngle(Vec3(0f, 0f, 1f), palmSpin)
+        }
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         if (balls.isEmpty()) return
@@ -499,5 +532,11 @@ class BallRenderer : GLSurfaceView.Renderer {
 
         /** AR에서 카메라를 고정해 두는 거리. 볼을 세계 좌표로 옮겨 배치한다. */
         const val AR_CAMERA_DISTANCE = 6f
+
+        /** 큰 판이 떨어졌을 때 느리게 보여 주는 시간(초). 길면 답답해진다. */
+        const val SLOW_MOTION_SEC = 0.35f
+
+        /** 그동안의 시간 배율. */
+        const val SLOW_MOTION_SCALE = 0.35f
     }
 }
