@@ -60,14 +60,6 @@ class ArPlayActivity : AppCompatActivity() {
         private val FACING = Vec3(0f, 0f, 1f)
         private const val SQUEEZE_CONTACT_COS = -1f
 
-        /** 손바닥 위에 남겨 두는 부스러기 수. 넘으면 오래된 것부터 흘러넘친다. */
-        private const val DEBRIS_CAP = 60
-
-        /** 이만큼 한꺼번에 떨어지면 잠깐 느리게 보여 준다. */
-        private const val SLOW_MOTION_AREA = 0.03f
-
-        /** 손바닥 기울기를 부스러기가 미끄러지는 속도로 바꾸는 배율. */
-        private const val SLIDE_TO_WORLD = 1.6f
     }
 
     private lateinit var binding: ActivityArPlayBinding
@@ -77,8 +69,6 @@ class ArPlayActivity : AppCompatActivity() {
 
     private val cameraExecutor = Executors.newSingleThreadExecutor()
     private val pose = PalmPose()
-    private val physics = PalmPhysics()
-    private val session = ArSession()
     private val ui = Handler(Looper.getMainLooper())
 
     private var spec: BallSpec = BallCatalog.all[0]
@@ -103,7 +93,6 @@ class ArPlayActivity : AppCompatActivity() {
         binding = ActivityArPlayBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Insets.applyBottom(binding.arBottomBar)
-        Insets.applyTop(binding.arCombo)
 
         binding.arBackButton.setOnClickListener { finish() }
 
@@ -188,8 +177,6 @@ class ArPlayActivity : AppCompatActivity() {
         super.onPause()
         audio.stop()
         haptics.cancel()
-        // 나갔다 오면 볼이 굴러 있던 자리에서 시작하지 않도록 되돌린다.
-        physics.reset()
         binding.arView.onPause()
     }
 
@@ -233,7 +220,6 @@ class ArPlayActivity : AppCompatActivity() {
      */
     private fun loadBalls(seed: Long) {
         nextBallPending = false
-        session.onNewBall(System.currentTimeMillis())
         val target = spec
         val count = ballCount
         val quality = ArLayout.qualityFor(count)
@@ -262,11 +248,8 @@ class ArPlayActivity : AppCompatActivity() {
     private fun onFrame(dt: Float) {
         if (scenes.isEmpty()) return
         val renderer = binding.arView.renderer
-        val now = System.currentTimeMillis()
 
         pose.update(latestHand, dt)
-        physics.update(pose.roll, pose.hasHand, dt)
-        session.tick(dt, now)
 
         if (pose.hasHand) {
             val width = binding.arView.width.coerceAtLeast(1)
@@ -274,77 +257,47 @@ class ArPlayActivity : AppCompatActivity() {
 
             val handSpanPx = pose.span * width
             val radiusPx = ArLayout.radiusPx(handSpanPx, scenes.size)
-            val slidePx = physics.slideX * handSpanPx
 
             for (i in scenes.indices) {
                 ArLayout.offsetPx(i, scenes.size, handSpanPx, offsetScratch)
                 renderer.placeAt(
                     i,
-                    pose.centerX * width + offsetScratch[0] + slidePx,
+                    pose.centerX * width + offsetScratch[0],
                     pose.centerY * height + offsetScratch[1],
                     radiusPx,
                 )
             }
 
-            applySqueeze(dt, now)
+            if (pose.force > 0f) {
+                audio.markTouch()
+                var broken = 0f
+                for (s in scenes) {
+                    s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
+                    broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+                }
+                if (broken > 0f) {
+                    val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
+                    renderer.shake(magnitude)
+                    if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
+                }
+            }
         } else {
             renderer.hideBalls()
         }
 
-        var piled = 0
         for (s in scenes) {
             s.debris.update(dt, renderer.floorY, s.geometry.shardCenters) { id, pan, _ ->
                 s.model.land(id, pan, s.shards.shards[id].areaFrac)
-            }
-            // 손바닥을 기울이면 쌓인 부스러기가 낮은 쪽으로 흘러내린다.
-            s.debris.slideResting(physics.slideX * SLIDE_TO_WORLD * dt)
-            piled += s.debris.count
-        }
-        // 손바닥 위에는 바닥이 없다. 넘치면 오래된 것부터 흘러넘긴다.
-        if (piled > DEBRIS_CAP) {
-            var over = piled - DEBRIS_CAP
-            for (s in scenes) {
-                if (over <= 0) break
-                over -= s.debris.trimTo((s.debris.count - over).coerceAtLeast(0))
             }
         }
 
         // 전부 다 부서져야 새로 깐다. 하나만 남아도 계속 만질 거리가 있다.
         if (scenes.all { it.model.shellProgress >= 0.999f } && !nextBallPending) {
             nextBallPending = true
-            session.onCleared(now)
             ui.postDelayed({ if (!isFinishing) loadBalls(Random.nextLong()) }, 2600)
         }
 
-        ui.post { updateOverlay() }
-    }
-
-    /**
-     * 쥔 만큼 볼이 으스러진다. 이 화면이 하는 일은 이것 하나다.
-     *
-     * 한때 손 모양을 도구로 바꿔(집기는 손톱, 문지르기는 손가락) 손끝이 닿은 자리만
-     * 깨지게 해 봤는데, 손에 올려놓고 쥐는 것 하나로 두는 쪽이 낫다.
-     * 손 모양을 신경 쓰기 시작하면 ASMR이 아니라 조작이 된다.
-     */
-    private fun applySqueeze(dt: Float, now: Long) {
-        if (pose.force <= 0f) return
-        val renderer = binding.arView.renderer
-
-        audio.markTouch()
-        var broken = 0f
-        for (s in scenes) {
-            s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
-            // 볼이 돌아가 있으면 그 자세를 같이 넘겨야 한다. 안 넘기면 조각이
-            // 떨어져 나가는 순간 자세가 튄다.
-            broken += DebrisSpawner.spawnFreshlyDetached(s, renderer.ballRotation)
-        }
-        if (broken <= 0f) return
-
-        session.onBreak(now)
-        val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
-        renderer.shake(magnitude)
-        if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
-        if (broken >= SLOW_MOTION_AREA) renderer.startSlowMotion()
+        ui.post { updateHint() }
     }
 
     /** 손을 놓치면 안내를 되살리고, 잡았는데 안 쥐고 있으면 쥐라고 알려 준다. */
@@ -366,22 +319,6 @@ class ArPlayActivity : AppCompatActivity() {
             binding.hint.visibility = View.VISIBLE
         } else {
             binding.hint.visibility = View.GONE
-        }
-    }
-
-    /** 콤보와 최고 기록. 화면 구석에 작게. ASMR을 방해하면 안 된다. */
-    private fun updateOverlay() {
-        if (isFinishing) return
-        updateHint()
-        if (session.combo >= 2) {
-            binding.arCombo.text = getString(R.string.ar_combo, session.combo)
-            binding.arCombo.visibility = View.VISIBLE
-        } else if (session.bestClearSec > 0f) {
-            binding.arCombo.text =
-                getString(R.string.ar_best, session.bestCombo, session.bestClearSec)
-            binding.arCombo.visibility = View.VISIBLE
-        } else {
-            binding.arCombo.visibility = View.GONE
         }
     }
 

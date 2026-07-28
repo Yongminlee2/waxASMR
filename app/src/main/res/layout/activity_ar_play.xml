@@ -27,19 +27,6 @@
         android:textColor="@color/text_primary"
         android:textSize="16sp" />
 
-    <TextView
-        android:id="@+id/arCombo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
-        android:padding="16dp"
-        android:shadowColor="#000000"
-        android:shadowRadius="8"
-        android:textColor="@color/text_primary"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
     <LinearLayout
         android:id="@+id/arBottomBar"
         android:layout_width="match_parent"

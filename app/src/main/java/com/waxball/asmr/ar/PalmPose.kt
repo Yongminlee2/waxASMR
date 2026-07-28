@@ -1,6 +1,5 @@
 package com.waxball.asmr.ar
 
-import kotlin.math.atan2
 import kotlin.math.sqrt
 
 /**
@@ -32,21 +31,8 @@ class PalmPose {
     var force = 0f
         private set
 
-    /**
-     * 손바닥 롤(라디안). 검지뿌리 → 새끼뿌리 벡터의 화면 각도다.
-     *
-     * 2D 관절만으로 안정적으로 나오는 유일한 자세 신호다. 앞뒤 기울기는
-     * 손 길이 대 폭 비율로 추정할 수 있지만 손가락을 굽히기만 해도 값이 흔들린다.
-     */
-    var roll = 0f
-        private set
-
     private var started = false
     private var previousSqueeze = 0f
-
-    // 각도를 직접 평활하면 ±π 경계에서 한 바퀴 튄다. 벡터로 평활한 뒤 각도를 낸다.
-    private var rollX = 1f
-    private var rollY = 0f
 
     fun reset() {
         hasHand = false
@@ -54,8 +40,6 @@ class PalmPose {
         span = 0f; squeeze = 0f; force = 0f
         started = false
         previousSqueeze = 0f
-        roll = 0f
-        rollX = 1f; rollY = 0f
     }
 
     /**
@@ -83,8 +67,6 @@ class PalmPose {
 
         val rawSpan = distance(hand, HandLandmarks.INDEX_MCP, HandLandmarks.PINKY_MCP)
         val rawSqueeze = curlOf(hand)
-        val rawRollX = hand.x[HandLandmarks.PINKY_MCP] - hand.x[HandLandmarks.INDEX_MCP]
-        val rawRollY = hand.y[HandLandmarks.PINKY_MCP] - hand.y[HandLandmarks.INDEX_MCP]
 
         if (!started) {
             started = true
@@ -92,9 +74,6 @@ class PalmPose {
             span = rawSpan; squeeze = rawSqueeze
             previousSqueeze = rawSqueeze
             force = 0f
-
-            rollX = rawRollX; rollY = rawRollY
-            roll = angleOf(rollX, rollY)
             return
         }
 
@@ -114,15 +93,7 @@ class PalmPose {
             0f
         }
         previousSqueeze = squeeze
-
-        rollX += (rawRollX - rollX) * SMOOTH
-        rollY += (rawRollY - rollY) * SMOOTH
-        roll = angleOf(rollX, rollY)
     }
-
-    /** 길이가 0인 벡터에서 atan2를 부르면 방향이 제멋대로 나온다. */
-    private fun angleOf(x: Float, y: Float): Float =
-        if (x * x + y * y < 1e-10f) 0f else atan2(y, x)
 
     /**
      * 손가락 네 개의 굽힘 평균.
