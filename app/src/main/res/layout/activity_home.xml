@@ -81,6 +81,14 @@
             android:layout_marginTop="20dp"
             android:text="@string/ar_mode" />
 
+        <Button
+            android:id="@+id/smashButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/smash_mode" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"

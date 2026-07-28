@@ -50,6 +50,9 @@ class HomeActivity : AppCompatActivity() {
                     )
             )
         }
+        binding.smashButton.setOnClickListener {
+            startActivity(Intent(this, SmashActivity::class.java))
+        }
     }
 
     override fun onResume() {
