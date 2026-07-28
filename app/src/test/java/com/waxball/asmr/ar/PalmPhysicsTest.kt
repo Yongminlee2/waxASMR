@@ -13,28 +13,27 @@ class PalmPhysicsTest {
     }
 
     @Test
-    fun aLevelPalmDoesNotRollTheBall() {
+    fun aLevelPalmDoesNotMoveTheBall() {
         val physics = PalmPhysics()
         run(physics, roll = 0f)
-        assertEquals("수평인데 볼이 굴러감", 0f, physics.spin, 1e-3f)
         assertEquals("수평인데 볼이 밀려남", 0f, physics.slideX, 1e-3f)
     }
 
     @Test
-    fun tiltingOneWayRollsTheBallThatWay() {
+    fun tiltingOneWayPushesTheBallThatWay() {
         val left = PalmPhysics().also { run(it, roll = -0.5f) }
         val right = PalmPhysics().also { run(it, roll = 0.5f) }
-        assertTrue("좌우로 눕혔는데 같은 쪽으로 구름", left.spin * right.spin < 0f)
         assertTrue("좌우로 눕혔는데 같은 쪽으로 밀림", left.slideX * right.slideX < 0f)
     }
 
     @Test
-    fun theBallKeepsRollingWhileTheHandStaysTilted() {
+    fun theBallSettlesInsteadOfDriftingForever() {
+        // 계속 쌓이면 볼이 손 밖으로 나간다. 기울인 만큼에서 멈춰야 한다.
         val physics = PalmPhysics()
-        run(physics, roll = 0.5f, seconds = 0.5f)
-        val half = physics.spin
-        run(physics, roll = 0.5f, seconds = 0.5f)
-        assertTrue("계속 눕혀 뒀는데 구르다 멈춤 ($half → ${physics.spin})", physics.spin > half * 1.5f)
+        run(physics, roll = 0.5f, seconds = 1f)
+        val settled = physics.slideX
+        run(physics, roll = 0.5f, seconds = 3f)
+        assertEquals("같은 기울기인데 계속 밀려남", settled, physics.slideX, 0.01f)
     }
 
     @Test
@@ -51,9 +50,9 @@ class PalmPhysicsTest {
     fun losingTheHandFreezesEverything() {
         val physics = PalmPhysics()
         run(physics, roll = 0.5f)
-        val frozen = physics.spin
+        val frozen = physics.slideX
         repeat(60) { physics.update(0.5f, hasHand = false, dt = 1f / 60f) }
-        assertEquals("손이 없는데 볼이 계속 구름", frozen, physics.spin, 1e-4f)
+        assertEquals("손이 없는데 볼이 계속 움직임", frozen, physics.slideX, 1e-4f)
     }
 
     @Test
@@ -61,7 +60,6 @@ class PalmPhysicsTest {
         val physics = PalmPhysics()
         run(physics, roll = 0.7f)
         physics.reset()
-        assertEquals(0f, physics.spin, 1e-6f)
         assertEquals(0f, physics.slideX, 1e-6f)
     }
 }

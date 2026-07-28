@@ -135,16 +135,8 @@ class BallRenderer : GLSurfaceView.Renderer {
     @Volatile private var shakeAmount = 0f
     private var shakePhase = 0f
 
-    /** 손바닥 위에서 볼이 굴러간 각도(라디안). */
-    @Volatile private var palmSpin = 0f
-
     /** 남은 슬로모션 시간(초). */
     @Volatile private var slowMotionLeft = 0f
-
-    /** 손바닥 기울기를 따라 볼이 굴러간 각도. 손바닥 모드에서만 쓴다. */
-    fun setSpin(radians: Float) {
-        palmSpin = radians
-    }
 
     /**
      * 큰 판이 떨어졌을 때 잠깐 느리게 보여 준다.
@@ -257,11 +249,6 @@ class BallRenderer : GLSurfaceView.Renderer {
             dt = raw * SLOW_MOTION_SCALE
         }
         onFrame?.invoke(dt)
-
-        // 손바닥을 기울이면 볼이 화면 안에서 굴러간다.
-        if (arPlacement && palmSpin != 0f) {
-            ballRotation = Quat.axisAngle(Vec3(0f, 0f, 1f), palmSpin)
-        }
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         if (balls.isEmpty()) return

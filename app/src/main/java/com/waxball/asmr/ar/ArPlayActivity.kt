@@ -285,7 +285,6 @@ class ArPlayActivity : AppCompatActivity() {
                     radiusPx,
                 )
             }
-            renderer.setSpin(physics.spin)
 
             applySqueeze(dt, now)
         } else {
@@ -335,7 +334,9 @@ class ArPlayActivity : AppCompatActivity() {
         var broken = 0f
         for (s in scenes) {
             s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
-            broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+            // 볼이 돌아가 있으면 그 자세를 같이 넘겨야 한다. 안 넘기면 조각이
+            // 떨어져 나가는 순간 자세가 튄다.
+            broken += DebrisSpawner.spawnFreshlyDetached(s, renderer.ballRotation)
         }
         if (broken <= 0f) return
 
