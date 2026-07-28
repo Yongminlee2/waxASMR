@@ -52,18 +52,13 @@ class SampleGrainPool(
         pan: Float,
         resonance: Float,
         attackMs: Float,
-        rank: Float,
     ) {
         // q와 resonance는 노이즈 합성 전용이라 파편 방식에서는 쓰지 않는다.
         if (bank.size == 0) return
         val slot = allocate(amplitude)
         if (slot < 0) return
 
-        // 순위로 고르면 뽑히는 밝기 분포가 뱅크(=녹음)의 분포와 같아진다.
-        // 절대 Hz로 고르는 쪽은 노이즈 합성 시절의 치우침이 따라온다.
-        val index =
-            if (rank >= 0f) bank.pickByRank(rank, RANK_SPREAD, nextInt())
-            else bank.pick(freq, SPREAD, nextInt())
+        val index = bank.pick(freq, SPREAD, nextInt())
         val fragLen = bank.lengthOf(index)
 
         // 고른 파편의 밝기와 목표가 어긋난 만큼 재생 속도로 메운다.
@@ -192,9 +187,6 @@ class SampleGrainPool(
     private companion object {
         /** 밝기 순 이웃 몇 개까지 후보로 볼지. 넓을수록 음색이 흩어진다. */
         const val SPREAD = 6
-
-        /** 순위로 고를 때 후보로 볼 범위. 전체의 ±35%. */
-        const val RANK_SPREAD = 0.35f
 
         /** 재생 속도 범위. 반음 하나. 이보다 넓히면 왁스가 아닌 다른 재질처럼 들린다. */
         const val PITCH_MIN = 0.944f
