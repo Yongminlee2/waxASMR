@@ -17,6 +17,8 @@ interface GrainSink {
      * @param freq 크랙의 목표 음높이. 파편 방식에서는 이 밝기에 가까운 파편을 고르는 기준이 된다
      * @param decayMs 이 시간이 지나면 잦아든다. 파편이 더 길면 잘라 낸다
      * @param attackMs 앞머리가 서는 시간. 파열음은 짧고 마찰음은 길다
+     * @param rank 파편을 고를 밝기 순위 0~1. 음수면 [freq]로 고른다.
+     *   노이즈 합성에는 뱅크가 없으므로 이 값을 무시한다
      */
     fun spawn(
         delayFrames: Int,
@@ -27,6 +29,7 @@ interface GrainSink {
         pan: Float,
         resonance: Float,
         attackMs: Float = 0.4f,
+        rank: Float = -1f,
     )
 
     /** out에 스테레오 인터리브로 더한다. 호출자가 미리 0으로 채운다. */

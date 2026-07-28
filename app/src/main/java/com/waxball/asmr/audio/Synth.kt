@@ -152,7 +152,6 @@ class Synth(
     private fun crackFromRecording(level: Int, energy: Float, pan: Float, areaFrac: Float) {
         val e = energy.coerceIn(0f, 1f)
         val count = (1 + (e * 2.2f).toInt()).coerceIn(1, MAX_FRAGMENTS_PER_CRACK)
-        val sizeShift = sizeShift(areaFrac)
 
         lastGrainCount = count
         lastMeanGapMs = FRAGMENT_GAP_MS
@@ -161,12 +160,13 @@ class Synth(
         repeat(count) {
             pool.spawn(
                 delayFrames = msToFrames(t),
-                freq = randomFreq() * sizeShift,
+                freq = profile.baseFreq,
                 q = profile.q,
                 decayMs = FULL_FRAGMENT_MS,
                 amplitude = FRAGMENT_AMP * (0.45f + 0.55f * e) * (0.85f + 0.08f * level),
                 pan = pan + jitter01() * 0.05f,
                 resonance = profile.resonance,
+                rank = rankFor(areaFrac),
             )
             // 겹칠 때도 앞 파편이 어느 정도 지난 뒤에 놓는다. 붙여 놓으면 뭉친다.
             t += FRAGMENT_GAP_MS * jitter(0.4f)
@@ -185,16 +185,16 @@ class Synth(
      * 파편 방식에서 그러면 조각 하나 떨어질 때마다 무더기가 쏟아진다.
      */
     private fun detachFromRecording(energy: Float, pan: Float, areaFrac: Float) {
-        val sizeShift = sizeShift(areaFrac)
-
+        // 큰 조각이 떨어지는 소리는 더 어둡고, 뒤따르는 부스러기는 더 밝다.
         pool.spawn(
             delayFrames = 0,
-            freq = profile.baseFreq * 0.8f * sizeShift,
+            freq = profile.baseFreq,
             q = profile.q,
             decayMs = FULL_FRAGMENT_MS,
             amplitude = FRAGMENT_AMP * 1.3f * (0.5f + 0.5f * energy),
             pan = pan,
             resonance = profile.resonance,
+            rank = rankFor(areaFrac, shift = -0.08f),
         )
 
         // 넓은 판일수록 부스러기가 더 따라온다.
@@ -203,12 +203,13 @@ class Synth(
         repeat(tail) {
             pool.spawn(
                 delayFrames = msToFrames(t),
-                freq = randomFreq() * sizeShift * 1.2f,
+                freq = profile.baseFreq,
                 q = profile.q,
                 decayMs = FULL_FRAGMENT_MS,
                 amplitude = FRAGMENT_AMP * 0.5f * jitter(0.3f),
                 pan = pan + jitter01() * 0.15f,
                 resonance = profile.resonance * 0.7f,
+                rank = rankFor(areaFrac, shift = 0.12f),
             )
             t += FRAGMENT_GAP_MS * jitter(0.5f)
         }
@@ -277,6 +278,7 @@ class Synth(
                 amplitude = 0.022f * jitter(0.5f),
                 pan = pan + jitter01() * 0.2f,
                 resonance = 0.15f,
+                rank = if (usingRecordedGrains) rankFor(areaFrac, shift = 0.15f) else -1f,
             )
         }
     }
@@ -298,6 +300,7 @@ class Synth(
                 pan = pan + jitter01() * 0.1f,
                 resonance = 0.05f,
                 attackMs = 1.6f,
+                rank = if (usingRecordedGrains) rankFor(0f, shift = 0.2f) else -1f,
             )
         }
     }
@@ -361,6 +364,19 @@ class Synth(
     private fun sizeShift(areaFrac: Float) = 1f / (1f + 6f * areaFrac.coerceIn(0f, 0.3f))
 
     /**
+     * 파편을 고를 밝기 순위.
+     *
+     * 큰 조각일수록 어둡고, 밝은 도구일수록 밝다. 절대 주파수를 목표로 던지지 않는다.
+     * 그건 노이즈 합성의 중심 주파수를 녹음에 맞추려고 넣은 치우침이라,
+     * 파편에 그대로 걸면 어두운 파편만 계속 뽑혀 녹음보다 둔하게 들린다.
+     */
+    private fun rankFor(areaFrac: Float, shift: Float = 0f): Float {
+        val size = -0.2f * (areaFrac.coerceIn(0f, 0.3f) / 0.3f)
+        val tool = (toolBrightness - 1f) * 0.15f
+        return (profile.brightnessRank + size + tool + shift).coerceIn(0f, 1f)
+    }
+
+    /**
      * 점탄성 감쇠. 왁스 같은 무른 재질에서는 고주파 성분이 먼저 급격히 사라지고
      * 저주파만 남는다. 감쇠 시간을 주파수와 무관하게 두면 파쇄음이 아니라
      * 잡음 뭉치처럼 들린다.
@@ -392,7 +408,7 @@ class Synth(
          * 최대로 키워 놨었다). 그래서 예전 값보다 올려야 같은 음량이 된다.
          * 측정값은 build/punch-report.txt를 본다.
          */
-        const val FRAGMENT_AMP = 0.62f
+        const val FRAGMENT_AMP = 0.30f
 
         /** 파편을 끝까지 틀라는 뜻. 어떤 파편보다도 길다. */
         const val FULL_FRAGMENT_MS = 5000f

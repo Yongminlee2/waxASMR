@@ -32,6 +32,17 @@ data class SoundProfile(
     val body: Float = 0.5f,
     /** 파열 간격 배율. 크면 하나하나 굵게 터지고, 작으면 촘촘히 뭉쳐서 터진다. */
     val gapScale: Float = 1f,
+    /**
+     * 파편을 고를 때 뱅크의 어느 높이에서 뽑을지 0~1.
+     *
+     * 예전에는 [baseFreq]를 목표로 던져 골랐는데, 그건 노이즈 합성 전용 값이라
+     * 파편에 걸면 뱅크 한쪽 끝만 계속 뽑힌다. 재질 차이는 순위로만 준다.
+     *
+     * 처음에는 중심 주파수 순서만 보고 값을 정했는데, 어두운 재질 둘이 뱅크의
+     * 가장 어두운 끝까지 파고들어 소리가 납작해졌다(무른 왁스 크레스트 9.9).
+     * 그쪽 파편들은 저역 여운이 길어서 실효값이 올라간다. 측정해서 끌어올린 값이다.
+     */
+    val brightnessRank: Float = 0.5f,
 ) {
     companion object {
 
@@ -63,7 +74,7 @@ data class SoundProfile(
             baseFreq = 3107f, freqSpread = 1.79f, q = 8.5f,
             decayMsMin = 12f, decayMsMax = 36f, resonance = 0.70f,
             density = 0.35f, toughness = 1.0f, propagation = 0.45f, brightness = 1.0f,
-            body = 0.45f, gapScale = 9.0f,
+            body = 0.45f, gapScale = 9.0f, brightnessRank = 0.50f,
         )
 
         /**
@@ -74,7 +85,7 @@ data class SoundProfile(
             baseFreq = 2600f, freqSpread = 1.70f, q = 5.7f,
             decayMsMin = 8f, decayMsMax = 24f, resonance = 0.85f,
             density = 0.25f, toughness = 0.75f, propagation = 0.22f, brightness = 0.7f,
-            body = 0.50f, gapScale = 17.8f,
+            body = 0.50f, gapScale = 17.8f, brightnessRank = 0.42f,
         )
 
         /** 반짝이 섞인 왁스. 왁뿌볼3 계열의 밝고 사각거리는 소리. */
@@ -82,7 +93,7 @@ data class SoundProfile(
             baseFreq = 3600f, freqSpread = 1.50f, q = 11f,
             decayMsMin = 40f, decayMsMax = 110f, resonance = 0.62f,
             density = 0.44f, toughness = 0.95f, propagation = 0.40f, brightness = 1.25f,
-            body = 0.36f, gapScale = 6f,
+            body = 0.36f, gapScale = 6f, brightnessRank = 0.62f,
         )
 
         /** 알갱이가 박힌 껍질. 다섯 중 파열이 가장 촘촘하다. */
@@ -90,7 +101,7 @@ data class SoundProfile(
             baseFreq = 2400f, freqSpread = 2.50f, q = 7f,
             decayMsMin = 13f, decayMsMax = 39f, resonance = 0.80f,
             density = 0.56f, toughness = 1.10f, propagation = 0.30f, brightness = 0.95f,
-            body = 0.55f, gapScale = 5.1f,
+            body = 0.55f, gapScale = 5.1f, brightnessRank = 0.38f,
         )
 
         /** 설탕유리. 왁뿌볼3의 밝은 쪽 극단. 여운이 가장 길다. */
@@ -98,7 +109,7 @@ data class SoundProfile(
             baseFreq = 4300f, freqSpread = 1.50f, q = 12f,
             decayMsMin = 55f, decayMsMax = 150f, resonance = 0.62f,
             density = 0.40f, toughness = 1.25f, propagation = 0.55f, brightness = 1.5f,
-            body = 0.50f, gapScale = 6f,
+            body = 0.50f, gapScale = 6f, brightnessRank = 0.78f,
         )
     }
 }

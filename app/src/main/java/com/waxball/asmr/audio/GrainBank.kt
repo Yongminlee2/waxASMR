@@ -46,6 +46,27 @@ class GrainBank private constructor(
         return byBrightness[lo + (random and 0x7FFFFFFF) % span]
     }
 
+    /**
+     * 밝기 순위(백분위)로 파편을 고른다.
+     *
+     * 절대 주파수를 목표로 던지면 노이즈 합성 시절의 치우침이 그대로 따라온다.
+     * 그 치우침은 필터를 통과한 노이즈의 스펙트럼 중심을 녹음에 맞추려고 넣은 것이지,
+     * 파편에는 해당 사항이 없다. 파편은 이미 녹음의 스펙트럼이다.
+     * 뱅크 안에서의 위치로 고르면 뽑히는 분포가 곧 녹음의 분포가 된다.
+     *
+     * @param rank01 0이면 가장 어두운 쪽, 1이면 가장 밝은 쪽
+     * @param spread01 후보로 볼 범위. 전체 대비 비율. 0.5면 뱅크 전체
+     */
+    fun pickByRank(rank01: Float, spread01: Float, random: Int): Int {
+        if (size == 0) return 0
+        val center = rank01.coerceIn(0f, 1f) * (size - 1)
+        val half = (spread01.coerceIn(0f, 1f) * size).coerceAtLeast(1f)
+        val lo = (center - half).toInt().coerceIn(0, size - 1)
+        val hi = (center + half).toInt().coerceIn(lo, size - 1)
+        val span = hi - lo + 1
+        return byBrightness[lo + (random and 0x7FFFFFFF) % span]
+    }
+
     private fun binarySearch(targetHz: Float): Int {
         var lo = 0
         var hi = size - 1

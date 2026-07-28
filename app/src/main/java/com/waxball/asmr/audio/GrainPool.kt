@@ -61,6 +61,8 @@ class GrainPool(override val capacity: Int, private val sampleRate: Int) : Grain
         pan: Float,
         resonance: Float,
         attackMs: Float,
+        // 뱅크에서 파편을 고를 때 쓰는 값이다. 여기는 뱅크가 없어서 쓰지 않는다.
+        rank: Float,
     ) {
         val slot = allocate(amplitude)
         if (slot < 0) return
