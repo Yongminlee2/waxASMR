@@ -78,7 +78,7 @@ class PalmPoseGestureInputTest {
         TestHand.settle(pose, TestHand.of(curl = 0.4f))
         var peak = 0f
         for (step in 1..10) {
-            pose.update(TestHand.of(curl = 0.4f, indexTipShiftX = step * 0.09f), 1f / 60f)
+            pose.update(TestHand.of(curl = 0.4f, indexTipSweep = step * 0.06f), 1f / 60f)
             if (pose.tipSpeed > peak) peak = pose.tipSpeed
         }
         assertTrue("손끝을 문질렀는데 속도가 $peak", peak > 1.2f)

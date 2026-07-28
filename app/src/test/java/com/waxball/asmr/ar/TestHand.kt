@@ -9,6 +9,10 @@ import kotlin.math.sin
  * 손목이 아래, 손가락이 위인 손을 만든다. [curl] 0이면 편 손, 1이면 주먹.
  * [pinch] 0이면 엄지가 벌어져 있고, 1이면 엄지 끝이 검지 끝에 붙는다.
  * [rollDeg] 는 손바닥을 화면 안에서 돌린 각도다.
+ *
+ * [indexTipSweep] 은 검지 끝이 손목에서의 거리를 유지한 채 쓸고 지나가는 각도(라디안)다.
+ * 손끝을 가로로 평행이동시키면 손목과의 거리가 변해서 "손가락을 굽혔다"로 읽힌다.
+ * 긁는 동작은 굽히는 게 아니라 표면을 쓸고 지나가는 것이므로 회전으로 만든다.
  */
 object TestHand {
 
@@ -19,7 +23,7 @@ object TestHand {
         centerX: Float = 0.5f,
         centerY: Float = 0.5f,
         scale: Float = 0.2f,
-        indexTipShiftX: Float = 0f,
+        indexTipSweep: Float = 0f,
     ): HandLandmarks {
         val x = FloatArray(HandLandmarks.COUNT)
         val y = FloatArray(HandLandmarks.COUNT)
@@ -39,8 +43,17 @@ object TestHand {
         put(HandLandmarks.PINKY_MCP, 0.45f, 0f)
 
         val reach = 1.1f - 0.95f * curl
-        val indexTipX = -0.45f + indexTipShiftX
-        put(HandLandmarks.INDEX_TIP, indexTipX, -reach)
+
+        // 검지 끝은 손목을 중심으로 돌린다. 그래야 쓸고 지나가도 굽힘이 안 변한다.
+        val wristY = 0.6f
+        val armX = -0.45f
+        val armY = -reach - wristY
+        val sweepC = cos(indexTipSweep)
+        val sweepS = sin(indexTipSweep)
+        val indexTipX = armX * sweepC - armY * sweepS
+        val indexTipY = wristY + armX * sweepS + armY * sweepC
+
+        put(HandLandmarks.INDEX_TIP, indexTipX, indexTipY)
         put(HandLandmarks.MIDDLE_TIP, -0.15f, -reach * 1.05f)
         put(HandLandmarks.RING_TIP, 0.15f, -reach)
         put(HandLandmarks.PINKY_TIP, 0.45f, -reach * 0.9f)
@@ -51,7 +64,7 @@ object TestHand {
         put(
             HandLandmarks.THUMB_TIP,
             restX + (indexTipX - restX) * pinch,
-            restY + (-reach - restY) * pinch,
+            restY + (indexTipY - restY) * pinch,
         )
         return HandLandmarks(x, y)
     }
