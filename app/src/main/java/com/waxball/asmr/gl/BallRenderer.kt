@@ -468,25 +468,23 @@ class BallRenderer : GLSurfaceView.Renderer {
      * 화면 좌표를 볼 좌표계 광선으로 바꾼다. 결과는 [out]에 원점 3개 + 방향 3개.
      * GL 스레드가 아니어도 호출할 수 있게 마지막 프레임 값을 그대로 쓴다.
      */
-    fun screenToRay(x: Float, y: Float, out: FloatArray) {
-        val ball = balls.firstOrNull() ?: return
-        val scale = ball.drawScale.coerceAtLeast(1e-4f)
-        val tanHalf = tan(Math.toRadians(FOV_DEG / 2.0)).toFloat()
-        val aspect = viewportWidth.toFloat() / viewportHeight
+    fun screenToRay(x: Float, y: Float, out: FloatArray) = screenToRayFor(0, x, y, out)
 
-        val ndcX = (2f * x / viewportWidth - 1f) * tanHalf * aspect
-        val ndcY = (1f - 2f * y / viewportHeight) * tanHalf
-
-        val worldOrigin = Vec3(0f, 0f, cameraDistance)
-        val worldDir = Vec3(ndcX, ndcY, -1f)
-
-        // 볼이 회전한 만큼 광선을 거꾸로 돌려 볼 좌표계로 옮긴다.
-        val inv = Quat(-ballRotation.x, -ballRotation.y, -ballRotation.z, ballRotation.w)
-        val o = inv.rotate(worldOrigin) * (1f / scale)
-        val d = inv.rotate(worldDir)
-
-        out[0] = o.x; out[1] = o.y; out[2] = o.z
-        out[3] = d.x; out[4] = d.y; out[5] = d.z
+    /**
+     * 손바닥 모드처럼 볼이 여럿이고 각자 다른 자리에 놓였을 때, [index] 번째 볼 기준으로 쏜다.
+     * 볼을 세계 좌표로 옮겨 놓았으므로 그 오프셋을 빼지 않으면 늘 빗나간다.
+     */
+    fun screenToRayFor(index: Int, x: Float, y: Float, out: FloatArray) {
+        val ball = balls.getOrNull(index) ?: return
+        RayMath.screenToRay(
+            x, y,
+            viewportWidth, viewportHeight,
+            FOV_DEG, cameraDistance,
+            ballRotation,
+            ball.drawScale,
+            ball.offsetX, ball.offsetY, ball.offsetZ,
+            out,
+        )
     }
 
     private companion object {
