@@ -44,6 +44,13 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
     /** 바닥에 쌓인 뒤 몇 번 더 뭉갰는지. 뭉갤수록 작아지다 가루가 된다. */
     private val crush = IntArray(capacity)
 
+    /**
+     * 쌓인 순서. 손바닥 위에는 무한정 쌓일 자리가 없어서 오래된 것부터 치운다.
+     * 조각 번호는 자리 번호라 순서를 알려 주지 않는다.
+     */
+    private val bornAt = IntArray(capacity)
+    private var births = 0
+
     var count = 0
         private set
 
@@ -65,6 +72,7 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
         crush[shardId] = 0
         // 큰 판일수록 오래 매달렸다 떨어져야 무게가 느껴진다.
         hang[shardId] = hangFrames + (areaFrac * 260f).toInt().coerceAtMost(14)
+        bornAt[shardId] = births++
         count++
 
         val n = outward.normalized()
@@ -207,12 +215,49 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
         return false
     }
 
+    /**
+     * 쌓인 부스러기를 [cap]개까지만 남기고 오래된 것부터 치운다.
+     *
+     * 손바닥 위에는 바닥이 없다. 그대로 두면 무한정 쌓여서 프레임이 죽는다.
+     *
+     * @return 치운 개수
+     */
+    fun trimTo(cap: Int): Int {
+        var removed = 0
+        while (count > cap) {
+            var oldest = -1
+            var oldestBorn = Int.MAX_VALUE
+            for (i in 0 until capacity) {
+                if (!active[i]) continue
+                if (bornAt[i] < oldestBorn) { oldestBorn = bornAt[i]; oldest = i }
+            }
+            if (oldest < 0) break
+            active[oldest] = false
+            count--
+            removed++
+        }
+        return removed
+    }
+
+    /**
+     * 바닥에 자리잡은 부스러기를 가로로 흘린다. 손바닥을 기울이면 낮은 쪽으로 미끄러진다.
+     * 아직 떨어지는 중인 조각은 건드리지 않는다. 그건 제 속도로 날아가는 중이다.
+     */
+    fun slideResting(dx: Float) {
+        if (dx == 0f) return
+        for (i in 0 until capacity) {
+            if (active[i] && resting[i]) ox[i] += dx
+        }
+    }
+
     fun clear() {
         java.util.Arrays.fill(active, false)
         java.util.Arrays.fill(resting, false)
         java.util.Arrays.fill(landed, false)
         java.util.Arrays.fill(hang, 0)
         java.util.Arrays.fill(crush, 0)
+        java.util.Arrays.fill(bornAt, 0)
+        births = 0
         count = 0
     }
 
