@@ -73,6 +73,25 @@ enum class ShapeKind(
     }
 }
 
+/**
+ * 껍질 바깥면 무늬. 셰이더가 절차적으로 그린다.
+ *
+ * 텍스처를 쓰면 볼 30종에 이미지가 30장 붙어 용량이 감당이 안 된다.
+ * 잡음 함수로 만들면 공짜이고, 볼마다 무늬가 미세하게 달라 반복도 안 보인다.
+ *
+ * @param code 셰이더의 uSurface 값. 순서를 바꾸면 무늬가 어긋난다
+ */
+enum class SurfaceKind(val labelKo: String, val code: Int) {
+    PLAIN("민무늬", 0),
+    BANDED("가로 띠", 1),
+    SWIRL("소용돌이", 2),
+    CRATER("분화구", 3),
+    ICY("얼음 균열", 4),
+    LAVA("용암", 5),
+    FLARE("불꽃", 6),
+    SPECKLE("점박이", 7),
+}
+
 enum class SizeClass(val labelKo: String, val radius: Float, val shardBase: Int, val freqScale: Float, val decayScale: Float) {
     S("작은", 0.75f, 90, 1.25f, 0.85f),
     M("보통", 1.0f, 150, 1.0f, 1.0f),
@@ -102,6 +121,10 @@ data class BallSpec(
     val capsule: String,
     val price: Int,
     val soundDesc: String,
+    /** 껍질 바깥면 무늬. */
+    val surface: SurfaceKind = SurfaceKind.PLAIN,
+    /** 무늬에 섞이는 두 번째 색. 띠 사이나 균열 안쪽에 들어간다. */
+    val accentColor: Int = shellColor,
 ) {
     /** 재질 기본값에서 출발해 크기·두께·모양으로 보정한다. */
     fun soundProfile(): SoundProfile {

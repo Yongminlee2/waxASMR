@@ -415,6 +415,11 @@ class BallRenderer : GLSurfaceView.Renderer {
             GLES30.glGetUniformLocation(shellProgram, "uFleshColor"),
             GlUtil.red(spec.fleshColor), GlUtil.green(spec.fleshColor), GlUtil.blue(spec.fleshColor),
         )
+        GLES30.glUniform3f(
+            GLES30.glGetUniformLocation(shellProgram, "uAccentColor"),
+            GlUtil.red(spec.accentColor), GlUtil.green(spec.accentColor), GlUtil.blue(spec.accentColor),
+        )
+        GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uSurface"), spec.surface.code)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uLightDir"), 0.45f, 0.8f, 0.6f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uCamPos"), 0f, 0f, cameraDistance)
 

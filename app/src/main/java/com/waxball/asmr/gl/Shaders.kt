@@ -56,21 +56,89 @@ uniform vec3 uFleshColor;
 uniform vec3 uLightDir;
 uniform vec3 uCamPos;
 
+/** 표면 무늬 종류. 0=민무늬 1=가로띠 2=소용돌이 3=분화구 4=얼음균열 5=용암 6=불꽃 7=점박이 */
+uniform int uSurface;
+/** 무늬에 쓰는 두 번째 색. 띠 사이나 균열 안쪽에 들어간다. */
+uniform vec3 uAccentColor;
+
 out vec4 fragColor;
+
+/** 해시 기반 값잡음. 텍스처를 넣으면 용량이 커져서 셰이더로 만든다. */
+float hash(vec3 p) {
+    return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+}
+
+float noise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float n000 = hash(i);
+    float n100 = hash(i + vec3(1.0, 0.0, 0.0));
+    float n010 = hash(i + vec3(0.0, 1.0, 0.0));
+    float n110 = hash(i + vec3(1.0, 1.0, 0.0));
+    float n001 = hash(i + vec3(0.0, 0.0, 1.0));
+    float n101 = hash(i + vec3(1.0, 0.0, 1.0));
+    float n011 = hash(i + vec3(0.0, 1.0, 1.0));
+    float n111 = hash(i + vec3(1.0, 1.0, 1.0));
+    return mix(mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y),
+               mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y), f.z);
+}
+
+float fbm(vec3 p) {
+    return 0.5 * noise(p) + 0.25 * noise(p * 2.03) + 0.125 * noise(p * 4.01)
+         + 0.0625 * noise(p * 8.07);
+}
+
+/** 표면 무늬 세기 0~1. 이 값으로 껍질색과 강조색을 섞는다. */
+float pattern(vec3 n) {
+    if (uSurface == 1) {
+        // 가로 띠. 목성처럼 위도를 따라 흐르고 경계가 물결친다.
+        return smoothstep(0.35, 0.65, fract(n.y * 4.0 + fbm(n * 3.0) * 0.7));
+    } else if (uSurface == 2) {
+        // 소용돌이. 위도에 따라 비틀어 감는다.
+        float a = atan(n.z, n.x) + n.y * 3.4 + fbm(n * 2.2) * 2.0;
+        return smoothstep(0.3, 0.7, fract(a * 0.6));
+    } else if (uSurface == 3) {
+        // 분화구. 낮은 잡음의 골짜기를 파낸다.
+        float c = fbm(n * 6.0);
+        return smoothstep(0.52, 0.36, c);
+    } else if (uSurface == 4) {
+        // 얼음 균열. 잡음이 0을 지나는 자리가 실금이 된다.
+        float c = abs(fbm(n * 5.0) - 0.5);
+        return smoothstep(0.06, 0.0, c);
+    } else if (uSurface == 5) {
+        // 용암. 굵은 덩어리 사이로 갈라진 틈이 빛난다.
+        float c = fbm(n * 3.2);
+        return smoothstep(0.44, 0.58, c);
+    } else if (uSurface == 6) {
+        // 불꽃. 잘게 일렁이는 표면.
+        return smoothstep(0.4, 0.75, fbm(n * 4.5) + fbm(n * 11.0) * 0.4);
+    } else if (uSurface == 7) {
+        // 점박이. 자잘한 알갱이가 박혀 있다.
+        return smoothstep(0.62, 0.78, fbm(n * 9.0));
+    }
+    return 0.0;
+}
 
 void main() {
     if (vAlpha < 0.02) discard;
 
+    vec3 n = normalize(vNormal);
+    // 무늬는 껍질 바깥면에만 그린다. 깨진 단면과 안쪽면은 왁스 속살이라 민무늬다.
+    vec3 shell = uShellColor;
+    if (uSurface > 0 && vFace > 0.5) {
+        shell = mix(uShellColor, uAccentColor, pattern(n));
+    }
+
     vec3 base;
     if (vFace > 0.5) {
-        base = uShellColor;
+        base = shell;
     } else if (vFace < -0.5) {
         base = uFleshColor * 0.62;          // 껍질 안쪽면은 그늘져 있다
     } else {
         base = mix(uShellColor, uFleshColor, 0.35) * 0.72;  // 깨진 단면
     }
 
-    vec3 n = normalize(vNormal);
     vec3 l = normalize(uLightDir);
     vec3 v = normalize(uCamPos - vWorld);
     vec3 h = normalize(l + v);

@@ -19,27 +19,35 @@ class BallCatalogTest {
         BallCatalog.all.forEachIndexed { i, spec -> assertEquals(i, spec.id) }
     }
 
-    @Test
-    fun fiveAreFreeAndTheRestCostCoins() {
-        assertEquals(5, BallCatalog.free.size)
-        BallCatalog.free.forEach { assertEquals(0, BallCatalog.byId(it).price) }
-        BallCatalog.all.filter { it.id !in BallCatalog.free }.forEach {
-            assertTrue("${it.nameKo} 가격이 0", it.price > 0)
-        }
-    }
 
-    @Test
-    fun freeBallsCoverAllFiveMaterials() {
-        val materials = BallCatalog.free.map { BallCatalog.byId(it).material }.toSet()
-        assertEquals("처음부터 재질 다섯 종류를 다 들어볼 수 있어야 함", 5, materials.size)
-    }
 
     @Test
     fun allMaterialsShapesSizesAndThicknessesAppear() {
-        assertEquals(5, BallCatalog.all.map { it.material }.toSet().size)
+        // 재질 하나라도 안 쓰이면 그 뱅크를 만들려고 녹음한 재료가 통째로 논다.
+        assertEquals(
+            "안 쓰이는 재질이 있음",
+            Material.entries.size,
+            BallCatalog.all.map { it.material }.toSet().size,
+        )
         assertEquals(4, BallCatalog.all.map { it.shape }.toSet().size)
         assertEquals(4, BallCatalog.all.map { it.size }.toSet().size)
         assertEquals(3, BallCatalog.all.map { it.thickness }.toSet().size)
+    }
+
+    @Test
+    fun everyBallHasASurfacePattern() {
+        // 단색 구는 3D에서 어느 각도로 봐도 같아서 볼을 바꾼 티가 안 난다.
+        // 무늬가 있어야 굴릴 때마다 다른 면이 나온다.
+        val plain = BallCatalog.all.filter { it.surface == SurfaceKind.PLAIN }
+        assertTrue("무늬 없는 볼이 있음: ${plain.map { it.nameKo }}", plain.isEmpty())
+    }
+
+    @Test
+    fun theAccentColourContrastsWithTheShell() {
+        // 강조색이 껍질색과 같으면 무늬를 그려도 눈에 안 보인다.
+        for (spec in BallCatalog.all) {
+            assertNotEquals("${spec.nameKo} 의 강조색이 껍질색과 같음", spec.shellColor, spec.accentColor)
+        }
     }
 
     @Test
@@ -112,9 +120,14 @@ class BallCatalogTest {
 
     @Test
     fun everyBallSoundsDifferentFromEveryOther() {
+        // 실제로 나는 소리는 재질 뱅크에서 나온다. 합성 프로파일은 뱅크를 못 읽었을 때의
+        // 대비책이고 여러 재질이 같은 것을 공유하므로, 그것만 보면 겹친 것처럼 나온다.
         val signatures = BallCatalog.all.map {
             val p = it.soundProfile()
-            listOf(p.baseFreq, p.decayMsMax, p.propagation, p.brightness, p.density, p.resonance, p.freqSpread)
+            listOf(
+                it.material.bank.toFloat(),
+                p.baseFreq, p.decayMsMax, p.propagation, p.brightness, p.density, p.resonance, p.freqSpread,
+            )
         }
         assertEquals("소리가 겹치는 볼이 있음", 30, signatures.toSet().size)
     }
@@ -138,16 +151,4 @@ class BallCatalogTest {
         assertEquals(BallCatalog.all[0], BallCatalog.byId(999))
     }
 
-    @Test
-    fun pricesRiseWithSize() {
-        val avgByCategory = BallCatalog.all
-            .filter { it.price > 0 }
-            .groupBy { it.size }
-            .mapValues { e -> e.value.map { it.price }.average() }
-        assertNotEquals(null, avgByCategory[SizeClass.S])
-        assertTrue(
-            "왕 크기가 작은 크기보다 싸다",
-            avgByCategory[SizeClass.XL]!! > avgByCategory[SizeClass.S]!!,
-        )
-    }
 }

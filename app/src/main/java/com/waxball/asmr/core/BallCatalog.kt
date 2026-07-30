@@ -1,116 +1,128 @@
 package com.waxball.asmr.core
 
 /**
- * 볼 30종. 크기·두께·모양·재질 네 축의 조합이고, 조합마다 소리가 다르다.
- * 앞의 5종은 처음부터 열려 있고, 나머지는 코인으로 연다.
+ * 볼 30종. 태양계를 한 바퀴 돈다.
+ *
+ * 전에는 "노른자·찹쌀떡" 같은 이름에 단색을 입힌 것이었는데, 3D로 굴려 보면
+ * 단색 구는 어느 각도에서 봐도 똑같아서 볼을 바꾼 티가 잘 안 났다. 행성은 표면에
+ * 무늬가 있어서 돌릴 때마다 다른 면이 나온다.
+ *
+ * 무늬는 셰이더가 절차적으로 그린다([SurfaceKind]). 텍스처를 쓰면 30장이 붙어
+ * 용량을 감당할 수 없다.
+ *
+ * 재질 10종을 성격에 맞춰 배정했다 — 얼음 위성은 밝고 뾰족한 쪽, 가스 행성은
+ * 둔하고 말랑한 쪽이다. 전부 열려 있고 값은 없다.
  */
 object BallCatalog {
 
     val all: List<BallSpec> = listOf(
-        // --- 기본 해금 5종: 재질을 하나씩 맛보게 한다 ---
-        BallSpec(0, "노른자", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
-            0xFFE8D9B8.toInt(), 0xFFF2C14E.toInt(), 0xFFE0A32E.toInt(), "🐣", 0,
-            "기준이 되는 소리. 마르고 단단한 빠작"),
-        BallSpec(1, "찹쌀떡", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.SOFT_WAX,
-            0xFFF3EDE4.toInt(), 0xFFE7D9F0.toInt(), 0xFFCBA6E8.toInt(), "🍡", 0,
-            "낮고 둔한 뿌직. 금이 잘 안 번진다"),
-        BallSpec(2, "은하수", SizeClass.M, Thickness.THIN, ShapeKind.SPHERE, Material.GLITTER,
+        // --- 안쪽 행성 ---
+        BallSpec(0, "지구", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
+            0xFF2E7FD4.toInt(), 0xFF3FA35C.toInt(), 0xFFEAF3FF.toInt(), "🌍", 0,
+            "기준이 되는 소리. 마르고 단단한 빠작", SurfaceKind.SWIRL, 0xFF3FA35C.toInt()),
+        BallSpec(1, "태양", SizeClass.XL, Thickness.THIN, ShapeKind.SPHERE, Material.GLASS_BEAD,
+            0xFFFFC24D.toInt(), 0xFFFF7A18.toInt(), 0xFFFFF3C4.toInt(), "☀", 0,
+            "가장 밝고 뾰족하게 터진다", SurfaceKind.FLARE, 0xFFFFF0A0.toInt()),
+        BallSpec(2, "수성", SizeClass.S, Thickness.THICK, ShapeKind.LUMPY, Material.THICK_WAX,
+            0xFF9A9188.toInt(), 0xFF6B635C.toInt(), 0xFF433D38.toInt(), "☿", 0,
+            "작고 두꺼워 묵직한 뽀각", SurfaceKind.CRATER, 0xFF5E564F.toInt()),
+        BallSpec(3, "금성", SizeClass.M, Thickness.THICK, ShapeKind.SPHERE, Material.CLAY_WAX,
+            0xFFE8C88A.toInt(), 0xFFC98F42.toInt(), 0xFF8A5A22.toInt(), "♀", 0,
+            "가장 둔하고 답답하게 뭉개진다", SurfaceKind.SWIRL, 0xFFF6E3B4.toInt()),
+        BallSpec(4, "달", SizeClass.S, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
+            0xFFDDD8CE.toInt(), 0xFFA9A399.toInt(), 0xFF6E6962.toInt(), "🌕", 0,
+            "작아서 한 음 높다", SurfaceKind.CRATER, 0xFF8E887F.toInt()),
+        BallSpec(5, "화성", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.CRUNCH_BEADS,
+            0xFFC1573A.toInt(), 0xFF8E3A22.toInt(), 0xFF5A2313.toInt(), "♂", 0,
+            "알갱이가 오래 이어지는 빠자자작", SurfaceKind.SPECKLE, 0xFFE08A5E.toInt()),
+
+        // --- 소행성대 ---
+        BallSpec(6, "세레스", SizeClass.S, Thickness.NORMAL, ShapeKind.LUMPY, Material.CRUNCH_BEADS,
+            0xFFA8A29A.toInt(), 0xFF7A756E.toInt(), 0xFF4C4843.toInt(), "🪨", 0,
+            "울퉁불퉁해 음높이가 넓게 흩어진다", SurfaceKind.CRATER, 0xFF6E6963.toInt()),
+        BallSpec(7, "베스타", SizeClass.S, Thickness.THICK, ShapeKind.FACETED, Material.THICK_WAX,
+            0xFFB6AE9F.toInt(), 0xFF8A8274.toInt(), 0xFF56504A.toInt(), "🪨", 0,
+            "모서리부터 우수수 떨어진다", SurfaceKind.SPECKLE, 0xFF7E7669.toInt()),
+        BallSpec(8, "이카루스", SizeClass.S, Thickness.THIN, ShapeKind.LUMPY, Material.GLASS_BEAD,
+            0xFFE3B15E.toInt(), 0xFFB07C2C.toInt(), 0xFF6E4A12.toInt(), "☄", 0,
+            "얇고 밝게 부서진다", SurfaceKind.SPECKLE, 0xFFF6D79A.toInt()),
+
+        // --- 목성과 위성 ---
+        BallSpec(9, "목성", SizeClass.XL, Thickness.NORMAL, ShapeKind.SPHERE, Material.SQUISHY_WAX,
+            0xFFD8A46A.toInt(), 0xFFB3763C.toInt(), 0xFF7A4A1E.toInt(), "♃", 0,
+            "가장 크고 저음이 깊게 깔린다", SurfaceKind.BANDED, 0xFFF2DCC0.toInt()),
+        BallSpec(10, "이오", SizeClass.S, Thickness.THIN, ShapeKind.SPHERE, Material.SUGAR_GLASS,
+            0xFFE8D45C.toInt(), 0xFFC96B2E.toInt(), 0xFF8A3C12.toInt(), "🌋", 0,
+            "높고 뾰족한 챙그랑", SurfaceKind.LAVA, 0xFFB33A1E.toInt()),
+        BallSpec(11, "유로파", SizeClass.M, Thickness.THIN, ShapeKind.SPHERE, Material.GLASS_BEAD,
+            0xFFDCE9F2.toInt(), 0xFFA8C4DA.toInt(), 0xFF5E86A8.toInt(), "🧊", 0,
+            "얼음처럼 밝고 자잘하게", SurfaceKind.ICY, 0xFF8A6A4E.toInt()),
+        BallSpec(12, "가니메데", SizeClass.L, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
+            0xFFAFA79F.toInt(), 0xFF8A8078.toInt(), 0xFF5A534D.toInt(), "🌑", 0,
+            "커진 만큼 저음이 실린다", SurfaceKind.CRATER, 0xFF7E766E.toInt()),
+        BallSpec(13, "칼리스토", SizeClass.L, Thickness.THICK, ShapeKind.LUMPY, Material.THICK_WAX,
+            0xFF6E6862.toInt(), 0xFF4E4944.toInt(), 0xFF2E2B28.toInt(), "🌑", 0,
+            "두껍고 둔해 오래 버틴다", SurfaceKind.CRATER, 0xFFB4AEA6.toInt()),
+
+        // --- 토성과 위성 ---
+        BallSpec(14, "토성", SizeClass.XL, Thickness.THIN, ShapeKind.EGG, Material.SOFT_WAX,
+            0xFFE6D2A0.toInt(), 0xFFC4A868.toInt(), 0xFF8E7638.toInt(), "🪐", 0,
+            "길쭉해 공명이 더 산다", SurfaceKind.BANDED, 0xFFF7ECCE.toInt()),
+        BallSpec(15, "타이탄", SizeClass.L, Thickness.THICK, ShapeKind.SPHERE, Material.CLAY_WAX,
+            0xFFD99A3E.toInt(), 0xFFA86C1E.toInt(), 0xFF6E4410.toInt(), "🟠", 0,
+            "가장 둔하고 먹먹하다", SurfaceKind.SWIRL, 0xFFF0C878.toInt()),
+        BallSpec(16, "엔셀라두스", SizeClass.S, Thickness.NORMAL, ShapeKind.LUMPY, Material.SUGAR_GLASS,
+            0xFFF2FAFF.toInt(), 0xFFC8E4F4.toInt(), 0xFF7EB4D4.toInt(), "❄", 0,
+            "작고 얇아 가장 높다", SurfaceKind.ICY, 0xFF9EC8E0.toInt()),
+        BallSpec(17, "이아페투스", SizeClass.M, Thickness.NORMAL, ShapeKind.EGG, Material.HARD_WAX,
+            0xFFC8C0B4.toInt(), 0xFF6A5F54.toInt(), 0xFF3A342E.toInt(), "🌗", 0,
+            "한쪽이 밝고 한쪽이 어둡다", SurfaceKind.BANDED, 0xFF4E453C.toInt()),
+
+        // --- 바깥 행성 ---
+        BallSpec(18, "천왕성", SizeClass.L, Thickness.NORMAL, ShapeKind.SPHERE, Material.SQUISHY_WAX,
+            0xFF8ED6DC.toInt(), 0xFF4E9AA8.toInt(), 0xFF2A6470.toInt(), "🔵", 0,
+            "말랑하게 낮은 뿌직", SurfaceKind.BANDED, 0xFFB8E8EC.toInt()),
+        BallSpec(19, "해왕성", SizeClass.L, Thickness.NORMAL, ShapeKind.SPHERE, Material.CHEWY_WAX,
+            0xFF3B5FC4.toInt(), 0xFF23408E.toInt(), 0xFF14265A.toInt(), "🔷", 0,
+            "쫀득하게 촘촘히 이어진다", SurfaceKind.SWIRL, 0xFF89A8F0.toInt()),
+        BallSpec(20, "명왕성", SizeClass.S, Thickness.NORMAL, ShapeKind.LUMPY, Material.SOFT_WAX,
+            0xFFCBB8A2.toInt(), 0xFF9A8672.toInt(), 0xFF5E5244.toInt(), "🤍", 0,
+            "낮고 둔한 뿌직", SurfaceKind.SPECKLE, 0xFFEDE2D2.toInt()),
+        BallSpec(21, "카론", SizeClass.S, Thickness.THIN, ShapeKind.SPHERE, Material.GLITTER,
+            0xFFB9C2CC.toInt(), 0xFF7E8894.toInt(), 0xFF4A525C.toInt(), "🌘", 0,
+            "얇고 밝게 자잘한 사각사각", SurfaceKind.CRATER, 0xFF8A93A0.toInt()),
+
+        // --- 혜성과 얼음천체 ---
+        BallSpec(22, "핼리 혜성", SizeClass.M, Thickness.THIN, ShapeKind.LUMPY, Material.GLITTER,
+            0xFFCDE8F2.toInt(), 0xFF7EB6D2.toInt(), 0xFF3E6E88.toInt(), "☄", 0,
+            "얇고 밝게 흩어진다", SurfaceKind.ICY, 0xFF6E9CBC.toInt()),
+        BallSpec(23, "에리스", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.CLAY_WAX,
+            0xFFE4E8EC.toInt(), 0xFFAEB6BE.toInt(), 0xFF6E767E.toInt(), "🤍", 0,
+            "두껍고 둔하게 눌린다", SurfaceKind.ICY, 0xFFAEB6BE.toInt()),
+        BallSpec(24, "마케마케", SizeClass.S, Thickness.NORMAL, ShapeKind.EGG, Material.CHEWY_WAX,
+            0xFFD48A6A.toInt(), 0xFFA45E42.toInt(), 0xFF6A3826.toInt(), "🟤", 0,
+            "쫀득하게 촘촘히", SurfaceKind.SPECKLE, 0xFFF0B294.toInt()),
+
+        // --- 별과 성운 ---
+        BallSpec(25, "시리우스", SizeClass.S, Thickness.THIN, ShapeKind.FACETED, Material.GLASS_BEAD,
+            0xFFE8F2FF.toInt(), 0xFFA8C8F0.toInt(), 0xFF5E8AD0.toInt(), "⭐", 0,
+            "가장 밝고 날카롭다", SurfaceKind.FLARE, 0xFFFFFFFF.toInt()),
+        BallSpec(26, "베텔게우스", SizeClass.XL, Thickness.THICK, ShapeKind.LUMPY, Material.SQUISHY_WAX,
+            0xFFD4552E.toInt(), 0xFF9E3418.toInt(), 0xFF5E1C0A.toInt(), "🔴", 0,
+            "가장 크고 두꺼워 한참 버틴다", SurfaceKind.FLARE, 0xFFF29A5E.toInt()),
+        BallSpec(27, "게 성운", SizeClass.L, Thickness.THIN, ShapeKind.LUMPY, Material.GLITTER,
+            0xFF8E5AC8.toInt(), 0xFF4E2A8A.toInt(), 0xFF241246.toInt(), "🌌", 0,
+            "자잘하고 밝게 사각사각", SurfaceKind.SWIRL, 0xFFE0A8F0.toInt()),
+        BallSpec(28, "은하수", SizeClass.L, Thickness.THIN, ShapeKind.SPHERE, Material.GLITTER,
             0xFF9AA7E8.toInt(), 0xFF3D4B8C.toInt(), 0xFF1E2447.toInt(), "✨", 0,
-            "얇고 밝게 자잘한 사각사각"),
-        BallSpec(3, "우박", SizeClass.M, Thickness.NORMAL, ShapeKind.LUMPY, Material.CRUNCH_BEADS,
-            0xFFD7DEE4.toInt(), 0xFF7FB2C9.toInt(), 0xFF3E6E88.toInt(), "🧊", 0,
-            "알갱이가 오래 이어지는 빠자자작"),
-        BallSpec(4, "박하사탕", SizeClass.S, Thickness.THIN, ShapeKind.SPHERE, Material.SUGAR_GLASS,
-            0xFFEAF7F2.toInt(), 0xFF7EE0C0.toInt(), 0xFF2FA383.toInt(), "🍬", 0,
-            "가장 높고 뾰족한 챙그랑"),
-
-        // --- 굳은 왁스 계열 ---
-        BallSpec(5, "밤톨", SizeClass.S, Thickness.THICK, ShapeKind.SPHERE, Material.HARD_WAX,
-            0xFF8A5A32.toInt(), 0xFFD9A566.toInt(), 0xFFF2E2C4.toInt(), "🌰", 40,
-            "작지만 껍질이 두꺼워 묵직한 뽀각"),
-        BallSpec(6, "달걀", SizeClass.M, Thickness.NORMAL, ShapeKind.EGG, Material.HARD_WAX,
-            0xFFF6EEE2.toInt(), 0xFFFFD98A.toInt(), 0xFFE8A33D.toInt(), "🥚", 60,
-            "위아래로 길어 깨는 순서가 다르다"),
-        BallSpec(7, "주사위", SizeClass.M, Thickness.NORMAL, ShapeKind.FACETED, Material.HARD_WAX,
-            0xFFF0F0F0.toInt(), 0xFFB9C0CC.toInt(), 0xFF5C6472.toInt(), "🎲", 80,
-            "모서리부터 우수수 떨어진다"),
-        BallSpec(8, "보름달", SizeClass.L, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
-            0xFFEFE7CE.toInt(), 0xFFD8CBA4.toInt(), 0xFFA89468.toInt(), "🌕", 110,
-            "커진 만큼 저음이 실린다"),
-        BallSpec(9, "고목", SizeClass.L, Thickness.THICK, ShapeKind.LUMPY, Material.HARD_WAX,
-            0xFF6E5236.toInt(), 0xFFB98F5A.toInt(), 0xFFE6D2A8.toInt(), "🪵", 150,
-            "두껍고 울퉁불퉁해 한 번에 잘 안 깨진다"),
-        BallSpec(10, "거대알", SizeClass.XL, Thickness.THICK, ShapeKind.EGG, Material.HARD_WAX,
-            0xFFE3D6BC.toInt(), 0xFFC0A97E.toInt(), 0xFF7A6440.toInt(), "🦖", 260,
-            "가장 낮고 여운이 길다"),
-
-        // --- 무른 왁스 계열 ---
-        BallSpec(11, "복숭아", SizeClass.M, Thickness.THIN, ShapeKind.SPHERE, Material.SOFT_WAX,
-            0xFFF8C9C0.toInt(), 0xFFFFE3D2.toInt(), 0xFFF08A72.toInt(), "🍑", 50,
-            "얇고 물러 툭툭 벗겨진다"),
-        BallSpec(12, "감자", SizeClass.M, Thickness.THICK, ShapeKind.LUMPY, Material.SOFT_WAX,
-            0xFFC9A96E.toInt(), 0xFFEEDFC0.toInt(), 0xFFF5EEDC.toInt(), "🥔", 70,
-            "둔탁하고 눅진한 뿌직"),
-        BallSpec(13, "말랑젤리", SizeClass.S, Thickness.NORMAL, ShapeKind.SPHERE, Material.SOFT_WAX,
-            0xFFE9A7D4.toInt(), 0xFFFFD6F0.toInt(), 0xFFC55BA0.toInt(), "🍮", 45,
-            "작고 조용한 소리. 밤에 듣기 좋다"),
-        BallSpec(14, "찰흙덩이", SizeClass.L, Thickness.THICK, ShapeKind.SPHERE, Material.SOFT_WAX,
-            0xFF9C8B7A.toInt(), 0xFFC7B6A2.toInt(), 0xFFE8DDCE.toInt(), "🧱", 130,
-            "가장 낮고 무거운 뭉근한 소리"),
-        BallSpec(15, "물풍선", SizeClass.XL, Thickness.THIN, ShapeKind.EGG, Material.SOFT_WAX,
-            0xFFA8D8F0.toInt(), 0xFFD6EEFA.toInt(), 0xFF4A9AC8.toInt(), "💧", 200,
-            "크고 얇아 넓게 쫙쫙 벗겨진다"),
-
-        // --- 반짝이 계열 ---
-        BallSpec(16, "샛별", SizeClass.S, Thickness.THIN, ShapeKind.SPHERE, Material.GLITTER,
-            0xFFF7E6A8.toInt(), 0xFFFFF6D6.toInt(), 0xFFE8C24A.toInt(), "⭐", 55,
-            "제일 자잘하고 빠른 사각사각"),
-        BallSpec(17, "크리스탈", SizeClass.M, Thickness.NORMAL, ShapeKind.FACETED, Material.GLITTER,
-            0xFFCFE6F5.toInt(), 0xFF8FC0E0.toInt(), 0xFF3E7AA0.toInt(), "💎", 95,
-            "각진 면이 밝게 튀어 오른다"),
-        BallSpec(18, "오로라", SizeClass.L, Thickness.THIN, ShapeKind.LUMPY, Material.GLITTER,
-            0xFF9FE0C8.toInt(), 0xFFB8A6E8.toInt(), 0xFF5B4B9C.toInt(), "🌌", 140,
-            "넓게 퍼지며 반짝이는 잔향"),
-        BallSpec(19, "황금알", SizeClass.M, Thickness.THICK, ShapeKind.EGG, Material.GLITTER,
-            0xFFE6BE55.toInt(), 0xFFFFE9A8.toInt(), 0xFFB88820.toInt(), "🏆", 170,
-            "두꺼워서 반짝임에 무게가 붙는다"),
-        BallSpec(20, "별무리", SizeClass.XL, Thickness.NORMAL, ShapeKind.SPHERE, Material.GLITTER,
-            0xFF7E8CD6.toInt(), 0xFFB9C4F0.toInt(), 0xFF2C3566.toInt(), "🌠", 240,
-            "조각이 가장 많아 오래 반짝인다"),
-
-        // --- 알갱이 계열 ---
-        BallSpec(21, "팝콘", SizeClass.S, Thickness.NORMAL, ShapeKind.LUMPY, Material.CRUNCH_BEADS,
-            0xFFF7EFD8.toInt(), 0xFFFFF9EC.toInt(), 0xFFE0C87A.toInt(), "🍿", 50,
-            "톡톡 튀는 잔소리가 계속 이어진다"),
-        BallSpec(22, "자갈밭", SizeClass.M, Thickness.THICK, ShapeKind.SPHERE, Material.CRUNCH_BEADS,
-            0xFF9AA0A6.toInt(), 0xFFC6CCD2.toInt(), 0xFF5A6068.toInt(), "🪨", 90,
-            "자갈 밟는 소리에 가장 가깝다"),
-        BallSpec(23, "각설탕", SizeClass.M, Thickness.THIN, ShapeKind.FACETED, Material.CRUNCH_BEADS,
-            0xFFFDFBF6.toInt(), 0xFFEFE6D4.toInt(), 0xFFC9B68C.toInt(), "🧊", 100,
-            "얇고 각져서 한 번에 와르르"),
-        BallSpec(24, "시리얼", SizeClass.L, Thickness.NORMAL, ShapeKind.LUMPY, Material.CRUNCH_BEADS,
-            0xFFD9A15B.toInt(), 0xFFF0CE96.toInt(), 0xFF8C5E28.toInt(), "🥣", 160,
-            "가장 촘촘하고 길게 이어지는 빠자자작"),
-        BallSpec(25, "운석", SizeClass.XL, Thickness.THICK, ShapeKind.LUMPY, Material.CRUNCH_BEADS,
-            0xFF4E4A48.toInt(), 0xFF8A7F78.toInt(), 0xFFD8C9B8.toInt(), "☄️", 280,
-            "묵직한 저음 위에 알갱이가 쏟아진다"),
-
-        // --- 설탕유리 계열 ---
-        BallSpec(26, "유리구슬", SizeClass.S, Thickness.NORMAL, ShapeKind.SPHERE, Material.SUGAR_GLASS,
-            0xFFDFF3FA.toInt(), 0xFF9FD6EA.toInt(), 0xFF3E8CA8.toInt(), "🔮", 75,
-            "맑고 짧게 끊어지는 소리"),
-        BallSpec(27, "얼음꽃", SizeClass.M, Thickness.THIN, ShapeKind.FACETED, Material.SUGAR_GLASS,
-            0xFFEFFAFF.toInt(), 0xFFB8E4F5.toInt(), 0xFF4FA8C8.toInt(), "❄️", 120,
-            "가장 밝고 금이 제일 잘 번진다"),
-        BallSpec(28, "호박엿", SizeClass.L, Thickness.THICK, ShapeKind.EGG, Material.SUGAR_GLASS,
-            0xFFD98E2B.toInt(), 0xFFF5C878.toInt(), 0xFF8C5410.toInt(), "🍯", 190,
-            "높은 소리인데 여운이 길다"),
-        BallSpec(29, "샹들리에", SizeClass.XL, Thickness.THIN, ShapeKind.FACETED, Material.SUGAR_GLASS,
-            0xFFFFF6E0.toInt(), 0xFFEBD9A8.toInt(), 0xFFBFA155.toInt(), "🕯️", 300,
-            "얇고 큰 유리가 한꺼번에 쏟아진다"),
+            "얇고 밝게 자잘한 사각사각", SurfaceKind.SPECKLE, 0xFFF0F2FF.toInt()),
+        BallSpec(29, "블랙홀", SizeClass.M, Thickness.THICK, ShapeKind.SPHERE, Material.CHEWY_WAX,
+            0xFF17161C.toInt(), 0xFF3A2E4E.toInt(), 0xFFE8C24D.toInt(), "🕳", 0,
+            "쫀득하게 끝없이 이어진다", SurfaceKind.SWIRL, 0xFFE8A93D.toInt()),
     )
 
-    val free: List<Int> = all.filter { it.price == 0 }.map { it.id }
+    /** 전부 열려 있다. 코인으로 여는 것은 없앴다. */
+    val free: List<Int> = all.map { it.id }
 
     fun byId(id: Int): BallSpec = all.getOrElse(id) { all[0] }
 }
