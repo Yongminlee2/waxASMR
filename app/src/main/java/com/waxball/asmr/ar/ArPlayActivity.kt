@@ -148,6 +148,7 @@ class ArPlayActivity : AppCompatActivity() {
         if (next.id == spec.id) return
         spec = next
         audio.setProfile(spec.soundProfile())
+        audio.setMaterial(spec.material.bank)
         buildBallPicker(progress)
         loadBalls(Random.nextLong())
     }
@@ -169,6 +170,7 @@ class ArPlayActivity : AppCompatActivity() {
         super.onResume()
         binding.arView.onResume()
         audio.setProfile(spec.soundProfile())
+        audio.setMaterial(spec.material.bank)
         audio.setRawPlayback(PrefsProgressStore(this).load().rawPlayback)
         audio.start()
     }

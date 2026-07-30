@@ -64,7 +64,11 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
         bounces[shardId] = 0
         crush[shardId] = 0
         // 큰 판일수록 오래 매달렸다 떨어져야 무게가 느껴진다.
-        hang[shardId] = hangFrames + (areaFrac * 260f).toInt().coerceAtMost(14)
+        //
+        // 소리를 0.7초짜리 덩어리 재생으로 바꾸면서 여기를 늘렸다. 파열음 하나가
+        // 0.7초인데 조각이 0.2초 만에 다 떨어져 버리면 눈이 귀보다 앞서가서,
+        // 아직 찢어지는 소리가 나는 중에 화면은 이미 끝나 있다.
+        hang[shardId] = hangFrames + HANG_BASE + (areaFrac * 520f).toInt().coerceAtMost(30)
         count++
 
         val n = outward.normalized()
@@ -243,6 +247,12 @@ class Debris(private val capacity: Int, private val rng: Random = Random(0)) {
     private fun jitter(scale: Float) = (rng.nextFloat() * 2f - 1f) * scale
 
     private companion object {
+        /**
+         * 조각이 기본으로 매달려 있는 시간(프레임). 60fps에서 12프레임 = 0.2초.
+         * 큰 판은 여기에 넓이만큼 더 붙어 최대 0.7초까지 버틴다 — 파열음 길이와 맞춘 값이다.
+         */
+        const val HANG_BASE = 12
+
         /** 이만큼 뭉개면 가루가 되어 사라진다. */
         const val MAX_CRUSH = 3
         const val GRAVITY = 9.8f

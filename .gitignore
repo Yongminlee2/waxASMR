@@ -6,6 +6,9 @@ local.properties
 .kotlin/
 *.apk
 app/reference/*.wav
+app/reference/rival/
+app/src/main/assets/chunks.bin
+app/src/main/assets/chunks.idx
 app/src/main/assets/grains.bin
 app/src/main/assets/grains.idx
 app/src/main/assets/hand_landmarker.task

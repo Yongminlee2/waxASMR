@@ -49,7 +49,10 @@ class DebrisTest {
         val m = FloatArray(12)
         d.writeMatrix(0, c, m, 0)
         val startY = m[7]
-        repeat(20) { d.update(0.016f, floorY, c) { _, _, _ -> } }
+        // 조각은 곧바로 떨어지지 않는다. 금이 다 갔는데도 잠깐 버티다 놓이는 그 순간이
+        // 깨는 맛의 정체라서 일부러 매달아 둔다. 파열음 한 덩어리가 0.7초라 그만큼 버틴다.
+        // 그 대기 시간을 지나고도 안 떨어지는지를 봐야 뜻이 있는 검증이 된다.
+        repeat(60) { d.update(0.016f, floorY, c) { _, _, _ -> } }
         d.writeMatrix(0, c, m, 0)
         assertTrue("아래로 떨어지지 않음", m[7] < startY)
     }

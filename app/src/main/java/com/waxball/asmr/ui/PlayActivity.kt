@@ -123,6 +123,7 @@ class PlayActivity : AppCompatActivity(), InputRouter.Listener {
         super.onResume()
         binding.playView.onResume()
         audio.setProfile(spec.soundProfile())
+        audio.setMaterial(spec.material.bank)
         audio.setToolBrightness(weapon.brightness)
         audio.setRawPlayback(progressState.rawPlayback)
         audio.start()

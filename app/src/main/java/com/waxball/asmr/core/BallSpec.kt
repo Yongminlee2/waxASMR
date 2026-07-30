@@ -5,19 +5,35 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 
-/** 껍질 재질. 소리 차이가 가장 크게 느껴지는 축이다. */
-enum class Material(val labelKo: String) {
-    HARD_WAX("굳은 왁스"),
-    SOFT_WAX("무른 왁스"),
-    GLITTER("반짝이 왁스"),
-    CRUNCH_BEADS("알갱이 왁스"),
-    SUGAR_GLASS("설탕 유리");
+/**
+ * 껍질 재질. 소리 차이가 가장 크게 느껴지는 축이다.
+ *
+ * 재질마다 **따로 녹음한 덩어리 뱅크**가 있다([bank]가 그 번호다).
+ * 예전에는 녹음 하나에서 밝은 파편/어두운 파편을 골라 재질을 흉내 냈는데,
+ * 그러면 결국 같은 소리의 변주라서 볼을 바꿔도 다르게 들리지 않았다.
+ *
+ * 괄호 안 수치는 그 뱅크 덩어리들의 스펙트럼 중심 중앙값이다. 이름을 그 값에 맞췄다.
+ *
+ * @param bank chunks.idx의 재질 번호. 뱅크가 없으면 [profile]로 되돌아간다
+ */
+enum class Material(val labelKo: String, val bank: Int) {
+    HARD_WAX("굳은 왁스", 0),          // 2509Hz
+    GLITTER("반짝이 왁스", 1),         // 3716Hz
+    SUGAR_GLASS("설탕 유리", 2),       // 3280Hz
+    CHEWY_WAX("쫀득 왁스", 3),         // 2239Hz · 파열이 가장 촘촘하다(초당 10회)
+    THICK_WAX("두꺼운 왁스", 4),       // 1195Hz
+    GLASS_BEAD("유리알", 5),           // 4261Hz · 가장 밝다. 원재료가 10초뿐이라 반복이 들릴 수 있다
+    CRUNCH_BEADS("알갱이 왁스", 6),    // 1212Hz
+    SOFT_WAX("무른 왁스", 7),          // 1346Hz
+    SQUISHY_WAX("말랑 왁스", 8),       // 1185Hz
+    CLAY_WAX("찰흙 왁스", 9);          // 533Hz · 가장 둔하다
 
+    /** 덩어리 뱅크를 못 읽었을 때 쓰는 합성 프로파일. */
     fun profile(): SoundProfile = when (this) {
-        HARD_WAX -> SoundProfile.hardWax()
-        SOFT_WAX -> SoundProfile.softWax()
-        GLITTER -> SoundProfile.glitter()
-        CRUNCH_BEADS -> SoundProfile.crunchBeads()
+        HARD_WAX, THICK_WAX -> SoundProfile.hardWax()
+        SOFT_WAX, SQUISHY_WAX, CLAY_WAX -> SoundProfile.softWax()
+        GLITTER, GLASS_BEAD -> SoundProfile.glitter()
+        CRUNCH_BEADS, CHEWY_WAX -> SoundProfile.crunchBeads()
         SUGAR_GLASS -> SoundProfile.sugarGlass()
     }
 }

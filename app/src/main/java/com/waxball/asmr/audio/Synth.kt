@@ -22,14 +22,27 @@ class Synth(
     capacity: Int = 192,
     /** 실제 파열음 파편. 없으면 노이즈 합성으로 되돌아간다. */
     bank: GrainBank? = null,
+    /** 재질별 동작 덩어리. 있으면 이걸 최우선으로 쓴다. */
+    chunks: ChunkBank? = null,
 ) : EventQueue.Sink {
 
-    private val pool: GrainSink =
-        if (bank != null && bank.size > 0) SampleGrainPool(bank, 96, sampleRate)
+    private val chunkPool: ChunkPool? =
+        if (chunks != null && chunks.size > 0) ChunkPool(chunks) else null
+
+    private val pool: GrainSink = chunkPool
+        ?: if (bank != null && bank.size > 0) SampleGrainPool(bank, 96, sampleRate)
         else GrainPool(capacity, sampleRate)
 
     /** 실제 파편을 쓰고 있는지. 로그와 테스트용. */
-    val usingRecordedGrains: Boolean = pool is SampleGrainPool
+    val usingRecordedGrains: Boolean = pool is SampleGrainPool || pool is ChunkPool
+
+    /** 덩어리 방식으로 도는지. */
+    val usingChunks: Boolean = chunkPool != null
+
+    /** 쥔 볼의 재질. 덩어리 방식에서만 뜻이 있다. */
+    fun setMaterial(index: Int) {
+        chunkPool?.material = index
+    }
 
     /**
      * 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 비교용이다.
@@ -84,7 +97,10 @@ class Synth(
         when (kind) {
             EventKind.CRACK -> crack(level, energy, pan, areaFrac)
             EventKind.DETACH -> detach(energy, pan, areaFrac)
-            EventKind.LAND -> land(pan, areaFrac)
+            // 진짜 왁뿌볼은 고무풍선 껍질이 씌워져 있어서 깨진 조각이 그 안에 갇힌다.
+            // 조각이 바닥에 떨어지지 않으니 착지음도 없다. 덩어리 안에 이미 조각들이
+            // 안에서 부딪히는 소리까지 들어 있으므로 따로 낼 것이 없다.
+            EventKind.LAND -> if (!usingChunks) land(pan, areaFrac)
             EventKind.RUB -> rub(energy, pan)
             EventKind.CORE -> core(energy, pan)
         }
@@ -95,6 +111,7 @@ class Synth(
      * 단계가 올라갈수록(실금 → 쩍 갈라짐 → 들뜸) 저음이 붙고 길어진다.
      */
     private fun crack(level: Int, energy: Float, pan: Float, areaFrac: Float) {
+        if (usingChunks) { crackFromChunk(energy, pan, level); return }
         if (usingRecordedGrains) { crackFromRecording(level, energy, pan, areaFrac); return }
         val e = energy.coerceIn(0f, 1f)
         val count = ((5f + 195f * e.pow(1.4f)) * profile.density * (0.6f + 0.18f * level)).toInt()
@@ -149,6 +166,32 @@ class Synth(
      *
      * 세게 눌러도 두세 개까지만 겹친다. 그 이상은 왁스가 아니라 무더기가 된다.
      */
+    /**
+     * 덩어리 방식의 크랙.
+     *
+     * 덩어리 하나가 "쥐어서 쭉 찢어지는 동작" 전체다. 두 개를 겹치면 두 손으로
+     * 동시에 쥐는 소리가 되므로 **한 번에 하나만** 튼다. 세게 누르면 크게 틀 뿐이다.
+     *
+     * 이미 울리는 중이면 새로 얹지 않는다. 문지르는 동안 프레임마다 얹으면
+     * 덩어리 스무 개가 한꺼번에 울려 소리가 뭉갠다.
+     */
+    private fun crackFromChunk(energy: Float, pan: Float, level: Int) {
+        val e = energy.coerceIn(0f, 1f)
+        lastGrainCount = 1
+        lastMeanGapMs = 0f
+        if ((chunkPool?.activeCount ?: 0) >= MAX_CHUNKS_AT_ONCE) return
+
+        pool.spawn(
+            delayFrames = 0,
+            freq = profile.baseFreq,
+            q = profile.q,
+            decayMs = 0f,
+            amplitude = CHUNK_AMP * (0.5f + 0.5f * e) * (0.85f + 0.08f * level),
+            pan = pan,
+            resonance = profile.resonance,
+        )
+    }
+
     private fun crackFromRecording(level: Int, energy: Float, pan: Float, areaFrac: Float) {
         val e = energy.coerceIn(0f, 1f)
         val count = (1 + (e * 2.2f).toInt()).coerceIn(1, MAX_FRAGMENTS_PER_CRACK)
@@ -215,6 +258,21 @@ class Synth(
     }
 
     private fun detach(energy: Float, pan: Float, areaFrac: Float) {
+        if (usingChunks) {
+            // 조각이 떨어지는 것도 같은 동작의 일부다. 덩어리를 조금 더 크게 튼다.
+            if ((chunkPool?.activeCount ?: 0) < MAX_CHUNKS_AT_ONCE) {
+                pool.spawn(
+                    delayFrames = 0,
+                    freq = profile.baseFreq,
+                    q = profile.q,
+                    decayMs = 0f,
+                    amplitude = CHUNK_AMP * 1.25f * (0.5f + 0.5f * energy),
+                    pan = pan,
+                    resonance = profile.resonance,
+                )
+            }
+            return
+        }
         if (usingRecordedGrains) { detachFromRecording(energy, pan, areaFrac); return }
         val sizeShift = sizeShift(areaFrac)
         val sizeBody = 1f + 8f * areaFrac.coerceIn(0f, 0.25f)
@@ -399,6 +457,17 @@ class Synth(
 
         /** 원본을 통째로 틀 때의 크기. 녹음이 이미 정규화돼 있어 그대로 두면 크다. */
         const val RAW_GAIN = 0.8f
+
+        /**
+         * 덩어리를 동시에 몇 개까지 울릴지.
+         *
+         * 덩어리 하나가 0.7초씩 울리는데 문지르는 동안 프레임마다 얹으면 스무 개가
+         * 한꺼번에 울려 뭉갠다. 두세 개까지가 "여러 군데가 같이 찢어진다"로 들린다.
+         */
+        const val MAX_CHUNKS_AT_ONCE = 3
+
+        /** 덩어리 하나의 기본 크기. 이미 재질 안에서 정규화돼 있다. */
+        const val CHUNK_AMP = 0.55f
     }
 
     private fun randomFreq(): Float {

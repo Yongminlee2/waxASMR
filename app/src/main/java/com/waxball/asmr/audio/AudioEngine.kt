@@ -53,17 +53,25 @@ class AudioEngine(context: Context) {
             ?: FALLBACK_SAMPLE_RATE
         framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)?.toIntOrNull()
             ?: FALLBACK_FRAMES
-        val bank = GrainBank.load(context.assets)
-        synth = Synth(sampleRate, bank = bank)
+        val chunks = ChunkBank.load(context.assets)
+        val bank = if (chunks == null) GrainBank.load(context.assets) else null
+        synth = Synth(sampleRate, bank = bank, chunks = chunks)
         synth.raw = RawRecording.load(context.assets)
         Log.i(
             TAG,
             "오디오 sr=$sampleRate framesPerBuffer=$framesPerBuffer " +
-                if (synth.usingRecordedGrains) "파편재생" else "노이즈합성",
+                when {
+                    synth.usingChunks -> "덩어리재생(재질 ${chunks?.materialCount ?: 0}종)"
+                    synth.usingRecordedGrains -> "파편재생"
+                    else -> "노이즈합성"
+                },
         )
     }
 
     fun setProfile(p: SoundProfile) = synth.setProfile(p)
+
+    /** 쥔 볼의 재질. 덩어리 방식에서 어느 뱅크를 쓸지 가른다. */
+    fun setMaterial(index: Int) = synth.setMaterial(index)
 
     fun setVolume(v: Float) { synth.masterGain = v.coerceIn(0f, 1f) }
 
