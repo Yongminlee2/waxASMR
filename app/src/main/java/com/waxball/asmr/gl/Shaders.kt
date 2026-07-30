@@ -137,14 +137,31 @@ vec3 planet(vec3 n, vec3 l, vec3 v, out vec3 emissive, out float specMask) {
         return col * (0.82 + 0.36 * f2);
     }
     if (uSurface == 3) {
-        // 분화구. 빛 쪽으로 살짝 옮겨 다시 재서 그 차이로 눌린 자국의 명암을 낸다.
-        // 색만 바꾸면 평평한 얼룩이고, 명암이 있어야 파인 것으로 보인다.
-        float h = fbm(n * 5.5);
-        float toLight = fbm(n * 5.5 + l * 0.07);
-        float emboss = clamp((toLight - h) * 5.0, -0.45, 0.45);
-        vec3 col = mix(uShellColor, uAccentColor, smoothstep(0.54, 0.38, h));
-        col *= (1.0 + emboss) * (0.9 + 0.2 * noise(n * 17.0));
-        specMask = 0.1;
+        // 분화구. 잡음 얼룩을 색으로 칠하면 곰팡이 핀 돌이 된다 — 실제로 그렇게 나왔다.
+        // 진짜 분화구는 둥근 구덩이다. 가장 가까운 크레이터 중심까지의 거리(워리 잡음)로
+        // 구덩이를 파고, 테두리에 능선을 세우고, 빛을 향한 안쪽 벽만 밝힌다.
+        vec3 p = n * 3.6;
+        vec3 ip = floor(p);
+        vec3 fp = fract(p);
+        float d = 8.0;
+        vec3 toCentre = vec3(0.0);
+        for (int xo = -1; xo <= 1; xo++)
+        for (int yo = -1; yo <= 1; yo++)
+        for (int zo = -1; zo <= 1; zo++) {
+            vec3 g = vec3(float(xo), float(yo), float(zo));
+            vec3 c = g + vec3(hash(ip + g), hash(ip + g + 17.1), hash(ip + g + 31.7)) - fp;
+            float len = length(c);
+            if (len < d) { d = len; toCentre = c; }
+        }
+        float bowl = 1.0 - smoothstep(0.12, 0.42, d);
+        float rimRing = smoothstep(0.56, 0.42, d) - smoothstep(0.42, 0.30, d);
+        // 구덩이 안에서 빛을 마주 보는 벽이 밝고 그늘진 벽이 어둡다.
+        float lit = 0.5 + 0.5 * dot(normalize(toCentre + vec3(1e-4)), l);
+        vec3 col = mix(uShellColor, uAccentColor, bowl * 0.6);
+        col *= mix(1.0, mix(0.58, 1.12, lit), bowl);
+        col *= 1.0 + rimRing * 0.22;
+        col *= 0.93 + 0.14 * noise(n * 15.0);
+        specMask = 0.12;
         return col;
     }
     if (uSurface == 4) {

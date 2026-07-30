@@ -28,7 +28,7 @@ object BallCatalog {
             "작고 두꺼워 묵직한 뽀각", SurfaceKind.CRATER, 0xFF5E564F.toInt()),
         BallSpec(3, "금성", SizeClass.M, Thickness.THICK, ShapeKind.SPHERE, Material.CLAY_WAX,
             0xFFE8C88A.toInt(), 0xFFC98F42.toInt(), 0xFF8A5A22.toInt(), "♀", 0,
-            "가장 둔하고 답답하게 뭉개진다", SurfaceKind.SWIRL, 0xFFF6E3B4.toInt()),
+            "가장 둔하고 답답하게 뭉개진다", SurfaceKind.SWIRL, 0xFFB07B36.toInt()),
         BallSpec(4, "달", SizeClass.S, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
             0xFFDDD8CE.toInt(), 0xFFA9A399.toInt(), 0xFF6E6962.toInt(), "🌕", 0,
             "작아서 한 음 높다", SurfaceKind.CRATER, 0xFF8E887F.toInt()),
