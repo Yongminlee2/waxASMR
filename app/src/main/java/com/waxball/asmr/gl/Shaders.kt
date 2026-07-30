@@ -19,6 +19,13 @@ uniform mat4 uViewProj;
 uniform sampler2D uXform;
 uniform float uScale;
 
+/**
+ * 손으로 쥔 만큼 볼 전체가 눌린다. 껍질·속살·풍선·갇힌 조각이 같은 변환을 공유해야
+ * "풍선과 안의 것이 한 몸"으로 보인다. 볼 중심([uCenter]) 기준이라 자리는 안 움직인다.
+ */
+uniform vec3 uSquash;
+uniform vec3 uCenter;
+
 out vec3 vNormal;
 out vec3 vWorld;
 out float vFace;
@@ -33,6 +40,7 @@ void main() {
 
     vec4 p = vec4(aPos - aShrink * st.x, 1.0);
     vec3 world = vec3(dot(r0, p), dot(r1, p), dot(r2, p)) * uScale;
+    world = uCenter + (world - uCenter) * uSquash;
     vec3 n = normalize(vec3(dot(r0.xyz, aNormal), dot(r1.xyz, aNormal), dot(r2.xyz, aNormal)));
 
     vNormal = n;
@@ -238,6 +246,9 @@ uniform vec3 uPressPoint;
 uniform float uPressAmount;
 uniform vec3 uOffset;
 
+/** 쥔 만큼 눌린다. 껍질과 같은 값을 받아야 풍선·속살이 함께 찌그러진다. */
+uniform vec3 uSquash;
+
 out vec3 vNormal;
 out vec3 vWorld;
 
@@ -247,7 +258,7 @@ void main() {
     p -= normalize(uPressPoint + vec3(0.0001)) * (d * d) * uPressAmount;
 
     // 여러 개를 흩어 놓을 때 껍질과 같은 자리로 옮겨야 한다.
-    vec3 world = (uRot * p) * uRadius + uOffset;
+    vec3 world = (uRot * p) * uRadius * uSquash + uOffset;
     vNormal = normalize(uRot * aPos);
     vWorld = world;
     gl_Position = uViewProj * vec4(world, 1.0);
@@ -286,10 +297,10 @@ void main() {
         // 균일하게 주면 비닐랩을 씌운 것처럼 보이고 안이 훤히 들여다보인다.
         float edge = pow(1.0 - max(dot(n, v), 0.0), 1.6);
         float a = uAlpha * (0.35 + 1.9 * edge);
-        // 젖은 고무의 반짝임
+        // 젖은 고무의 반짝임. 세게 주면 뿌연 막이 되어 행성을 가린다.
         vec3 h = normalize(l + v);
-        float spec = pow(max(dot(n, h), 0.0), 48.0);
-        fragColor = vec4(col * 0.7 + vec3(spec) * 0.6, clamp(a, 0.0, 0.9));
+        float spec = pow(max(dot(n, h), 0.0), 64.0);
+        fragColor = vec4(col * 0.6 + vec3(spec) * 0.35, clamp(a, 0.0, 0.75));
         return;
     }
     fragColor = vec4(col, 1.0);

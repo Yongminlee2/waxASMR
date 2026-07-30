@@ -46,6 +46,12 @@ class BallRenderer : GLSurfaceView.Renderer {
         var xformData = FloatArray(0)
         var xformBuffer = GlUtil.allocFloatBuffer(4)
 
+        // 풍선은 볼 모양을 따라야 한다. 각진 볼에 동그란 풍선을 씌우면
+        // 안에 든 것과 겉이 따로 논다. 그래서 볼마다 warp를 먹인 메시를 만든다.
+        var balloonVbo = 0
+        var balloonIbo = 0
+        var balloonIndexCount = 0
+
         /** 세계 좌표에서의 자리. 여러 개를 흩어 놓을 때 쓴다. */
         var offsetX = 0f
         var offsetY = 0f
@@ -71,12 +77,26 @@ class BallRenderer : GLSurfaceView.Renderer {
             xformData = FloatArray(xformWidth * XFORM_ROWS * 4)
             xformBuffer = GlUtil.allocFloatBuffer(xformData.size)
             drawScale = scene.spec.size.radius
+
+            val sphere = Icosphere.build(3)
+            val warped = FloatArray(sphere.positions.size)
+            for (v in 0 until sphere.vertexCount) {
+                val dir = sphere.vertex(v).normalized()
+                val r = scene.spec.shape.warp(dir)
+                warped[v * 3] = dir.x * r
+                warped[v * 3 + 1] = dir.y * r
+                warped[v * 3 + 2] = dir.z * r
+            }
+            balloonVbo = GlUtil.createFloatBuffer(warped)
+            balloonIbo = GlUtil.createIndexBuffer(sphere.indices)
+            balloonIndexCount = sphere.indices.size
         }
 
         fun release() {
-            GlUtil.deleteBuffers(vboPos, vboNormal, vboShrink, vboShard, ibo)
+            GlUtil.deleteBuffers(vboPos, vboNormal, vboShrink, vboShard, ibo, balloonVbo, balloonIbo)
             if (xformTexture != 0) GLES30.glDeleteTextures(1, intArrayOf(xformTexture), 0)
             vboPos = 0; vboNormal = 0; vboShrink = 0; vboShard = 0; ibo = 0; xformTexture = 0
+            balloonVbo = 0; balloonIbo = 0
         }
     }
 
@@ -138,6 +158,19 @@ class BallRenderer : GLSurfaceView.Renderer {
 
     /** 용암 틈과 항성 표면이 천천히 움직이는 데 쓴다. 한 시간마다 되감아 정밀도를 지킨다. */
     private var surfaceTime = 0f
+
+    /**
+     * 쥔 정도 0~1. 깊이로 납작해지고 옆으로 살짝 부푼다.
+     * 껍질·속살·풍선·갇힌 조각이 이 하나의 변환을 공유해야 한 몸으로 보인다.
+     */
+    @Volatile private var squashAmount = 0f
+
+    fun setSquash(amount: Float) {
+        squashAmount = amount.coerceIn(0f, 1f)
+    }
+
+    private val squashX: Float get() = 1f + 0.10f * squashAmount
+    private val squashZ: Float get() = 1f - 0.30f * squashAmount
 
     fun setScene(next: BallScene) {
         pendingScenes.set(listOf(next))
@@ -426,6 +459,11 @@ class BallRenderer : GLSurfaceView.Renderer {
         )
         GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uSurface"), spec.surface.code)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uTime"), surfaceTime)
+        GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uSquash"), squashX, squashX, squashZ)
+        GLES30.glUniform3f(
+            GLES30.glGetUniformLocation(shellProgram, "uCenter"),
+            ball.offsetX, ball.offsetY, ball.offsetZ,
+        )
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uLightDir"), 0.45f, 0.8f, 0.6f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uCamPos"), 0f, 0f, cameraDistance)
 
@@ -465,6 +503,9 @@ class BallRenderer : GLSurfaceView.Renderer {
             radius = ball.drawScale * BALLOON_SCALE,
             color = ball.scene.spec.shellColor,
             alpha = BALLOON_ALPHA,
+            vbo = ball.balloonVbo,
+            indexBuffer = ball.balloonIbo,
+            indexCount = ball.balloonIndexCount,
         )
 
         GLES30.glEnable(GLES30.GL_CULL_FACE)
@@ -472,9 +513,18 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glDisable(GLES30.GL_BLEND)
     }
 
-    private fun drawSphere(ball: LoadedBall, radius: Float, color: Int, alpha: Float) {
+    private fun drawSphere(
+        ball: LoadedBall,
+        radius: Float,
+        color: Int,
+        alpha: Float,
+        vbo: Int = coreVbo,
+        indexBuffer: Int = coreIbo,
+        indexCount: Int = coreIndexCount,
+    ) {
         GLES30.glUseProgram(coreProgram)
-        bindAttrib(coreVbo, 0, 3)
+        bindAttrib(vbo, 0, 3)
+        GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uSquash"), squashX, squashX, squashZ)
 
         GLES30.glUniformMatrix4fv(GLES30.glGetUniformLocation(coreProgram, "uViewProj"), 1, false, viewProj, 0)
         GLES30.glUniformMatrix3fv(GLES30.glGetUniformLocation(coreProgram, "uRot"), 1, true, rotMatrix, 0)
@@ -494,8 +544,8 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uPressPoint"), p.x, p.y, p.z)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uPressAmount"), pressAmount)
 
-        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, coreIbo)
-        GLES30.glDrawElements(GLES30.GL_TRIANGLES, coreIndexCount, GLES30.GL_UNSIGNED_INT, 0)
+        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
+        GLES30.glDrawElements(GLES30.GL_TRIANGLES, indexCount, GLES30.GL_UNSIGNED_INT, 0)
         GLES30.glDisableVertexAttribArray(0)
     }
 
@@ -550,10 +600,13 @@ class BallRenderer : GLSurfaceView.Renderer {
         /** AR에서 카메라를 고정해 두는 거리. 볼을 세계 좌표로 옮겨 배치한다. */
         const val AR_CAMERA_DISTANCE = 6f
 
-        /** 고무풍선이 왁스보다 이만큼 크다. 너무 키우면 손에서 떠 보인다. */
-        const val BALLOON_SCALE = 1.045f
+        /** 고무풍선이 왁스보다 이만큼 크다. 행성이 비쳐 보이려면 딱 붙어야 한다. */
+        const val BALLOON_SCALE = 1.02f
 
-        /** 풍선 기본 투명도. 가장자리에서는 셰이더가 더 진하게 만든다. */
-        const val BALLOON_ALPHA = 0.30f
+        /**
+         * 풍선 기본 투명도. 가장자리에서는 셰이더가 더 진하게 만든다.
+         * 0.30으로 뒀더니 뿌연 막이 행성 표면을 가렸다.
+         */
+        const val BALLOON_ALPHA = 0.12f
     }
 }

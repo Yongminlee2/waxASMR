@@ -342,6 +342,22 @@ class Synth(
     /** 손가락이 표면을 스치는 마찰음. 빠르게 문지를수록 촘촘해진다. */
     private fun rub(speed: Float, pan: Float) {
         val s = speed.coerceIn(0f, 1f)
+        if (usingChunks) {
+            // 잔여물을 쥘 때 안의 조각이 바스락거리는 소리. 문지름 이벤트는 프레임마다
+            // 오므로, 올 때마다 얹으면 순식간에 덩어리가 쌓여 뭉갠다.
+            // 조용할 때만 하나를, 파열보다 작게 튼다.
+            if ((chunkPool?.activeCount ?: 0) > 0) return
+            pool.spawn(
+                delayFrames = 0,
+                freq = profile.baseFreq,
+                q = profile.q,
+                decayMs = 0f,
+                amplitude = CHUNK_AMP * 0.45f * (0.5f + 0.5f * s),
+                pan = pan,
+                resonance = profile.resonance,
+            )
+            return
+        }
         // 문지르는 소리는 계속 나므로 파편 방식에서는 하나씩만 얹는다.
         val count = if (usingRecordedGrains) 1 else (2 + 10 * s).toInt()
         var t = 0f

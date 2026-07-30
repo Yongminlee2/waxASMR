@@ -52,6 +52,26 @@ class TrappedShards(
     var count = 0
         private set
 
+    /**
+     * 우리(풍선 안쪽) 크기 배율. 쥐면 풍선이 눌리고 안의 공간도 같이 줄어야
+     * 조각이 밀집된다. 렌더러의 눌림 변환과 같은 값에서 나온다.
+     */
+    @Volatile private var cageScale = 1f
+
+    fun setCage(scale: Float) {
+        cageScale = scale.coerceIn(0.5f, 1f)
+    }
+
+    /** 조각 중심이 볼 중심에서 떨어진 거리. 우리가 실제로 가두는지 검증할 때 쓴다. */
+    fun radiusOf(shardId: Int, centers: FloatArray): Float {
+        val r0 = Quat(r0x[shardId], r0y[shardId], r0z[shardId], r0w[shardId])
+        val base = r0.rotate(Vec3(centers[shardId * 3], centers[shardId * 3 + 1], centers[shardId * 3 + 2]))
+        val px = base.x + ox[shardId]
+        val py = base.y + oy[shardId]
+        val pz = base.z + oz[shardId]
+        return sqrt(px * px + py * py + pz * pz)
+    }
+
     fun isActive(shardId: Int) = shardId in 0 until capacity && active[shardId]
 
     /**
@@ -146,6 +166,7 @@ class TrappedShards(
     fun clear() {
         java.util.Arrays.fill(active, false)
         java.util.Arrays.fill(hang, 0)
+        cageScale = 1f
         count = 0
     }
 
@@ -163,7 +184,7 @@ class TrappedShards(
         val py = base.y + oy[i]
         val pz = base.z + oz[i]
 
-        val limit = (innerRadius - halfSize[i]).coerceAtLeast(0.05f)
+        val limit = (innerRadius * cageScale - halfSize[i]).coerceAtLeast(0.05f)
         val d = sqrt(px * px + py * py + pz * pz)
         if (d <= limit || d < 1e-5f) return
 

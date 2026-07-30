@@ -270,22 +270,34 @@ class ArPlayActivity : AppCompatActivity() {
                 )
             }
 
+            // 쥔 만큼 볼 전체(껍질·풍선·조각)가 함께 눌린다. 편 손에서도 보정 오차로
+            // 0.2쯤 나오는 쥠 값을 걷어내고 0~1로 다시 매긴다.
+            val grip = ((pose.squeeze - 0.25f) / 0.75f).coerceIn(0f, 1f)
+            renderer.setSquash(grip)
+            for (s in scenes) s.debris.setCage(1f - 0.18f * grip)
+
             if (pose.force > 0f) {
                 audio.markTouch()
                 var broken = 0f
                 for (s in scenes) {
                     s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
-            // 쥐면 풍선이 눌리고 안의 조각도 같이 밀린다.
-            s.debris.squeeze(pose.force)
+                    // 쥐면 풍선이 눌리고 안의 조각도 같이 밀린다.
+                    s.debris.squeeze(pose.force)
+                    // 떨어진 조각이 있으면 쥘 때마다 안에서 바스락거린다.
+                    // 껍질이 다 깨진 뒤에도 소리가 나는 이유가 이것이다.
+                    if (s.model.detachedCount > 0) s.model.rub(pose.force / 4f, 0f)
                     broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
                 }
                 if (broken > 0f) {
                     val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
                     renderer.shake(magnitude)
                     if (magnitude > 0.35f) haptics.thud(magnitude) else haptics.pulse(0.3f + magnitude)
+                } else if (scenes.any { it.model.detachedCount > 0 }) {
+                    haptics.pulse(0.15f + pose.force * 0.05f)
                 }
             }
         } else {
+            renderer.setSquash(0f)
             renderer.hideBalls()
         }
 
