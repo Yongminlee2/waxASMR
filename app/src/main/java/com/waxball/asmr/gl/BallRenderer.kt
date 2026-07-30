@@ -136,6 +136,9 @@ class BallRenderer : GLSurfaceView.Renderer {
     @Volatile private var shakeAmount = 0f
     private var shakePhase = 0f
 
+    /** 용암 틈과 항성 표면이 천천히 움직이는 데 쓴다. 한 시간마다 되감아 정밀도를 지킨다. */
+    private var surfaceTime = 0f
+
     fun setScene(next: BallScene) {
         pendingScenes.set(listOf(next))
     }
@@ -229,6 +232,8 @@ class BallRenderer : GLSurfaceView.Renderer {
         val now = System.nanoTime()
         val dt = if (lastFrameNs == 0L) 0.016f else ((now - lastFrameNs) / 1e9f).coerceIn(0.001f, 0.05f)
         lastFrameNs = now
+        surfaceTime += dt
+        if (surfaceTime > 3600f) surfaceTime = 0f
         onFrame?.invoke(dt)
 
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
@@ -420,6 +425,7 @@ class BallRenderer : GLSurfaceView.Renderer {
             GlUtil.red(spec.accentColor), GlUtil.green(spec.accentColor), GlUtil.blue(spec.accentColor),
         )
         GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uSurface"), spec.surface.code)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uTime"), surfaceTime)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uLightDir"), 0.45f, 0.8f, 0.6f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uCamPos"), 0f, 0f, cameraDistance)
 

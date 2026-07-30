@@ -90,6 +90,7 @@ enum class SurfaceKind(val labelKo: String, val code: Int) {
     LAVA("용암", 5),
     FLARE("불꽃", 6),
     SPECKLE("점박이", 7),
+    TERRA("바다와 대륙", 8),
 }
 
 enum class SizeClass(val labelKo: String, val radius: Float, val shardBase: Int, val freqScale: Float, val decayScale: Float) {

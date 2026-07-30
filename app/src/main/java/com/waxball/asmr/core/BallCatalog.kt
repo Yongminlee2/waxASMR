@@ -19,7 +19,7 @@ object BallCatalog {
         // --- 안쪽 행성 ---
         BallSpec(0, "지구", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.HARD_WAX,
             0xFF2E7FD4.toInt(), 0xFF3FA35C.toInt(), 0xFFEAF3FF.toInt(), "🌍", 0,
-            "기준이 되는 소리. 마르고 단단한 빠작", SurfaceKind.SWIRL, 0xFF3FA35C.toInt()),
+            "기준이 되는 소리. 마르고 단단한 빠작", SurfaceKind.TERRA, 0xFF3FA35C.toInt()),
         BallSpec(1, "태양", SizeClass.XL, Thickness.THIN, ShapeKind.SPHERE, Material.GLASS_BEAD,
             0xFFFFC24D.toInt(), 0xFFFF7A18.toInt(), 0xFFFFF3C4.toInt(), "☀", 0,
             "가장 밝고 뾰족하게 터진다", SurfaceKind.FLARE, 0xFFFFF0A0.toInt()),
