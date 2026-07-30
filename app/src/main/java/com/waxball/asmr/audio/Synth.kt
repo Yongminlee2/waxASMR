@@ -466,8 +466,13 @@ class Synth(
          */
         const val MAX_CHUNKS_AT_ONCE = 3
 
-        /** 덩어리 하나의 기본 크기. 이미 재질 안에서 정규화돼 있다. */
-        const val CHUNK_AMP = 0.55f
+        /**
+         * 덩어리 하나의 기본 크기.
+         *
+         * 덩어리마다 제 피크로 정규화돼 있으므로 그대로 키워도 찢어지지 않는다.
+         * 소리가 작다는 지적에 0.55에서 올렸다. 겹칠 때는 리미터가 받아 준다.
+         */
+        const val CHUNK_AMP = 0.85f
     }
 
     private fun randomFreq(): Float {
