@@ -26,8 +26,8 @@ class Progress private constructor() {
     var seenHeadphoneTip: Boolean = false
     var seenControlsTip: Boolean = false
 
-    /** 마지막에 고른 뿌시는 도구. */
-    var weaponId: Int = 0
+    /** 마지막에 고른 볼. 앱을 다시 켜도 그대로 두면 매번 다시 고르지 않아도 된다. */
+    var lastBallId: Int = 0
 
     /** 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 소리 비교용. */
     var rawPlayback: Boolean = false
@@ -65,9 +65,8 @@ class Progress private constructor() {
         append("orbitLocked=").append(if (orbitLocked) 1 else 0).append('\n')
         append("headphoneTip=").append(if (seenHeadphoneTip) 1 else 0).append('\n')
         append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
-        append("weapon=").append(weaponId).append('\n')
         append("rawPlayback=").append(if (rawPlayback) 1 else 0).append('\n')
-        append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
+        append("lastBall=").append(lastBallId).append('\n')
     }
 
     companion object {
@@ -112,7 +111,7 @@ class Progress private constructor() {
                     "headphoneTip" -> p.seenHeadphoneTip = value == "1"
                     "controlsTip" -> p.seenControlsTip = value == "1"
                     "rawPlayback" -> p.rawPlayback = value == "1"
-                    "weapon" -> value.toIntOrNull()?.let { p.weaponId = it.coerceIn(0, Weapon.entries.size - 1) }
+                    "lastBall" -> value.toIntOrNull()?.let { p.lastBallId = it.coerceAtLeast(0) }
                 }
             }
             return p

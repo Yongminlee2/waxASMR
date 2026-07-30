@@ -19,6 +19,8 @@
     <string name="home_coins">코인 %d</string>
     <string name="home_missions">오늘의 미션</string>
     <string name="home_balls">볼 고르기</string>
+    <string name="home_tagline">손바닥에 올려놓고 쥐어서 부수세요</string>
+    <string name="home_start">시작하기</string>
     <string name="home_collection">도감</string>
     <string name="home_settings">설정</string>
     <string name="mission_done">완료</string>

@@ -25,27 +25,12 @@
         </activity>
 
         <activity
-            android:name=".ui.PlayActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".ui.CollectionActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
-        <activity
             android:name=".ui.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
         <activity
             android:name=".ar.ArPlayActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".ui.SmashActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
