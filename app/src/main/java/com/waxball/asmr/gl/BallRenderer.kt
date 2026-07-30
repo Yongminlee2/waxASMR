@@ -23,6 +23,8 @@ class BallScene(
     val model: BreakModel,
     /** 깨진 조각은 떨어지지 않고 고무풍선 안에 갇힌다. */
     val debris: TrappedShards,
+    /** 실제 표면 지도. GL 스레드가 텍스처로 올린다. 없으면 절차적 무늬. */
+    val photo: android.graphics.Bitmap? = null,
 )
 
 class BallRenderer : GLSurfaceView.Renderer {
@@ -51,6 +53,9 @@ class BallRenderer : GLSurfaceView.Renderer {
         var balloonVbo = 0
         var balloonIbo = 0
         var balloonIndexCount = 0
+
+        /** 실제 표면 지도 텍스처. 0이면 절차적 무늬를 그린다. */
+        var planetTex = 0
 
         /** 세계 좌표에서의 자리. 여러 개를 흩어 놓을 때 쓴다. */
         var offsetX = 0f
@@ -90,11 +95,27 @@ class BallRenderer : GLSurfaceView.Renderer {
             balloonVbo = GlUtil.createFloatBuffer(warped)
             balloonIbo = GlUtil.createIndexBuffer(sphere.indices)
             balloonIndexCount = sphere.indices.size
+
+            scene.photo?.let { bitmap ->
+                val ids = IntArray(1)
+                GLES30.glGenTextures(1, ids, 0)
+                GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, ids[0])
+                // 밉맵을 만들면 경도 이음새에서 줄이 생긴다. 선형 필터만 쓴다.
+                GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR)
+                GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR)
+                // 지도는 가로로 이어진다. 세로는 극에서 늘어나므로 끝을 잡는다.
+                GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_REPEAT)
+                GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE)
+                android.opengl.GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0)
+                planetTex = ids[0]
+            }
         }
 
         fun release() {
             GlUtil.deleteBuffers(vboPos, vboNormal, vboShrink, vboShard, ibo, balloonVbo, balloonIbo)
             if (xformTexture != 0) GLES30.glDeleteTextures(1, intArrayOf(xformTexture), 0)
+            if (planetTex != 0) GLES30.glDeleteTextures(1, intArrayOf(planetTex), 0)
+            planetTex = 0
             vboPos = 0; vboNormal = 0; vboShrink = 0; vboShard = 0; ibo = 0; xformTexture = 0
             balloonVbo = 0; balloonIbo = 0
         }
@@ -459,6 +480,11 @@ class BallRenderer : GLSurfaceView.Renderer {
         )
         GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uSurface"), spec.surface.code)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uTime"), surfaceTime)
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE1)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, ball.planetTex)
+        GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uPlanetTex"), 1)
+        GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uUseTex"), if (ball.planetTex != 0) 1 else 0)
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uSquash"), squashX, squashX, squashZ)
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(shellProgram, "uCenter"),

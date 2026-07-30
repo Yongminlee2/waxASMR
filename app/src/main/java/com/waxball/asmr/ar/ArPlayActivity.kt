@@ -227,6 +227,15 @@ class ArPlayActivity : AppCompatActivity() {
         val quality = ArLayout.qualityFor(count)
 
         Thread({
+            // 사진은 한 번만 읽어 공 여러 개가 나눠 쓴다. 2K 지도라 볼마다 읽으면 아깝다.
+            val photo = target.textureAsset?.let { name ->
+                try {
+                    assets.open("planets/" + name).use { android.graphics.BitmapFactory.decodeStream(it) }
+                } catch (e: Exception) {
+                    Log.w(TAG, "표면 지도를 못 읽음: " + name + " " + e.message)
+                    null
+                }
+            }
             val built = ArrayList<BallScene>(count)
             for (i in 0 until count) {
                 val ballSeed = seed + i * 7919L
@@ -235,7 +244,7 @@ class ArPlayActivity : AppCompatActivity() {
                 val geometry = BallGeometry.build(shards, target.shellThickness, target.shape::warp)
                 val model = BreakModel(shards, target.soundProfile(), audio.queue)
                 val debris = TrappedShards(shards.size, rng = Random(ballSeed + 1))
-                built.add(BallScene(target, shards, geometry, model, debris))
+                built.add(BallScene(target, shards, geometry, model, debris, photo))
             }
             runOnUiThread {
                 scenes.clear()

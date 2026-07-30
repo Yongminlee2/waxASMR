@@ -43,6 +43,21 @@ class BallCatalogTest {
     }
 
     @Test
+    fun everyTextureAssetActuallyExists() {
+        // 이름만 있고 파일이 없으면 그 볼은 소리 없이 절차적 무늬로 떨어진다.
+        // 실사를 넣었다고 생각했는데 아닌 상태를 조용히 지나가면 안 된다.
+        for (spec in BallCatalog.all) {
+            val name = spec.textureAsset ?: continue
+            val file = java.io.File("src/main/assets/planets/" + name)
+            assertTrue("${spec.nameKo} 의 표면 지도가 없음: $name", file.exists() && file.length() > 10_000L)
+        }
+        assertTrue(
+            "실사 지도가 하나도 배정되지 않음",
+            BallCatalog.all.count { it.textureAsset != null } >= 10,
+        )
+    }
+
+    @Test
     fun theAccentColourContrastsWithTheShell() {
         // 강조색이 껍질색과 같으면 무늬를 그려도 눈에 안 보인다.
         for (spec in BallCatalog.all) {

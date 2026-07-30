@@ -160,8 +160,14 @@ class TrappedShards(
         out[offset + 11] = base.z + oz[shardId] - moved.z
     }
 
-    /** 조각이 얼마나 오므라들지. 풍선 안에서는 뭉개지지 않으므로 늘 0이다. */
-    fun shrinkOf(shardId: Int): Float = 0f
+    /**
+     * 떨어진 조각이 제 중심으로 오므라드는 정도.
+     *
+     * 원래 크기 그대로 두면 조각끼리, 그리고 아직 붙어 있는 껍질과 서로 뚫고
+     * 지나가서 덩어리 하나로 뭉쳐 보인다. 조금 오므리면 조각 사이에 틈이 생겨
+     * "따로따로 굴러다니는 조각"으로 읽힌다.
+     */
+    fun shrinkOf(shardId: Int): Float = if (isActive(shardId)) DETACHED_SHRINK else 0f
 
     fun clear() {
         java.util.Arrays.fill(active, false)
@@ -233,5 +239,8 @@ class TrappedShards(
 
         /** 한 번 쥘 때 조각에 실리는 흔들림. */
         const val SQUEEZE_PUSH = 0.32f
+
+        /** 떨어진 조각이 오므라드는 정도. 껍질 금(최대 0.06)보다 커야 낱개로 보인다. */
+        const val DETACHED_SHRINK = 0.22f
     }
 }

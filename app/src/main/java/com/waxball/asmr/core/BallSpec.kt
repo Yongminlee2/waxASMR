@@ -122,10 +122,17 @@ data class BallSpec(
     val capsule: String,
     val price: Int,
     val soundDesc: String,
-    /** 껍질 바깥면 무늬. */
+    /** 껍질 바깥면 무늬. 사진이 있으면([textureAsset]) 그쪽이 이긴다. */
     val surface: SurfaceKind = SurfaceKind.PLAIN,
     /** 무늬에 섞이는 두 번째 색. 띠 사이나 균열 안쪽에 들어간다. */
     val accentColor: Int = shellColor,
+    /**
+     * 실제 탐사선·위성이 찍은 표면 지도(assets/planets/ 안 파일 이름).
+     *
+     * 잡음 함수로는 "그럴듯한 가짜"까지가 한계다. 실존 천체는 진짜 지도를 입힌다.
+     * 사진이 없는 천체(항성·성운·블랙홀 등)만 절차적 무늬로 남는다.
+     */
+    val textureAsset: String? = null,
 ) {
     /** 재질 기본값에서 출발해 크기·두께·모양으로 보정한다. */
     fun soundProfile(): SoundProfile {

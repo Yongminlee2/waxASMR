@@ -31,6 +31,9 @@ out vec3 vWorld;
 out float vFace;
 out float vAlpha;
 
+/** 물체 좌표에서의 방향. 조각이 날아가도 제 자리의 사진 조각을 그대로 들고 다닌다. */
+out vec3 vObjDir;
+
 void main() {
     int id = int(aShardFace.x + 0.5);
     vec4 r0 = texelFetch(uXform, ivec2(id, 0), 0);
@@ -47,6 +50,7 @@ void main() {
     vWorld = world;
     vFace = aShardFace.y;
     vAlpha = st.y;
+    vObjDir = aPos;
     gl_Position = uViewProj * vec4(world, 1.0);
 }
 """
@@ -58,6 +62,7 @@ in vec3 vNormal;
 in vec3 vWorld;
 in float vFace;
 in float vAlpha;
+in vec3 vObjDir;
 
 uniform vec3 uShellColor;
 uniform vec3 uFleshColor;
@@ -70,6 +75,13 @@ uniform int uSurface;
 uniform vec3 uAccentColor;
 /** 흐르는 시간(초). 용암 틈과 항성 표면이 아주 천천히 움직인다. */
 uniform float uTime;
+
+/**
+ * 실제 탐사선이 찍은 표면 지도. [uUseTex]가 1이면 절차적 무늬 대신 이걸 입힌다.
+ * 잡음 함수로는 실사가 안 나온다 — 실존 천체는 진짜 지도를 쓴다.
+ */
+uniform sampler2D uPlanetTex;
+uniform int uUseTex;
 
 out vec4 fragColor;
 
@@ -223,7 +235,22 @@ void main() {
     vec3 emissive = vec3(0.0);
     float specMask = 1.0;
     vec3 shell = uShellColor;
-    if (uSurface > 0 && vFace > 0.5) {
+    if (uUseTex == 1 && vFace > 0.5) {
+        // 정거방형도법 지도를 구면 방향으로 편다. 정점 UV로 하면 경도 이음새에서
+        // 지도가 통째로 감기므로 프래그먼트에서 방향으로 계산한다.
+        vec3 d = normalize(vObjDir);
+        vec2 uv = vec2(atan(d.z, d.x) * 0.15915494 + 0.5,
+                       0.5 - asin(clamp(d.y, -1.0, 1.0)) * 0.31830989);
+        shell = texture(uPlanetTex, uv).rgb;
+        specMask = 0.35;
+        // 항성 사진은 스스로 빛나야 한다. 조명을 태우면 반쪽이 꺼진 전구가 된다.
+        if (uSurface == 6) {
+            float limb = 0.45 + 0.55 * max(dot(n, v), 0.0);
+            emissive = shell * limb * 1.1;
+            shell *= 0.2;
+            specMask = 0.0;
+        }
+    } else if (uSurface > 0 && vFace > 0.5) {
         shell = planet(n, l, v, emissive, specMask);
     }
 
@@ -231,9 +258,9 @@ void main() {
     if (vFace > 0.5) {
         base = shell;
     } else if (vFace < -0.5) {
-        base = uFleshColor * 0.62;          // 껍질 안쪽면은 그늘져 있다
+        base = uFleshColor * 0.78;          // 껍질 안쪽면. 왁스 속살이 훤히 보인다
     } else {
-        base = mix(uShellColor, uFleshColor, 0.35) * 0.72;  // 깨진 단면
+        base = mix(uShellColor, uFleshColor, 0.4) * 0.92;   // 깨진 단면은 밝아야 "갓 부러진" 맛이 난다
     }
 
     vec3 h = normalize(l + v);
