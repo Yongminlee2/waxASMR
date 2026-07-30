@@ -108,6 +108,20 @@ class TrappedShardsTest {
     }
 
     @Test
+    fun kneadingPullsPiecesTowardTheCentre() {
+        // 반죽될수록 조각이 속살 쪽으로 조여들어야 "속과 합쳐진다"로 보인다.
+        val (t, c) = settled()
+        t.addKnead(1f)
+        repeat(240) { t.update(1f / 60f, c) }
+        for (i in 0 until 4) {
+            assertTrue(
+                "반죽했는데 조각 $i 가 안 조여듦: ${t.radiusOf(i, c)}",
+                t.radiusOf(i, c) <= inner * (1f - 0.35f) + 0.01f,
+            )
+        }
+    }
+
+    @Test
     fun clearResetsTheCage() {
         val (t, c) = settled()
         t.setCage(0.6f)

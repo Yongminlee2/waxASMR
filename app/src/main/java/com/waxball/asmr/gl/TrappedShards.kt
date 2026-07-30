@@ -125,7 +125,8 @@ class TrappedShards(
             if (hang[i] > 0) { hang[i]--; continue }
 
             // 풍선 안은 공기가 아니라 서로 눌린 조각들이라 금방 잦아든다.
-            val damp = 1f - (DAMPING * dt).coerceAtMost(0.9f)
+            // 반죽될수록 속살에 치대져 끈적해지므로 더 빨리 멎는다.
+            val damp = 1f - (DAMPING * (1f + KNEAD_STICKY * knead) * dt).coerceAtMost(0.9f)
             vx[i] *= damp; vy[i] *= damp; vz[i] *= damp
 
             ox[i] += vx[i] * dt
@@ -145,7 +146,8 @@ class TrappedShards(
      */
     fun squeeze(strength: Float) {
         if (strength <= 0f) return
-        val push = strength.coerceAtMost(4f) * SQUEEZE_PUSH
+        // 반죽된 조각은 속살에 붙어 있어 흔들어도 덜 튄다.
+        val push = strength.coerceAtMost(4f) * SQUEEZE_PUSH * (1f - 0.6f * knead)
         for (i in 0 until capacity) {
             if (!active[i] || hang[i] > 0) continue
             vx[i] += jitter(push)
@@ -206,7 +208,10 @@ class TrappedShards(
         val py = base.y + oy[i]
         val pz = base.z + oz[i]
 
-        val limit = (innerRadius * cageScale - halfSize[i]).coerceAtLeast(0.05f)
+        // 반죽될수록 조각이 속살 쪽으로 조여든다. 흩어져 있던 조각이 가운데로
+        // 모여드는 게 "속과 합쳐진다"를 몸으로 보여 준다.
+        val limit = (innerRadius * cageScale * (1f - KNEAD_TIGHTEN * knead) - halfSize[i])
+            .coerceAtLeast(0.05f)
         val d = sqrt(px * px + py * py + pz * pz)
         if (d <= limit || d < 1e-5f) return
 
@@ -258,5 +263,11 @@ class TrappedShards(
 
         /** 떨어진 조각이 오므라드는 정도. 껍질 금(최대 0.06)보다 커야 낱개로 보인다. */
         const val DETACHED_SHRINK = 0.22f
+
+        /** 반죽 1일 때 감쇠가 몇 배 세지는지. 끈적한 반죽은 흔들려도 금방 멎는다. */
+        const val KNEAD_STICKY = 2f
+
+        /** 반죽 1일 때 우리가 얼마나 조여드는지. 조각이 속살 쪽으로 모여든다. */
+        const val KNEAD_TIGHTEN = 0.35f
     }
 }

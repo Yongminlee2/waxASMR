@@ -133,6 +133,13 @@ data class BallSpec(
      * 사진이 없는 천체(항성·성운·블랙홀 등)만 절차적 무늬로 남는다.
      */
     val textureAsset: String? = null,
+    /**
+     * 반죽에 섞여 있는 재료색 1~4개.
+     *
+     * 실제 점토 왁뿌볼은 단색도 있고 두어 색을 뭉친 것도 있다. 주무를수록 속살이
+     * 이 색들을 차례로 배어들다 끝에는 전부 섞인 색으로 굳는다([KneadMix]).
+     */
+    val kneadColors: List<Int> = listOf(shellColor, fleshColor),
 ) {
     /** 재질 기본값에서 출발해 크기·두께·모양으로 보정한다. */
     fun soundProfile(): SoundProfile {

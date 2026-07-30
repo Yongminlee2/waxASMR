@@ -5,6 +5,7 @@ import android.opengl.GLSurfaceView
 import com.waxball.asmr.core.BallSpec
 import com.waxball.asmr.core.BreakModel
 import com.waxball.asmr.core.Icosphere
+import com.waxball.asmr.core.KneadMix
 import com.waxball.asmr.core.Mat4
 import com.waxball.asmr.core.Quat
 import com.waxball.asmr.core.ShardSet
@@ -510,26 +511,19 @@ class BallRenderer : GLSurfaceView.Renderer {
     private fun drawCore(ball: LoadedBall) {
         val spec = ball.scene.spec
         val knead = ball.scene.debris.knead
-        // 조각이 반죽되어 들어온 만큼 속살이 껍질색과 섞이고, 흡수한 만큼 조금 자란다.
-        // 실제 왁뿌볼을 계속 주무르면 색이 합쳐지며 바뀌는 그 모습이다.
-        val mixed = blendColor(spec.coreColor, blendColor(spec.shellColor, spec.fleshColor, 0.5f), knead * 0.8f)
+        // 조각이 반죽되어 들어온 만큼 속살이 재료색들을 차례로 배어들고, 흡수한 만큼
+        // 조금 자란다. 실제 점토 왁뿌볼을 계속 주무르면 색이 갈아드는 그 모습이다.
+        val mixed = KneadMix.colorAt(spec.coreColor, spec.kneadColors, knead)
         drawSphere(
             ball,
             radius = ball.drawScale * (1f - spec.shellThickness - 0.03f) * (1f + 0.16f * knead),
             color = mixed,
             alpha = 1f,
+            // 반죽될수록 무르다. 같은 힘으로 쥐어도 더 깊게 눌리고 더 크게 출렁여야
+            // "주무르는 대로 변한다"가 눈에 보인다.
+            squashMul = 1f + 0.9f * knead,
+            wobbleMul = 1f + 2.5f * knead,
         )
-    }
-
-    /** ARGB 두 색을 t만큼 섞는다. */
-    private fun blendColor(a: Int, b: Int, t: Float): Int {
-        val k = t.coerceIn(0f, 1f)
-        fun ch(shift: Int): Int {
-            val x = (a shr shift) and 0xFF
-            val y = (b shr shift) and 0xFF
-            return (x + ((y - x) * k)).toInt().coerceIn(0, 255)
-        }
-        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
     }
 
     /**
@@ -570,11 +564,19 @@ class BallRenderer : GLSurfaceView.Renderer {
         vbo: Int = coreVbo,
         indexBuffer: Int = coreIbo,
         indexCount: Int = coreIndexCount,
+        squashMul: Float = 1f,
+        wobbleMul: Float = 1f,
     ) {
         GLES30.glUseProgram(coreProgram)
         bindAttrib(vbo, 0, 3)
-        GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uSquash"), squashX, squashX, squashZ)
-        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uWobble"), squashAmount)
+        // 배율은 반죽된 속살에만 1보다 크다. 납작해지는 쪽은 밑이 남게 잘라 둔다.
+        val sx = 1f + 0.10f * squashAmount * squashMul
+        val sz = (1f - 0.30f * squashAmount * squashMul).coerceAtLeast(0.45f)
+        GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uSquash"), sx, sx, sz)
+        GLES30.glUniform1f(
+            GLES30.glGetUniformLocation(coreProgram, "uWobble"),
+            (squashAmount * wobbleMul).coerceAtMost(1.6f),
+        )
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uVertTime"), surfaceTime)
 
         GLES30.glUniformMatrix4fv(GLES30.glGetUniformLocation(coreProgram, "uViewProj"), 1, false, viewProj, 0)

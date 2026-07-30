@@ -58,6 +58,17 @@ class BallCatalogTest {
     }
 
     @Test
+    fun everyBallHasAKneadPalette() {
+        // 반죽 재료색은 1~4개. 없으면 주물러도 색이 안 변하고, 다섯 개부터는
+        // 여정이 너무 길어 한 판 안에 다 못 본다.
+        for (spec in BallCatalog.all) {
+            assertTrue("${spec.nameKo} 반죽색 개수 이탈", spec.kneadColors.size in 1..4)
+        }
+        // 알록달록한 볼도 있어야 한다. 전부 단색이면 색 섞임 자체가 안 보인다.
+        assertTrue(BallCatalog.all.count { it.kneadColors.size >= 3 } >= 8)
+    }
+
+    @Test
     fun theAccentColourContrastsWithTheShell() {
         // 강조색이 껍질색과 같으면 무늬를 그려도 눈에 안 보인다.
         for (spec in BallCatalog.all) {
