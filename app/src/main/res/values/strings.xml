@@ -67,6 +67,7 @@
     <string name="ar_no_camera">카메라를 쓸 수 없어 손바닥 모드를 열 수 없습니다</string>
     <string name="ar_permission_needed">카메라 권한이 있어야 손바닥에 올릴 수 있습니다</string>
     <string name="ar_count">공 %d개</string>
+    <string name="ar_refresh">새로고침</string>
 
     <string name="smash_mode">화면 뿌시기</string>
     <string name="smash_again">다시 찍기</string>

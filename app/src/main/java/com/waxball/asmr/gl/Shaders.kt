@@ -26,6 +26,13 @@ uniform float uScale;
 uniform vec3 uSquash;
 uniform vec3 uCenter;
 
+/**
+ * 쥐는 동안 표면이 울그락불그락 일렁이는 정도 0~1.
+ * 균일하게 납작해지기만 하면 고무 덩어리가 아니라 눌린 그림처럼 보인다.
+ */
+uniform float uWobble;
+uniform float uVertTime;
+
 out vec3 vNormal;
 out vec3 vWorld;
 out float vFace;
@@ -45,6 +52,11 @@ void main() {
     vec3 world = vec3(dot(r0, p), dot(r1, p), dot(r2, p)) * uScale;
     world = uCenter + (world - uCenter) * uSquash;
     vec3 n = normalize(vec3(dot(r0.xyz, aNormal), dot(r1.xyz, aNormal), dot(r2.xyz, aNormal)));
+
+    // 쥐는 동안 자리마다 다르게 부풀었다 꺼진다. 손아귀 안의 말랑한 것이 그렇다.
+    float wob = sin(dot(aPos, vec3(5.1, 4.3, 4.7)) + uVertTime * 6.0)
+              * sin(aPos.y * 3.7 - uVertTime * 4.4);
+    world += n * wob * uScale * 0.05 * uWobble;
 
     vNormal = n;
     vWorld = world;
@@ -293,6 +305,10 @@ uniform vec3 uOffset;
 /** 쥔 만큼 눌린다. 껍질과 같은 값을 받아야 풍선·속살이 함께 찌그러진다. */
 uniform vec3 uSquash;
 
+/** 쥐는 동안 울그락불그락 일렁이는 정도. 껍질과 같은 값을 받는다. */
+uniform float uWobble;
+uniform float uVertTime;
+
 out vec3 vNormal;
 out vec3 vWorld;
 
@@ -303,7 +319,13 @@ void main() {
 
     // 여러 개를 흩어 놓을 때 껍질과 같은 자리로 옮겨야 한다.
     vec3 world = (uRot * p) * uRadius * uSquash + uOffset;
-    vNormal = normalize(uRot * aPos);
+    vec3 nrm = normalize(uRot * aPos);
+
+    float wob = sin(dot(aPos, vec3(5.1, 4.3, 4.7)) + uVertTime * 6.0)
+              * sin(aPos.y * 3.7 - uVertTime * 4.4);
+    world += nrm * wob * uRadius * 0.055 * uWobble;
+
+    vNormal = nrm;
     vWorld = world;
     gl_Position = uViewProj * vec4(world, 1.0);
 }

@@ -107,11 +107,19 @@ class SqueezeBreakTest {
             put(HandLandmarks.MIDDLE_MCP, -0.15f, 0f)
             put(HandLandmarks.RING_MCP, 0.15f, 0f)
             put(HandLandmarks.PINKY_MCP, 0.45f, 0f)
-            val reach = 1.1f - 0.95f * curl
-            put(HandLandmarks.INDEX_TIP, -0.45f, -reach)
-            put(HandLandmarks.MIDDLE_TIP, -0.15f, -reach * 1.05f)
-            put(HandLandmarks.RING_TIP, 0.15f, -reach)
-            put(HandLandmarks.PINKY_TIP, 0.45f, -reach * 0.9f)
+            // 손끝을 손목-뿌리 연장선에 놓아 굽힘 비율이 실측 범위(0.85~1.9)로 나오게 한다.
+            val ratio = 1.85f - 1.0f * curl
+            for ((mcp, tip) in listOf(
+                HandLandmarks.INDEX_MCP to HandLandmarks.INDEX_TIP,
+                HandLandmarks.MIDDLE_MCP to HandLandmarks.MIDDLE_TIP,
+                HandLandmarks.RING_MCP to HandLandmarks.RING_TIP,
+                HandLandmarks.PINKY_MCP to HandLandmarks.PINKY_TIP,
+            )) {
+                val dx = x[mcp] - x[HandLandmarks.WRIST]
+                val dy = y[mcp] - y[HandLandmarks.WRIST]
+                x[tip] = x[HandLandmarks.WRIST] + dx * ratio
+                y[tip] = y[HandLandmarks.WRIST] + dy * ratio
+            }
             return HandLandmarks(x, y)
         }
 

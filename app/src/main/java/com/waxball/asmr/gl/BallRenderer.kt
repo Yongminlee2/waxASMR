@@ -408,14 +408,20 @@ class BallRenderer : GLSurfaceView.Renderer {
             }
 
             // 금이 갈수록 조각이 자기 중심으로 조금씩 줄어들어 틈이 벌어진다.
+            val knead = s.debris.knead
             val shrink = when (s.model.state[i]) {
                 ShardState.HAIRLINE -> 0.008f
                 ShardState.CRACKED -> 0.018f
                 ShardState.LOOSE -> 0.032f
-                // 떨어진 뒤에는 뭉갠 만큼 작아진다. 비빌수록 가루가 되어 간다.
-                else -> s.debris.shrinkOf(i)
+                // 떨어진 뒤에는 치댈수록 속살에 반죽되어 작아진다.
+                else -> s.debris.shrinkOf(i) + knead * 0.5f
             }
-            val alpha = if (s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i)) 0f else 1f
+            val alpha = when {
+                s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i) -> 0f
+                // 반죽이 진행되면 조각이 말랑이에 섞여 옅어진다. 그 색은 속살이 대신 머금는다.
+                s.model.state[i] >= ShardState.DETACHED -> 1f - knead * 0.92f
+                else -> 1f
+            }
 
             val base = 3 * rowStride + i * 4
             data[base] = shrink
@@ -486,6 +492,8 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uUseTex"), if (ball.planetTex != 0) 1 else 0)
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uSquash"), squashX, squashX, squashZ)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uWobble"), squashAmount)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uVertTime"), surfaceTime)
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(shellProgram, "uCenter"),
             ball.offsetX, ball.offsetY, ball.offsetZ,
@@ -501,12 +509,27 @@ class BallRenderer : GLSurfaceView.Renderer {
 
     private fun drawCore(ball: LoadedBall) {
         val spec = ball.scene.spec
+        val knead = ball.scene.debris.knead
+        // 조각이 반죽되어 들어온 만큼 속살이 껍질색과 섞이고, 흡수한 만큼 조금 자란다.
+        // 실제 왁뿌볼을 계속 주무르면 색이 합쳐지며 바뀌는 그 모습이다.
+        val mixed = blendColor(spec.coreColor, blendColor(spec.shellColor, spec.fleshColor, 0.5f), knead * 0.8f)
         drawSphere(
             ball,
-            radius = ball.drawScale * (1f - spec.shellThickness - 0.03f),
-            color = spec.coreColor,
+            radius = ball.drawScale * (1f - spec.shellThickness - 0.03f) * (1f + 0.16f * knead),
+            color = mixed,
             alpha = 1f,
         )
+    }
+
+    /** ARGB 두 색을 t만큼 섞는다. */
+    private fun blendColor(a: Int, b: Int, t: Float): Int {
+        val k = t.coerceIn(0f, 1f)
+        fun ch(shift: Int): Int {
+            val x = (a shr shift) and 0xFF
+            val y = (b shr shift) and 0xFF
+            return (x + ((y - x) * k)).toInt().coerceIn(0, 255)
+        }
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
     }
 
     /**
@@ -551,6 +574,8 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUseProgram(coreProgram)
         bindAttrib(vbo, 0, 3)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uSquash"), squashX, squashX, squashZ)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uWobble"), squashAmount)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uVertTime"), surfaceTime)
 
         GLES30.glUniformMatrix4fv(GLES30.glGetUniformLocation(coreProgram, "uViewProj"), 1, false, viewProj, 0)
         GLES30.glUniformMatrix3fv(GLES30.glGetUniformLocation(coreProgram, "uRot"), 1, true, rotMatrix, 0)

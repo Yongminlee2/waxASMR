@@ -86,6 +86,28 @@ class TrappedShardsTest {
     }
 
     @Test
+    fun kneadAccumulatesAndSaturates() {
+        // 주무를수록 조각이 속과 섞여 간다. 1을 넘으면 색이 뒤집히므로 거기서 멈춘다.
+        val (t, _) = settled()
+        assertEquals(0f, t.knead, 1e-6f)
+        t.addKnead(0.4f)
+        assertEquals(0.4f, t.knead, 1e-6f)
+        repeat(10) { t.addKnead(0.4f) }
+        assertEquals("반죽이 1을 넘음", 1f, t.knead, 1e-6f)
+        t.addKnead(-5f)
+        assertEquals("음수 입력에 반죽이 줄어듦", 1f, t.knead, 1e-6f)
+    }
+
+    @Test
+    fun clearResetsKnead() {
+        // 새 볼은 아직 안 주무른 볼이다. 반죽이 남아 있으면 새 볼이 처음부터 섞여 보인다.
+        val (t, _) = settled()
+        t.addKnead(0.8f)
+        t.clear()
+        assertEquals(0f, t.knead, 1e-6f)
+    }
+
+    @Test
     fun clearResetsTheCage() {
         val (t, c) = settled()
         t.setCage(0.6f)

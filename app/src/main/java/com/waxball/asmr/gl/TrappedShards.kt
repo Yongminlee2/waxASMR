@@ -53,6 +53,21 @@ class TrappedShards(
         private set
 
     /**
+     * 반죽된 정도 0~1.
+     *
+     * 실제 왁뿌볼은 껍질이 다 깨진 뒤에도 계속 주무르면 조각이 속 말랑이에
+     * 치대져 섞이고, 색이 합쳐지며 바뀐다. 이 값이 오를수록 조각은 작아지고
+     * 옅어지며, 속살은 껍질색을 머금는다.
+     */
+    @Volatile var knead = 0f
+        private set
+
+    fun addKnead(amount: Float) {
+        // 반죽은 되돌아가지 않는다. 음수가 들어와도 섞인 색이 다시 갈라지면 이상하다.
+        knead = (knead + amount.coerceAtLeast(0f)).coerceIn(0f, 1f)
+    }
+
+    /**
      * 우리(풍선 안쪽) 크기 배율. 쥐면 풍선이 눌리고 안의 공간도 같이 줄어야
      * 조각이 밀집된다. 렌더러의 눌림 변환과 같은 값에서 나온다.
      */
@@ -173,6 +188,7 @@ class TrappedShards(
         java.util.Arrays.fill(active, false)
         java.util.Arrays.fill(hang, 0)
         cageScale = 1f
+        knead = 0f
         count = 0
     }
 

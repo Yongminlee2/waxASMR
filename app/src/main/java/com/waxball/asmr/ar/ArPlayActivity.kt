@@ -60,6 +60,9 @@ class ArPlayActivity : AppCompatActivity() {
         private val FACING = Vec3(0f, 0f, 1f)
         private const val SQUEEZE_CONTACT_COS = -1f
 
+        /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
+        private const val KNEAD_RATE = 0.085f
+
     }
 
     private lateinit var binding: ActivityArPlayBinding
@@ -76,7 +79,6 @@ class ArPlayActivity : AppCompatActivity() {
     /** 손 위에 올라간 공들. 쥐면 전부 한꺼번에 으스러진다. */
     private val scenes = ArrayList<BallScene>()
     private var ballCount = 1
-    private var nextBallPending = false
     private var lostSince = 0L
 
     /** 인식 스레드가 쓰고 화면 스레드가 읽는다. */
@@ -112,6 +114,7 @@ class ArPlayActivity : AppCompatActivity() {
         buildBallPicker(progress)
         updateCountLabel()
         binding.arCountButton.setOnClickListener { cycleBallCount() }
+        binding.arRefreshButton.setOnClickListener { loadBalls(Random.nextLong()) }
         loadBalls(Random.nextLong())
 
         if (hasCameraPermission()) startCamera()
@@ -221,7 +224,6 @@ class ArPlayActivity : AppCompatActivity() {
      * 개수에 따라 조각 수를 줄여도 티가 안 나고, 프레임이 버틴다.
      */
     private fun loadBalls(seed: Long) {
-        nextBallPending = false
         val target = spec
         val count = ballCount
         val quality = ArLayout.qualityFor(count)
@@ -279,9 +281,8 @@ class ArPlayActivity : AppCompatActivity() {
                 )
             }
 
-            // 쥔 만큼 볼 전체(껍질·풍선·조각)가 함께 눌린다. 편 손에서도 보정 오차로
-            // 0.2쯤 나오는 쥠 값을 걷어내고 0~1로 다시 매긴다.
-            val grip = ((pose.squeeze - 0.25f) / 0.75f).coerceIn(0f, 1f)
+            // 쥔 만큼 볼 전체(껍질·풍선·조각)가 함께 눌리고 일렁인다.
+            val grip = ((pose.squeeze - 0.08f) / 0.92f).coerceIn(0f, 1f)
             renderer.setSquash(grip)
             for (s in scenes) s.debris.setCage(1f - 0.18f * grip)
 
@@ -292,9 +293,12 @@ class ArPlayActivity : AppCompatActivity() {
                     s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
                     // 쥐면 풍선이 눌리고 안의 조각도 같이 밀린다.
                     s.debris.squeeze(pose.force)
-                    // 떨어진 조각이 있으면 쥘 때마다 안에서 바스락거린다.
-                    // 껍질이 다 깨진 뒤에도 소리가 나는 이유가 이것이다.
-                    if (s.model.detachedCount > 0) s.model.rub(pose.force / 4f, 0f)
+                    // 주무르는 동안에는 늘 소리가 흘러야 한다. 문지름 이벤트가
+                    // 깔개 녹음을 살리고, 조용할 때는 바스락 덩어리도 하나 얹는다.
+                    s.model.rub(pose.force / 4f, 0f)
+                    // 껍질이 다 깨진 뒤에도 계속 치대면 조각이 속살에 반죽되어
+                    // 색이 섞인다. 영상에서 조각과 속이 합쳐지며 색이 바뀌는 그것이다.
+                    if (s.model.detachedCount > 0) s.debris.addKnead(pose.force * dt * KNEAD_RATE)
                     broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
                 }
                 if (broken > 0f) {
@@ -315,11 +319,8 @@ class ArPlayActivity : AppCompatActivity() {
             s.debris.update(dt, s.geometry.shardCenters)
         }
 
-        // 전부 다 부서져야 새로 깐다. 하나만 남아도 계속 만질 거리가 있다.
-        if (scenes.all { it.model.shellProgress >= 0.999f } && !nextBallPending) {
-            nextBallPending = true
-            ui.postDelayed({ if (!isFinishing) loadBalls(Random.nextLong()) }, 2600)
-        }
+        // 새 볼은 새로고침 버튼으로만 깐다. 다 부순 뒤에도 반죽 덩어리를 계속
+        // 주무를 수 있어야 한다 — 진짜 왁뿌볼도 부순 다음이 본편이다.
 
         ui.post { updateHint() }
     }
