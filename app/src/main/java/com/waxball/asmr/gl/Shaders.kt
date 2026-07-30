@@ -121,6 +121,12 @@ uniform vec3 uColor;
 uniform vec3 uLightDir;
 uniform vec3 uCamPos;
 
+/**
+ * 1이면 속살(불투명), 1보다 작으면 고무풍선 껍질이다.
+ * 같은 구 메시를 반지름과 이 값만 바꿔 두 번 그린다.
+ */
+uniform float uAlpha;
+
 out vec4 fragColor;
 
 void main() {
@@ -131,6 +137,18 @@ void main() {
     float rim = pow(1.0 - max(dot(n, v), 0.0), 2.0);
     // 말랑한 것은 빛이 속으로 스며 가장자리가 밝다
     vec3 col = uColor * (0.3 + 0.8 * wrap) + uColor * rim * 0.5;
+
+    if (uAlpha < 0.999) {
+        // 고무풍선은 가운데가 비치고 가장자리에서 두꺼워 보인다. 알파를 프레넬로 준다.
+        // 균일하게 주면 비닐랩을 씌운 것처럼 보이고 안이 훤히 들여다보인다.
+        float edge = pow(1.0 - max(dot(n, v), 0.0), 1.6);
+        float a = uAlpha * (0.35 + 1.9 * edge);
+        // 젖은 고무의 반짝임
+        vec3 h = normalize(l + v);
+        float spec = pow(max(dot(n, h), 0.0), 48.0);
+        fragColor = vec4(col * 0.7 + vec3(spec) * 0.6, clamp(a, 0.0, 0.9));
+        return;
+    }
     fragColor = vec4(col, 1.0);
 }
 """

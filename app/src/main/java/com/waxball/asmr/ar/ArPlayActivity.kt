@@ -28,7 +28,7 @@ import com.waxball.asmr.core.Vec3
 import com.waxball.asmr.databinding.ActivityArPlayBinding
 import com.waxball.asmr.gl.BallGeometry
 import com.waxball.asmr.gl.BallScene
-import com.waxball.asmr.gl.Debris
+import com.waxball.asmr.gl.TrappedShards
 import com.waxball.asmr.gl.DebrisSpawner
 import com.waxball.asmr.ui.Insets
 import com.waxball.asmr.ui.PrefsProgressStore
@@ -234,7 +234,7 @@ class ArPlayActivity : AppCompatActivity() {
                 val shards = ShardSplitter.split(base, target.shardCount(quality), Random(ballSeed))
                 val geometry = BallGeometry.build(shards, target.shellThickness, target.shape::warp)
                 val model = BreakModel(shards, target.soundProfile(), audio.queue)
-                val debris = Debris(shards.size, Random(ballSeed + 1))
+                val debris = TrappedShards(shards.size, rng = Random(ballSeed + 1))
                 built.add(BallScene(target, shards, geometry, model, debris))
             }
             runOnUiThread {
@@ -275,6 +275,8 @@ class ArPlayActivity : AppCompatActivity() {
                 var broken = 0f
                 for (s in scenes) {
                     s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
+            // 쥐면 풍선이 눌리고 안의 조각도 같이 밀린다.
+            s.debris.squeeze(pose.force)
                     broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
                 }
                 if (broken > 0f) {
@@ -288,9 +290,8 @@ class ArPlayActivity : AppCompatActivity() {
         }
 
         for (s in scenes) {
-            s.debris.update(dt, renderer.floorY, s.geometry.shardCenters) { id, pan, _ ->
-                s.model.land(id, pan, s.shards.shards[id].areaFrac)
-            }
+            // 조각은 풍선 안에 갇혀 있다. 바닥도 착지음도 없다.
+            s.debris.update(dt, s.geometry.shardCenters)
         }
 
         // 전부 다 부서져야 새로 깐다. 하나만 남아도 계속 만질 거리가 있다.

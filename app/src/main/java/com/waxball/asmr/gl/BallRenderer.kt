@@ -21,7 +21,8 @@ class BallScene(
     val shards: ShardSet,
     val geometry: GeometryBuffers,
     val model: BreakModel,
-    val debris: Debris,
+    /** 깨진 조각은 떨어지지 않고 고무풍선 안에 갇힌다. */
+    val debris: TrappedShards,
 )
 
 class BallRenderer : GLSurfaceView.Renderer {
@@ -278,6 +279,8 @@ class BallRenderer : GLSurfaceView.Renderer {
             updateTransforms(ball)
             drawShell(ball)
             if (ball.scene.model.shellProgress > 0.02f) drawCore(ball)
+            // 풍선은 반투명이라 맨 마지막에 그려야 안이 제대로 비친다.
+            drawBalloon(ball)
         }
     }
 
@@ -423,23 +426,57 @@ class BallRenderer : GLSurfaceView.Renderer {
 
     private fun drawCore(ball: LoadedBall) {
         val spec = ball.scene.spec
+        drawSphere(
+            ball,
+            radius = ball.drawScale * (1f - spec.shellThickness - 0.03f),
+            color = spec.coreColor,
+            alpha = 1f,
+        )
+    }
+
+    /**
+     * 왁스 바깥에 씌워진 고무풍선.
+     *
+     * 진짜 왁뿌볼은 풍선 안에 왁스가 들어 있어서, 껍질이 깨져도 조각이 밖으로 나오지
+     * 못하고 안에서 밀려다닌다. 그 껍질이 눈에 보여야 조각이 왜 안 떨어지는지 이해된다.
+     *
+     * 깊이 쓰기를 끄고 맨 마지막에 그린다. 켜 두면 풍선이 안의 조각을 가려 버린다.
+     */
+    private fun drawBalloon(ball: LoadedBall) {
+        GLES30.glEnable(GLES30.GL_BLEND)
+        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
+        GLES30.glDepthMask(false)
+        // 안쪽 면도 보여야 주머니처럼 보인다.
+        GLES30.glDisable(GLES30.GL_CULL_FACE)
+
+        drawSphere(
+            ball,
+            radius = ball.drawScale * BALLOON_SCALE,
+            color = ball.scene.spec.shellColor,
+            alpha = BALLOON_ALPHA,
+        )
+
+        GLES30.glEnable(GLES30.GL_CULL_FACE)
+        GLES30.glDepthMask(true)
+        GLES30.glDisable(GLES30.GL_BLEND)
+    }
+
+    private fun drawSphere(ball: LoadedBall, radius: Float, color: Int, alpha: Float) {
         GLES30.glUseProgram(coreProgram)
         bindAttrib(coreVbo, 0, 3)
 
         GLES30.glUniformMatrix4fv(GLES30.glGetUniformLocation(coreProgram, "uViewProj"), 1, false, viewProj, 0)
         GLES30.glUniformMatrix3fv(GLES30.glGetUniformLocation(coreProgram, "uRot"), 1, true, rotMatrix, 0)
-        GLES30.glUniform1f(
-            GLES30.glGetUniformLocation(coreProgram, "uRadius"),
-            ball.drawScale * (1f - spec.shellThickness - 0.03f),
-        )
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uRadius"), radius)
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(coreProgram, "uOffset"),
             ball.offsetX, ball.offsetY, ball.offsetZ,
         )
         GLES30.glUniform3f(
             GLES30.glGetUniformLocation(coreProgram, "uColor"),
-            GlUtil.red(spec.coreColor), GlUtil.green(spec.coreColor), GlUtil.blue(spec.coreColor),
+            GlUtil.red(color), GlUtil.green(color), GlUtil.blue(color),
         )
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uAlpha"), alpha)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uLightDir"), 0.45f, 0.8f, 0.6f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uCamPos"), 0f, 0f, cameraDistance)
         val p = pressPoint
@@ -501,5 +538,11 @@ class BallRenderer : GLSurfaceView.Renderer {
 
         /** AR에서 카메라를 고정해 두는 거리. 볼을 세계 좌표로 옮겨 배치한다. */
         const val AR_CAMERA_DISTANCE = 6f
+
+        /** 고무풍선이 왁스보다 이만큼 크다. 너무 키우면 손에서 떠 보인다. */
+        const val BALLOON_SCALE = 1.045f
+
+        /** 풍선 기본 투명도. 가장자리에서는 셰이더가 더 진하게 만든다. */
+        const val BALLOON_ALPHA = 0.30f
     }
 }

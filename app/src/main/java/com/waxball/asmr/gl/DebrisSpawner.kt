@@ -4,7 +4,7 @@ import com.waxball.asmr.core.Quat
 import com.waxball.asmr.core.ShardState
 
 /**
- * 새로 떨어져 나간 조각을 낙하시킨다.
+ * 새로 떨어져 나간 조각을 풍선 안으로 놓아 준다.
  *
  * 기존 화면과 손바닥 모드가 똑같이 필요한 일이라 한 곳에 둔다.
  * 같은 코드를 두 곳에 두면 한쪽만 고치게 된다.

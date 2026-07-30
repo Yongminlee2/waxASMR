@@ -1,0 +1,216 @@
+package com.waxball.asmr.gl
+
+import com.waxball.asmr.core.Quat
+import com.waxball.asmr.core.Vec3
+import kotlin.math.sqrt
+import kotlin.random.Random
+
+/**
+ * 깨진 조각이 고무풍선 안에 갇혀 놀아나는 것.
+ *
+ * 진짜 왁뿌볼은 왁스 껍질 바깥에 고무풍선이 한 겹 씌워져 있다. 그래서 껍질이 깨져도
+ * 조각이 밖으로 나오지 못하고 그 안에서 밀려다닌다. 바닥에 떨어지지 않으니 착지음도
+ * 없고, 다 깨진 뒤에도 조각 든 물렁한 주머니가 남아서 계속 만질 거리가 있다.
+ *
+ * [Debris] 는 중력으로 떨어뜨려 바닥에 쌓는 것이라 여기 쓸 수 없다. 여기에는 바닥이
+ * 없고, 대신 풍선 안쪽 벽이 있다.
+ *
+ * 물리엔진을 쓰지 않는다. 필요한 것은 구면 안에 가두기·감쇠·느린 뒹굴기뿐이다.
+ */
+class TrappedShards(
+    private val capacity: Int,
+    /** 풍선 안쪽 반지름(볼 좌표계). 조각 중심이 이 안에 머문다. */
+    private val innerRadius: Float = 0.94f,
+    private val rng: Random = Random(0),
+) {
+    private val active = BooleanArray(capacity)
+
+    // 조각이 제자리에서 밀려난 양
+    private val ox = FloatArray(capacity)
+    private val oy = FloatArray(capacity)
+    private val oz = FloatArray(capacity)
+    private val vx = FloatArray(capacity)
+    private val vy = FloatArray(capacity)
+    private val vz = FloatArray(capacity)
+
+    // 분리 순간의 볼 회전과 그 뒤 뒹구는 회전
+    private val r0x = FloatArray(capacity); private val r0y = FloatArray(capacity)
+    private val r0z = FloatArray(capacity); private val r0w = FloatArray(capacity)
+    private val tx = FloatArray(capacity); private val ty = FloatArray(capacity)
+    private val tz = FloatArray(capacity); private val tw = FloatArray(capacity)
+    private val wx = FloatArray(capacity); private val wy = FloatArray(capacity)
+    private val wz = FloatArray(capacity)
+
+    private val halfSize = FloatArray(capacity)
+
+    /**
+     * 떨어지기 직전 매달려 있는 시간(프레임).
+     * 금이 다 갔는데도 잠깐 버티다 놓이는 그 순간이 깨는 맛의 정체다.
+     */
+    private val hang = IntArray(capacity)
+
+    var count = 0
+        private set
+
+    fun isActive(shardId: Int) = shardId in 0 until capacity && active[shardId]
+
+    /**
+     * 조각이 껍질에서 떨어져 풍선 안으로 들어간다.
+     *
+     * @param outward 붙어 있던 방향. 안쪽으로 살짝 밀려 들어간다
+     */
+    fun spawn(shardId: Int, outward: Vec3, areaFrac: Float, ballRotation: Quat, hangFrames: Int = 0) {
+        if (shardId < 0 || shardId >= capacity || active[shardId]) return
+
+        active[shardId] = true
+        hang[shardId] = hangFrames + HANG_BASE + (areaFrac * 520f).toInt().coerceAtMost(30)
+        count++
+
+        // 껍질이 있던 자리에서 안쪽으로 떨어진다. 밖으로는 못 나간다.
+        val n = outward.normalized()
+        ox[shardId] = 0f; oy[shardId] = 0f; oz[shardId] = 0f
+        vx[shardId] = -n.x * 0.25f + jitter(0.18f)
+        vy[shardId] = -n.y * 0.25f + jitter(0.18f)
+        vz[shardId] = -n.z * 0.25f + jitter(0.18f)
+
+        r0x[shardId] = ballRotation.x; r0y[shardId] = ballRotation.y
+        r0z[shardId] = ballRotation.z; r0w[shardId] = ballRotation.w
+        tx[shardId] = 0f; ty[shardId] = 0f; tz[shardId] = 0f; tw[shardId] = 1f
+        wx[shardId] = jitter(2.2f); wy[shardId] = jitter(2.2f); wz[shardId] = jitter(2.2f)
+
+        halfSize[shardId] = 0.04f + sqrt(areaFrac.coerceAtLeast(0f)) * 0.5f
+    }
+
+    /**
+     * @param centers 조각별 회전 중심(볼 좌표계). BallGeometry가 준다
+     */
+    fun update(dt: Float, centers: FloatArray) {
+        for (i in 0 until capacity) {
+            if (!active[i]) continue
+            if (hang[i] > 0) { hang[i]--; continue }
+
+            // 풍선 안은 공기가 아니라 서로 눌린 조각들이라 금방 잦아든다.
+            val damp = 1f - (DAMPING * dt).coerceAtMost(0.9f)
+            vx[i] *= damp; vy[i] *= damp; vz[i] *= damp
+
+            ox[i] += vx[i] * dt
+            oy[i] += vy[i] * dt
+            oz[i] += vz[i] * dt
+
+            integrateSpin(i, dt)
+            clampInside(i, centers)
+        }
+    }
+
+    /**
+     * 손이 쥐는 방향으로 조각을 민다.
+     *
+     * 쥐면 풍선이 눌리고 안의 조각도 같이 밀린다. 이게 없으면 조각이 가만히 떠 있어서
+     * 쥐는 것과 안에서 놀아나는 것이 따로 논다.
+     */
+    fun squeeze(strength: Float) {
+        if (strength <= 0f) return
+        val push = strength.coerceAtMost(4f) * SQUEEZE_PUSH
+        for (i in 0 until capacity) {
+            if (!active[i] || hang[i] > 0) continue
+            vx[i] += jitter(push)
+            vy[i] += jitter(push)
+            vz[i] += jitter(push)
+        }
+    }
+
+    /** 조각 하나의 3x4 변환을 out[offset..offset+11]에 행 우선으로 쓴다. */
+    fun writeMatrix(shardId: Int, centers: FloatArray, out: FloatArray, offset: Int) {
+        val cx = centers[shardId * 3]
+        val cy = centers[shardId * 3 + 1]
+        val cz = centers[shardId * 3 + 2]
+
+        val r0 = Quat(r0x[shardId], r0y[shardId], r0z[shardId], r0w[shardId])
+        val a = Quat(tx[shardId], ty[shardId], tz[shardId], tw[shardId]) * r0
+        a.toMatrix3(scratch3x3, 0)
+        out[offset] = scratch3x3[0]; out[offset + 1] = scratch3x3[1]; out[offset + 2] = scratch3x3[2]
+        out[offset + 4] = scratch3x3[3]; out[offset + 5] = scratch3x3[4]; out[offset + 6] = scratch3x3[5]
+        out[offset + 8] = scratch3x3[6]; out[offset + 9] = scratch3x3[7]; out[offset + 10] = scratch3x3[8]
+
+        val base = r0.rotate(Vec3(cx, cy, cz))
+        val moved = a.rotate(Vec3(cx, cy, cz))
+
+        out[offset + 3] = base.x + ox[shardId] - moved.x
+        out[offset + 7] = base.y + oy[shardId] - moved.y
+        out[offset + 11] = base.z + oz[shardId] - moved.z
+    }
+
+    /** 조각이 얼마나 오므라들지. 풍선 안에서는 뭉개지지 않으므로 늘 0이다. */
+    fun shrinkOf(shardId: Int): Float = 0f
+
+    fun clear() {
+        java.util.Arrays.fill(active, false)
+        java.util.Arrays.fill(hang, 0)
+        count = 0
+    }
+
+    /**
+     * 풍선 안쪽 벽 안으로 되돌린다.
+     *
+     * 조각이 원래 있던 자리(구면 위)에서 밀려난 결과가 풍선 밖으로 나가면 안 된다.
+     * 벽에 닿으면 안쪽으로 미끄러지게 속도의 바깥 성분만 지운다. 튕기게 하면
+     * 조각이 풍선 안을 통통 튀어 다녀서 물렁한 주머니로 안 보인다.
+     */
+    private fun clampInside(i: Int, centers: FloatArray) {
+        val r0 = Quat(r0x[i], r0y[i], r0z[i], r0w[i])
+        val base = r0.rotate(Vec3(centers[i * 3], centers[i * 3 + 1], centers[i * 3 + 2]))
+        val px = base.x + ox[i]
+        val py = base.y + oy[i]
+        val pz = base.z + oz[i]
+
+        val limit = (innerRadius - halfSize[i]).coerceAtLeast(0.05f)
+        val d = sqrt(px * px + py * py + pz * pz)
+        if (d <= limit || d < 1e-5f) return
+
+        val nx = px / d
+        val ny = py / d
+        val nz = pz / d
+        val pull = d - limit
+        ox[i] -= nx * pull
+        oy[i] -= ny * pull
+        oz[i] -= nz * pull
+
+        val outward = vx[i] * nx + vy[i] * ny + vz[i] * nz
+        if (outward > 0f) {
+            vx[i] -= nx * outward
+            vy[i] -= ny * outward
+            vz[i] -= nz * outward
+        }
+    }
+
+    private fun integrateSpin(i: Int, dt: Float) {
+        val h = 0.5f * dt
+        val qx = tx[i]; val qy = ty[i]; val qz = tz[i]; val qw = tw[i]
+        var nx = qx + h * (wx[i] * qw + wy[i] * qz - wz[i] * qy)
+        var ny = qy + h * (wy[i] * qw + wz[i] * qx - wx[i] * qz)
+        var nz = qz + h * (wz[i] * qw + wx[i] * qy - wy[i] * qx)
+        var nw = qw - h * (wx[i] * qx + wy[i] * qy + wz[i] * qz)
+        val len = sqrt(nx * nx + ny * ny + nz * nz + nw * nw)
+        if (len > 1e-9f) { nx /= len; ny /= len; nz /= len; nw /= len } else { nx = 0f; ny = 0f; nz = 0f; nw = 1f }
+        tx[i] = nx; ty[i] = ny; tz[i] = nz; tw[i] = nw
+        // 뒹굴기도 같이 잦아든다.
+        val d = 1f - (SPIN_DAMPING * dt).coerceAtMost(0.9f)
+        wx[i] *= d; wy[i] *= d; wz[i] *= d
+    }
+
+    private val scratch3x3 = FloatArray(9)
+
+    private fun jitter(scale: Float) = (rng.nextFloat() * 2f - 1f) * scale
+
+    private companion object {
+        /** 조각이 기본으로 매달려 있는 시간(프레임). 60fps에서 12프레임 = 0.2초. */
+        const val HANG_BASE = 12
+
+        /** 풍선 안은 조각끼리 눌려 있어 금방 멈춘다. */
+        const val DAMPING = 3.2f
+        const val SPIN_DAMPING = 2.4f
+
+        /** 한 번 쥘 때 조각에 실리는 흔들림. */
+        const val SQUEEZE_PUSH = 0.32f
+    }
+}
