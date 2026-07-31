@@ -58,6 +58,12 @@ class ArPlayActivity : AppCompatActivity() {
          * -1이면 구 전체가 대상이 되고, 닿는 세기만 앞쪽이 조금 더 강하다.
          */
         private val FACING = Vec3(0f, 0f, 1f)
+
+        /**
+         * 손 이동 → 볼 회전 배율(화면 폭 기준 라디안). 손을 좌우·앞뒤로 흔들면
+         * 볼이 딸려 돌아간다. 쥐고 있을 때는 줄여서 부수는 감각을 지킨다.
+         */
+        private const val ROLL_GAIN = 4.5f
         private const val SQUEEZE_CONTACT_COS = -1f
 
         /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
@@ -267,6 +273,11 @@ class ArPlayActivity : AppCompatActivity() {
 
     private val offsetScratch = FloatArray(2)
 
+    // 손 이동으로 볼을 굴릴 때 쓰는 지난 프레임 위치
+    private var prevHandX = 0f
+    private var prevHandY = 0f
+    private var prevHandValid = false
+
     private fun onFrame(dt: Float) {
         if (scenes.isEmpty()) return
         val renderer = binding.arView.renderer
@@ -293,13 +304,30 @@ class ArPlayActivity : AppCompatActivity() {
             // 쥔 만큼 볼 전체(껍질·풍선·조각)가 함께 눌리고 일렁인다.
             val grip = ((pose.squeeze - 0.08f) / 0.92f).coerceIn(0f, 1f)
             renderer.setSquash(grip)
+
+            // 손을 좌우·앞뒤로 움직이면 볼이 딸려 돌아간다. 쥔 채로는 거의 안 돌게
+            // 눌러 둔다 — 부수는 도중에 볼이 핑핑 돌면 조준이 안 된다.
+            if (prevHandValid) {
+                val damp = 1f - grip * 0.8f
+                renderer.rotate(
+                    (pose.centerX - prevHandX) * ROLL_GAIN * damp,
+                    (pose.centerY - prevHandY) * ROLL_GAIN * damp,
+                )
+            }
+            prevHandX = pose.centerX
+            prevHandY = pose.centerY
+            prevHandValid = true
             for (s in scenes) s.debris.setCage(1f - 0.18f * grip)
 
             if (pose.force > 0f) {
                 audio.markTouch()
                 var broken = 0f
+                // 카메라 쪽이 조금 더 세게 눌리는 치우침은 볼 좌표로 옮겨서 준다.
+                // 조각 중심이 볼 좌표라, 세계 좌표 방향을 그대로 주면 치우침이 볼과 함께 돈다.
+                val r = renderer.ballRotation
+                val facing = Quat(-r.x, -r.y, -r.z, r.w).rotate(FACING)
                 for (s in scenes) {
-                    s.model.pressArea(FACING, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
+                    s.model.pressArea(facing, SQUEEZE_CONTACT_COS, pose.force, dt, 0f)
                     // 쥐면 풍선이 눌리고 안의 조각도 같이 밀린다.
                     s.debris.squeeze(pose.force)
                     // 주무르는 동안에는 늘 소리가 흘러야 한다. 문지름 이벤트가
@@ -308,7 +336,7 @@ class ArPlayActivity : AppCompatActivity() {
                     // 껍질이 다 깨진 뒤에도 계속 치대면 조각이 속살에 반죽되어
                     // 색이 섞인다. 영상에서 조각과 속이 합쳐지며 색이 바뀌는 그것이다.
                     if (s.model.detachedCount > 0) s.debris.addKnead(pose.force * dt * KNEAD_RATE)
-                    broken += DebrisSpawner.spawnFreshlyDetached(s, Quat.IDENTITY)
+                    broken += DebrisSpawner.spawnFreshlyDetached(s, renderer.ballRotation)
                 }
                 if (broken > 0f) {
                     val magnitude = (broken / 0.03f).coerceIn(0f, 1f)
@@ -321,6 +349,7 @@ class ArPlayActivity : AppCompatActivity() {
         } else {
             renderer.setSquash(0f)
             renderer.hideBalls()
+            prevHandValid = false
         }
 
         for (s in scenes) {
