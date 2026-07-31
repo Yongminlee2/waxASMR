@@ -99,6 +99,17 @@ class TrappedShardsTest {
     }
 
     @Test
+    fun raiseKneadOnlyRaises() {
+        // 부서진 비율은 바닥값이다. 이미 더 주물렀다면 도로 내려가면 안 된다.
+        val (t, _) = settled()
+        t.raiseKneadTo(0.3f)
+        assertEquals(0.3f, t.knead, 1e-6f)
+        t.addKnead(0.4f)
+        t.raiseKneadTo(0.2f)
+        assertEquals("바닥값이 반죽을 도로 내림", 0.7f, t.knead, 1e-6f)
+    }
+
+    @Test
     fun clearResetsKnead() {
         // 새 볼은 아직 안 주무른 볼이다. 반죽이 남아 있으면 새 볼이 처음부터 섞여 보인다.
         val (t, _) = settled()

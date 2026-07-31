@@ -353,6 +353,9 @@ class ArPlayActivity : AppCompatActivity() {
         }
 
         for (s in scenes) {
+            // 부수는 것 자체가 치대는 것이다. 부서진 비율만큼 반죽이 바로 따라 올라
+            // 첫 조각부터 색이 조금씩 섞이기 시작한다. 나머지 절반은 계속 주물러야 한다.
+            s.debris.raiseKneadTo(s.model.detachedCount.toFloat() / s.shards.size * 0.45f)
             // 조각은 풍선 안에 갇혀 있다. 바닥도 착지음도 없다.
             s.debris.update(dt, s.geometry.shardCenters)
         }
