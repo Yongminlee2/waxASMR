@@ -30,6 +30,26 @@ class BallCatalogTest {
     }
 
     @Test
+    fun celestialBallsSitAtTheEndExceptEarth() {
+        // 손에 잡히는 것부터 보여 주고 하늘에 있는 것은 뒤로 몬다.
+        // 지구만 예외로 맨 앞을 지킨다.
+        val celestial = setOf(0, 1, 2, 3, 4, 5, 6, 9, 14, 18, 19, 23, 24, 28)
+        val ids = BallCatalog.displayOrder.map { it.id }
+        assertEquals("지구가 맨 앞이 아님", 0, ids.first())
+
+        val tail = ids.drop(ids.size - (celestial.size - 1))
+        assertTrue(
+            "끝자락에 행성이 아닌 것이 섞임: ${tail.filter { it !in celestial }}",
+            tail.all { it in celestial },
+        )
+        val body = ids.subList(1, ids.size - (celestial.size - 1))
+        assertTrue(
+            "앞쪽에 행성이 남아 있음: ${body.filter { it in celestial }}",
+            body.none { it in celestial },
+        )
+    }
+
+    @Test
     fun allMaterialsShapesSizesAndThicknessesAppear() {
         // 재질 하나라도 안 쓰이면 그 뱅크를 만들려고 녹음한 재료가 통째로 논다.
         assertEquals(

@@ -233,6 +233,16 @@ object BallCatalog {
      */
     private val FIRST = intArrayOf(0, 7, 20, 32, 21)  // 지구·주사위·돼지·파스텔 반죽·8번공
 
-    val displayOrder: List<BallSpec> =
-        FIRST.map { byId(it) } + all.filter { it.id !in FIRST.toSet() }
+    /**
+     * 하늘에 있는 것들. 앞쪽은 손에 잡히는 것(장난감·캐릭터·반죽)으로 채우고
+     * 이들은 뒤로 몰아 둔다. 지구만 [FIRST]에 있어 맨 앞자리를 지킨다.
+     */
+    private val CELESTIAL = setOf(0, 1, 2, 3, 4, 5, 6, 9, 14, 18, 19, 23, 24, 28)
+
+    val displayOrder: List<BallSpec> = buildList {
+        FIRST.forEach { add(byId(it)) }
+        val shown = FIRST.toSet()
+        all.filterTo(this) { it.id !in shown && it.id !in CELESTIAL }
+        all.filterTo(this) { it.id !in shown && it.id in CELESTIAL }
+    }
 }
