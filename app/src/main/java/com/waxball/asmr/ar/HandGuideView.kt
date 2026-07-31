@@ -10,6 +10,8 @@ import android.graphics.RectF
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
+import kotlin.math.atan2
+import kotlin.math.sqrt
 
 /**
  * "여기에 손을 대세요" 점선 손 모양.
@@ -53,35 +55,42 @@ class HandGuideView @JvmOverloads constructor(
     }
 
     /**
-     * 설계 좌표계(120 x 135)에서 손을 만든다. 실제 크기는 그릴 때 맞춘다.
-     * 왼쪽 여백은 엄지가 뻗어 나갈 자리다.
+     * 손가락 하나. 뿌리 (x1,y1) 에서 끝 (x2,y2) 로 뻗는 둥근 캡슐이다.
+     *
+     * 손가락마다 뻗는 방향이 다르다 — 새끼는 바깥으로 벌어지고 엄지는 비스듬히
+     * 올라간다. 세로 캡슐만으로는 그 각도가 안 나와서 두 점을 잇는 방식으로 만든다.
+     *
+     * 뿌리는 손바닥 안에 묻는다. 가장자리에 걸치면 합칠 때 떨어져 나가
+     * 허공에 뜬 점선이 된다.
      */
+    private fun limb(x1: Float, y1: Float, x2: Float, y2: Float, r: Float): Path {
+        val dx = x2 - x1
+        val dy = y2 - y1
+        val length = sqrt(dx * dx + dy * dy)
+        val p = Path()
+        // 원점에서 아래(+y)로 뻗는 캡슐을 만든 뒤 원하는 방향으로 돌린다.
+        p.addRoundRect(RectF(-r, 0f, r, length), r, r, Path.Direction.CW)
+        val deg = Math.toDegrees(atan2(-dx.toDouble(), dy.toDouble())).toFloat()
+        p.transform(Matrix().apply { setRotate(deg); postTranslate(x1, y1) })
+        return p
+    }
+
+    /** 설계 좌표계에서 손을 만든다. 실제 크기와 자리는 그릴 때 맞춘다. */
     private fun buildHand() {
         handPath.reset()
 
-        fun capsule(l: Float, t: Float, r: Float, b: Float, radius: Float): Path =
-            Path().apply { addRoundRect(RectF(l, t, r, b), radius, radius, Path.Direction.CW) }
+        // 손바닥과 손목.
+        handPath.addRoundRect(RectF(26f, 58f, 84f, 108f), 22f, 22f, Path.Direction.CW)
+        handPath.op(limb(48f, 96f, 48f, 128f, 13f), Path.Op.UNION)
 
-        // 비율은 손 해부 지침을 따른다: 손바닥 높이 ≈ 중지 길이, 엄지 폭은
-        // 손가락과 비슷하고 끝은 다른 손가락 뿌리 높이까지만 온다.
-        // 손바닥. 손목 쪽이 더 둥글다.
-        handPath.addRoundRect(RectF(32f, 62f, 100f, 126f), 18f, 18f, Path.Direction.CW)
+        // 새끼·약지·중지·검지. 중지가 가장 길고 새끼는 바깥으로 벌어진다.
+        handPath.op(limb(30f, 76f, 16f, 30f, 6.0f), Path.Op.UNION)
+        handPath.op(limb(42f, 70f, 36f, 16f, 6.2f), Path.Op.UNION)
+        handPath.op(limb(55f, 68f, 55f, 8f, 6.4f), Path.Op.UNION)
+        handPath.op(limb(68f, 70f, 76f, 18f, 6.2f), Path.Op.UNION)
 
-        // 검지·중지·약지·새끼. 중지가 가장 길고(≈손바닥 높이) 새끼는 2/3쯤.
-        //
-        // 손가락 사이를 넉넉히 벌린다. 붙여 놓으면 틈이 실오라기처럼 좁아서, 점선
-        // 두 줄이 나란히 붙어 손가락이 아니라 지저분한 세로줄로 보인다.
-        handPath.op(capsule(33f, 20f, 46f, 74f, 6.5f), Path.Op.UNION)
-        handPath.op(capsule(51.5f, 12f, 64.5f, 74f, 6.5f), Path.Op.UNION)
-        handPath.op(capsule(70f, 18f, 83f, 74f, 6.5f), Path.Op.UNION)
-        handPath.op(capsule(87.5f, 34f, 99.5f, 74f, 6f), Path.Op.UNION)
-
-        // 엄지는 손바닥 왼쪽에서 위-바깥으로 뻗는다. 폭은 손가락 수준(14), 끝은
-        // 손가락 뿌리 높이. 세워 만든 뒤 손바닥 안쪽(40, 90)을 축으로 반시계로
-        // 돌린다. 축을 가장자리에 두면 돌린 엄지가 떨어져 허공에 뜬 점선이 된다.
-        val thumb = capsule(26f, 46f, 40f, 96f, 7f)
-        thumb.transform(Matrix().apply { setRotate(-36f, 40f, 90f) })
-        handPath.op(thumb, Path.Op.UNION)
+        // 엄지는 오른쪽 위로 비스듬히. 손바닥을 편 왼손을 카메라에 보이는 모양이다.
+        handPath.op(limb(70f, 96f, 100f, 58f, 7.0f), Path.Op.UNION)
 
         handPath.computeBounds(bounds, true)
     }

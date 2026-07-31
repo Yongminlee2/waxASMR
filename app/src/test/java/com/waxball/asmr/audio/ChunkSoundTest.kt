@@ -105,42 +105,6 @@ class ChunkSoundTest {
     }
 
     @Test
-    fun doughModeStopsChunksAndSynthesisesKneading() {
-        // 다 부수고 색까지 다 섞이면 반죽이다. 문지름이 파열 덩어리를 얹으면 안 되고,
-        // 왁스 녹음이 아니라 합성한 치대는 소리가 나야 한다. 녹음을 아예 안 붙여도
-        // 소리가 나는지로 "합성"임을 가른다.
-        val s = synth()
-        s.raw = null
-        s.doughMode = true
-        s.dough.activity = 1f
-        s.on(EventKind.RUB, -1, 0, 0.5f, 0f, 0f)
-        assertEquals("반죽인데 파열 덩어리가 얹힘", 0, s.activeGrains)
-
-        val out = FloatArray(512 * 2)
-        var peak = 0f
-        // 손을 댄 직후에는 서서히 차오르므로 잠깐 돌린 뒤에 잰다.
-        repeat(60) {
-            s.render(out, 512)
-            for (v in out) if (kotlin.math.abs(v) > peak) peak = kotlin.math.abs(v)
-        }
-        assertTrue("반죽 소리가 합성되지 않음: ${'$'}peak", peak > 0.01f)
-    }
-
-    @Test
-    fun doughGoesQuietWhenTheHandStops() {
-        // 가만히 있는데 반죽 소리가 계속 나면 유령이다.
-        val s = synth()
-        s.raw = null
-        s.doughMode = true
-        s.dough.activity = 0f
-        val out = FloatArray(512 * 2)
-        repeat(200) { s.render(out, 512) }
-        var peak = 0f
-        for (v in out) if (kotlin.math.abs(v) > peak) peak = kotlin.math.abs(v)
-        assertEquals("손을 멈췄는데 반죽 소리가 남", 0f, peak, 1e-3f)
-    }
-
-    @Test
     fun landIsSilentInChunkMode() {
         // 조각은 풍선 안에 갇혀 바닥에 닿지 않는다. 착지음이 나면 모델이 깨진 것이다.
         val s = synth()

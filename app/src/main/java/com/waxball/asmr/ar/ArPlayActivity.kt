@@ -73,9 +73,6 @@ class ArPlayActivity : AppCompatActivity() {
          */
         private const val KNEAD_PER_GRIP = 0.07f
 
-        /** 쥠 변화량을 반죽 활동량으로 바꾸는 배율. 한 번 주무르면 거의 가득 찬다. */
-        private const val DOUGH_ACTIVITY_GAIN = 6f
-
     }
 
     private lateinit var binding: ActivityArPlayBinding
@@ -97,8 +94,6 @@ class ArPlayActivity : AppCompatActivity() {
     /** 설정의 "손 따라 굴리기". 기본 켜짐. */
     private var rollingEnabled = true
 
-    /** 반죽을 주무르는 부지런함 0~1. 반죽 소리의 크기를 정한다. */
-    private var doughActivity = 0f
 
     /** 인식 스레드가 쓰고 화면 스레드가 읽는다. */
     @Volatile private var latestHand: HandLandmarks? = null
@@ -334,9 +329,6 @@ class ArPlayActivity : AppCompatActivity() {
             // 이전 값이 낡아서 건너뛴다.
             val gripDelta = if (prevHandValid) kotlin.math.abs(grip - prevGrip) else 0f
             prevGrip = grip
-            // 손이 얼마나 부지런히 주무르는지. 변화가 없으면 천천히 잦아든다.
-            doughActivity = (doughActivity * 0.94f + gripDelta * DOUGH_ACTIVITY_GAIN)
-                .coerceIn(0f, 1f)
             for (s in scenes) {
                 if (s.model.detachedCount > 0) s.debris.addKnead(gripDelta * KNEAD_PER_GRIP)
             }
@@ -386,18 +378,6 @@ class ArPlayActivity : AppCompatActivity() {
             s.debris.update(dt, s.geometry.shardCenters)
         }
 
-        // 다 부수고 색까지 다 섞였으면 이제 반죽이다. 파열 덩어리를 멈추고
-        // 합성한 반죽 치대는 소리로 넘어간다. 다 치댄 반죽에서 깨지는 소리가
-        // 나면 거짓말이고, 왁스 녹음에는 반죽 소리가 없다.
-        val allDough = scenes.isNotEmpty() && scenes.all {
-            it.model.detachedCount == it.shards.size && it.debris.knead >= 0.95f
-        }
-        audio.setDoughMode(allDough)
-        if (allDough) {
-            // 반죽 소리는 부수는 힘이 아니라 손이 움직이는 양을 따른다.
-            // 다 부순 뒤에는 힘이 거의 안 잡히는데 손은 계속 주무르고 있다.
-            audio.setDoughActivity(if (pose.hasHand) doughActivity else 0f)
-        }
 
         // 새 볼은 새로고침 버튼으로만 깐다. 다 부순 뒤에도 반죽 덩어리를 계속
         // 주무를 수 있어야 한다 — 진짜 왁뿌볼도 부순 다음이 본편이다.
