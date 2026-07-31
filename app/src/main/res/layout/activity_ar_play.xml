@@ -15,10 +15,15 @@
         android:layout_height="match_parent" />
 
     <!-- 손을 어디에 어느 크기로 두라는 것인지 보여 준다. 손을 잡으면 안내와 함께 사라진다. -->
-    <com.waxball.asmr.ar.HandGuideView
+    <ImageView
         android:id="@+id/handGuide"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="140dp"
+        android:contentDescription="@string/ar_show_palm"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_hand_guide" />
 
     <TextView
         android:id="@+id/hint"
