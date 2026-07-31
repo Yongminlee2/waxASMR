@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">捏蜡球 ASMR</string>
+    <string name="back">返回</string>
+    <string name="ar_count">%d 个球</string>
+    <string name="ar_no_camera">无法使用相机，无法打开掌上模式</string>
+    <string name="ar_permission_needed">需要相机权限才能把球放在手掌上</string>
+    <string name="ar_refresh">换一个</string>
+    <string name="ar_show_palm">把手掌摊开对准相机</string>
+    <string name="ar_squeeze">握拳把它捏碎</string>
+    <string name="cancel">取消</string>
+    <string name="home_balls">选择球</string>
+    <string name="home_settings">设置</string>
+    <string name="home_start">开始</string>
+    <string name="home_tagline">放在手掌上，握紧捏碎</string>
+    <string name="settings_haptics">震动</string>
+    <string name="settings_orbit_lock">锁定旋转</string>
+    <string name="settings_quality">画质</string>
+    <string name="settings_quality_auto">自动</string>
+    <string name="settings_quality_high">高</string>
+    <string name="settings_quality_low">低</string>
+    <string name="settings_quality_medium">中</string>
+    <string name="settings_raw_hint">不切成碎片，直接播放原始录音。用于比较音色。</string>
+    <string name="settings_raw_playback">播放原始录音</string>
+    <string name="settings_reset">清除全部数据</string>
+    <string name="settings_reset_confirm">将重置设置和上次选择的球，无法恢复。</string>
+    <string name="settings_reset_done">数据已清除。</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_volume">音量</string>
+    <string name="language_picker_cd">选择语言</string>
+    <string name="language_picker_title">选择语言</string>
+    <string name="language_follow_system">跟随设备语言</string>
+
+    <string-array name="ball_names">
+        <item>地球</item>
+        <item>太阳</item>
+        <item>水星</item>
+        <item>金星</item>
+        <item>月球</item>
+        <item>火星</item>
+        <item>谷神星</item>
+        <item>骰子</item>
+        <item>高尔夫球</item>
+        <item>木星</item>
+        <item>网球</item>
+        <item>棒球</item>
+        <item>篮球</item>
+        <item>保龄球</item>
+        <item>土星</item>
+        <item>足球</item>
+        <item>小鸡</item>
+        <item>小熊</item>
+        <item>天王星</item>
+        <item>海王星</item>
+        <item>小猪</item>
+        <item>八号球</item>
+        <item>西瓜</item>
+        <item>阋神星</item>
+        <item>鸟神星</item>
+        <item>彩虹方块</item>
+        <item>熊猫</item>
+        <item>青蛙</item>
+        <item>银河</item>
+        <item>小猫</item>
+        <item>草莓牛奶黏土</item>
+        <item>薄荷巧克力黏土</item>
+        <item>粉彩黏土</item>
+        <item>葡萄黏土</item>
+        <item>彩虹黏土</item>
+        <item>糖果黏土</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>基准音色，干燥结实的咔嚓声</item>
+        <item>最亮最尖锐的爆裂声</item>
+        <item>又小又厚，沉闷的咔哒声</item>
+        <item>最迟钝最闷的挤压声</item>
+        <item>个头小，音调偏高</item>
+        <item>颗粒感十足，噼里啪啦持续很久</item>
+        <item>凹凸不平，音高散得很开</item>
+        <item>从棱角开始簌簌剥落</item>
+        <item>又薄又脆的碎裂声</item>
+        <item>个头最大，低音沉厚</item>
+        <item>高亢清脆的叮当声</item>
+        <item>皮革下明亮细碎的声音</item>
+        <item>越大低音越厚</item>
+        <item>又厚又钝，能撑很久</item>
+        <item>细长，共鸣更足</item>
+        <item>最迟钝最闷的一种</item>
+        <item>叽叽的又小又高的碎裂声</item>
+        <item>圆脑袋干脆地咔嚓作响</item>
+        <item>软软的低沉吱吱声</item>
+        <item>有嚼劲，密集连续</item>
+        <item>低沉又闷的吱吱声</item>
+        <item>又薄又亮，细碎沙沙声</item>
+        <item>又薄又亮，四散开来</item>
+        <item>又厚又钝，挤压感强</item>
+        <item>有嚼劲，很密集</item>
+        <item>最亮最锋利的一种</item>
+        <item>个头最大最厚，能撑很久</item>
+        <item>细碎又明亮的沙沙声</item>
+        <item>又薄又亮，细碎沙沙声</item>
+        <item>有嚼劲，没完没了</item>
+        <item>软软的低沉吱吱声</item>
+        <item>有嚼劲又厚实，能撑很久</item>
+        <item>软软的挤压碎裂声</item>
+        <item>迟钝又闷的咔哒声</item>
+        <item>明亮细碎的沙沙声</item>
+        <item>像糖玻璃一样清脆碎裂</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>硬蜡</item>
+        <item>闪粉蜡</item>
+        <item>糖玻璃</item>
+        <item>q弹蜡</item>
+        <item>厚蜡</item>
+        <item>玻璃珠</item>
+        <item>颗粒蜡</item>
+        <item>软蜡</item>
+        <item>软糯蜡</item>
+        <item>黏土蜡</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>圆形</item>
+        <item>蛋形</item>
+        <item>有棱角</item>
+        <item>凹凸不平</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>小</item>
+        <item>中</item>
+        <item>大</item>
+        <item>超大</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>薄壳</item>
+        <item>普通壳</item>
+        <item>厚壳</item>
+    </string-array>
+</resources>

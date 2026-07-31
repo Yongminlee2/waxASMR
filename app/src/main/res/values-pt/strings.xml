@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Voltar</string>
+    <string name="ar_count">%d bolas</string>
+    <string name="ar_no_camera">Câmera indisponível, não é possível abrir o modo palma</string>
+    <string name="ar_permission_needed">É preciso permissão da câmera para colocar a bola na palma da mão</string>
+    <string name="ar_refresh">Nova bola</string>
+    <string name="ar_show_palm">Mostre a palma da mão aberta para a câmera</string>
+    <string name="ar_squeeze">Aperte a mão para esmagá-la</string>
+    <string name="cancel">Cancelar</string>
+    <string name="home_balls">Escolher bola</string>
+    <string name="home_settings">Configurações</string>
+    <string name="home_start">Começar</string>
+    <string name="home_tagline">Coloque na palma da mão e aperte</string>
+    <string name="settings_haptics">Vibração</string>
+    <string name="settings_orbit_lock">Bloquear rotação</string>
+    <string name="settings_quality">Qualidade</string>
+    <string name="settings_quality_auto">Automática</string>
+    <string name="settings_quality_high">Alta</string>
+    <string name="settings_quality_low">Baixa</string>
+    <string name="settings_quality_medium">Média</string>
+    <string name="settings_raw_hint">Toca a gravação original inteira em vez de fragmentos. Para comparar sons.</string>
+    <string name="settings_raw_playback">Tocar gravação original</string>
+    <string name="settings_reset">Apagar todos os dados</string>
+    <string name="settings_reset_confirm">As configurações e a última bola escolhida serão reiniciadas. Não pode ser desfeito.</string>
+    <string name="settings_reset_done">Dados apagados.</string>
+    <string name="settings_title">Configurações</string>
+    <string name="settings_volume">Volume</string>
+    <string name="language_picker_cd">Escolher idioma</string>
+    <string name="language_picker_title">Escolher idioma</string>
+    <string name="language_follow_system">Seguir idioma do dispositivo</string>
+
+    <string-array name="ball_names">
+        <item>Terra</item>
+        <item>Sol</item>
+        <item>Mercúrio</item>
+        <item>Vênus</item>
+        <item>Lua</item>
+        <item>Marte</item>
+        <item>Ceres</item>
+        <item>Dado</item>
+        <item>Bola de golfe</item>
+        <item>Júpiter</item>
+        <item>Bola de tênis</item>
+        <item>Beisebol</item>
+        <item>Basquete</item>
+        <item>Bola de boliche</item>
+        <item>Saturno</item>
+        <item>Bola de futebol</item>
+        <item>Pintinho</item>
+        <item>Ursinho</item>
+        <item>Urano</item>
+        <item>Netuno</item>
+        <item>Porquinho</item>
+        <item>Bola oito</item>
+        <item>Melancia</item>
+        <item>Éris</item>
+        <item>Makemake</item>
+        <item>Cubo arco-íris</item>
+        <item>Panda</item>
+        <item>Sapo</item>
+        <item>Via Láctea</item>
+        <item>Gatinho</item>
+        <item>Massa de morango com leite</item>
+        <item>Massa de menta com chocolate</item>
+        <item>Massa pastel</item>
+        <item>Massa de uva</item>
+        <item>Massa arco-íris</item>
+        <item>Massa de doce</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>O som de referência: estalos secos e firmes</item>
+        <item>Os estouros mais brilhantes e afiados</item>
+        <item>Pequena e grossa, um estalo pesado e surdo</item>
+        <item>O esmagamento mais surdo e abafado</item>
+        <item>Pequena, então soa um pouco mais aguda</item>
+        <item>Estalos granulados que continuam por um bom tempo</item>
+        <item>Irregular, então o tom se espalha bastante</item>
+        <item>Esfarela primeiro pelos cantos</item>
+        <item>Estalos finos e brilhantes</item>
+        <item>A maior, com graves profundos</item>
+        <item>Um tilintar agudo e afiado</item>
+        <item>Estalos finos e brilhantes sob o couro</item>
+        <item>Quanto maior, mais grave fica o som</item>
+        <item>Grossa e surda, dura bastante tempo</item>
+        <item>Alongada, então ressoa mais</item>
+        <item>A mais surda e abafada de todas</item>
+        <item>Pios agudos e pequenos ao quebrar</item>
+        <item>Uma cabeça redonda que estala seca e firme</item>
+        <item>Um rangido suave e grave</item>
+        <item>Um estalo mastigável e bem compacto</item>
+        <item>Um rangido baixo e surdo</item>
+        <item>Estalos finos, brilhantes e leves</item>
+        <item>Fina e brilhante, se espalha</item>
+        <item>Grossa e surda, comprime ao quebrar</item>
+        <item>Mastigável e bem compacto</item>
+        <item>O mais brilhante e afiado de todos</item>
+        <item>A maior e mais grossa, dura para sempre</item>
+        <item>Estalos finos e brilhantes</item>
+        <item>Estalos finos, brilhantes e leves</item>
+        <item>Um estalo mastigável que nunca parece acabar</item>
+        <item>Um rangido suave e grave</item>
+        <item>Mastigável e grossa, dura um bom tempo</item>
+        <item>Um estalo mole e amassado</item>
+        <item>Estalos surdos e abafados</item>
+        <item>Estalos finos e brilhantes</item>
+        <item>Estalos nítidos como vidro de açúcar</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Cera dura</item>
+        <item>Cera brilhante</item>
+        <item>Cristal de açúcar</item>
+        <item>Cera mastigável</item>
+        <item>Cera grossa</item>
+        <item>Conta de vidro</item>
+        <item>Cera granulada</item>
+        <item>Cera macia</item>
+        <item>Cera esponjosa</item>
+        <item>Cera de argila</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Redonda</item>
+        <item>Ovalada</item>
+        <item>Facetada</item>
+        <item>Irregular</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Pequena</item>
+        <item>Média</item>
+        <item>Grande</item>
+        <item>Gigante</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Casca fina</item>
+        <item>Casca normal</item>
+        <item>Casca grossa</item>
+    </string-array>
+</resources>

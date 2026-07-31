@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Volver</string>
+    <string name="ar_count">%d bolas</string>
+    <string name="ar_no_camera">Cámara no disponible, no se puede abrir el modo palma</string>
+    <string name="ar_permission_needed">Se necesita permiso de cámara para colocar la bola en tu palma</string>
+    <string name="ar_refresh">Nueva bola</string>
+    <string name="ar_show_palm">Muestra tu palma abierta a la cámara</string>
+    <string name="ar_squeeze">Aprieta la mano para aplastarla</string>
+    <string name="cancel">Cancelar</string>
+    <string name="home_balls">Elegir bola</string>
+    <string name="home_settings">Ajustes</string>
+    <string name="home_start">Empezar</string>
+    <string name="home_tagline">Colócala en tu palma y apriétala</string>
+    <string name="settings_haptics">Vibración</string>
+    <string name="settings_orbit_lock">Bloquear giro</string>
+    <string name="settings_quality">Calidad</string>
+    <string name="settings_quality_auto">Automática</string>
+    <string name="settings_quality_high">Alta</string>
+    <string name="settings_quality_low">Baja</string>
+    <string name="settings_quality_medium">Media</string>
+    <string name="settings_raw_hint">Reproduce la grabación original entera en lugar de fragmentos. Para comparar sonidos.</string>
+    <string name="settings_raw_playback">Reproducir grabación original</string>
+    <string name="settings_reset">Borrar todos los datos</string>
+    <string name="settings_reset_confirm">Se restablecerán los ajustes y la última bola elegida. No se puede deshacer.</string>
+    <string name="settings_reset_done">Datos borrados.</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_volume">Volumen</string>
+    <string name="language_picker_cd">Elegir idioma</string>
+    <string name="language_picker_title">Elegir idioma</string>
+    <string name="language_follow_system">Seguir idioma del dispositivo</string>
+
+    <string-array name="ball_names">
+        <item>Tierra</item>
+        <item>Sol</item>
+        <item>Mercurio</item>
+        <item>Venus</item>
+        <item>Luna</item>
+        <item>Marte</item>
+        <item>Ceres</item>
+        <item>Dado</item>
+        <item>Pelota de golf</item>
+        <item>Júpiter</item>
+        <item>Pelota de tenis</item>
+        <item>Béisbol</item>
+        <item>Baloncesto</item>
+        <item>Bola de bolos</item>
+        <item>Saturno</item>
+        <item>Balón de fútbol</item>
+        <item>Pollito</item>
+        <item>Osito</item>
+        <item>Urano</item>
+        <item>Neptuno</item>
+        <item>Cerdito</item>
+        <item>Bola ocho</item>
+        <item>Sandía</item>
+        <item>Eris</item>
+        <item>Makemake</item>
+        <item>Cubo arcoíris</item>
+        <item>Panda</item>
+        <item>Rana</item>
+        <item>Vía Láctea</item>
+        <item>Gatito</item>
+        <item>Masa de fresa con leche</item>
+        <item>Masa de menta y chocolate</item>
+        <item>Masa pastel</item>
+        <item>Masa de uva</item>
+        <item>Masa arcoíris</item>
+        <item>Masa de caramelo</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>El sonido de referencia: crujidos secos y firmes</item>
+        <item>Los estallidos más brillantes y afilados</item>
+        <item>Pequeña y gruesa, un crujido sordo y pesado</item>
+        <item>El aplastamiento más apagado y sordo</item>
+        <item>Pequeña, así que suena algo más aguda</item>
+        <item>Crujidos granulados que se prolongan</item>
+        <item>Irregular, así que el tono se dispersa mucho</item>
+        <item>Se desmorona primero por las esquinas</item>
+        <item>Crujidos finos y brillantes</item>
+        <item>La más grande, con graves profundos</item>
+        <item>Un tintineo agudo y afilado</item>
+        <item>Crujidos finos y brillantes bajo el cuero</item>
+        <item>Cuanto más grande, más grave suena</item>
+        <item>Gruesa y sorda, dura mucho tiempo</item>
+        <item>Alargada, así que resuena más</item>
+        <item>La más apagada y sorda de todas</item>
+        <item>Piídos agudos y pequeños al romperse</item>
+        <item>Una cabeza redonda que cruje seca y firme</item>
+        <item>Un crujido suave y grave</item>
+        <item>Un crujido masticable y muy compacto</item>
+        <item>Un crujido bajo y sordo</item>
+        <item>Crujidos finos, brillantes y suaves</item>
+        <item>Fina y brillante, se dispersa</item>
+        <item>Gruesa y sorda, aprieta al romperse</item>
+        <item>Masticable y muy compacto</item>
+        <item>El más brillante y afilado de todos</item>
+        <item>La más grande y gruesa, dura para siempre</item>
+        <item>Crujidos finos y brillantes</item>
+        <item>Crujidos finos, brillantes y suaves</item>
+        <item>Un crujido masticable que no termina nunca</item>
+        <item>Un crujido suave y grave</item>
+        <item>Masticable y gruesa, dura bastante</item>
+        <item>Un crujido blando que se aplasta</item>
+        <item>Crujidos sordos y apagados</item>
+        <item>Crujidos finos y brillantes</item>
+        <item>Crujidos nítidos como cristal de azúcar</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Cera dura</item>
+        <item>Cera brillante</item>
+        <item>Cristal de azúcar</item>
+        <item>Cera masticable</item>
+        <item>Cera gruesa</item>
+        <item>Cuenta de vidrio</item>
+        <item>Cera granulada</item>
+        <item>Cera blanda</item>
+        <item>Cera esponjosa</item>
+        <item>Cera de arcilla</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Redonda</item>
+        <item>Ovalada</item>
+        <item>Facetada</item>
+        <item>Irregular</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Pequeña</item>
+        <item>Mediana</item>
+        <item>Grande</item>
+        <item>Gigante</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Cáscara fina</item>
+        <item>Cáscara normal</item>
+        <item>Cáscara gruesa</item>
+    </string-array>
+</resources>

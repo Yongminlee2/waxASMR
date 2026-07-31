@@ -3,48 +3,12 @@
     <string name="app_name">왁뿌볼 ASMR</string>
 
     <string name="back">나가기</string>
-    <string name="retry">다시 하기</string>
-    <string name="close">닫기</string>
-    <string name="orbit_unlocked">굴리기 켜짐</string>
-    <string name="orbit_locked">굴리기 잠금</string>
-    <string name="progress_percent">%d%%</string>
+    <string name="cancel">취소</string>
 
-    <string name="mission_with_time">%1$s · %2$d초 남음 · %3$d%%</string>
-    <string name="mission_plain">%1$s · %2$d%%</string>
-    <string name="mission_cleared">성공!</string>
-    <string name="mission_failed">실패</string>
-    <string name="mission_try_again">페널티는 없습니다. 다시 해보세요.</string>
-    <string name="reward_coins">코인 %d개를 받았습니다</string>
-
-    <string name="home_coins">코인 %d</string>
-    <string name="home_missions">오늘의 미션</string>
     <string name="home_balls">볼 고르기</string>
     <string name="home_tagline">손바닥에 올려놓고 쥐어서 부수세요</string>
     <string name="home_start">시작하기</string>
-    <string name="home_collection">도감</string>
     <string name="home_settings">설정</string>
-    <string name="mission_done">완료</string>
-
-    <string name="locked_price">%d코인</string>
-    <string name="buy_title">%s 열기</string>
-    <string name="buy_message">코인 %1$d개를 써서 엽니다. 지금 %2$d개 있습니다.</string>
-    <string name="buy_confirm">열기</string>
-    <string name="cancel">취소</string>
-    <string name="not_enough_coins">코인이 부족합니다. 더 깨고 오세요.</string>
-
-    <string name="headphone_tip_title">이어폰을 껴 보세요</string>
-    <string name="headphone_tip_message">손가락 위치에 따라 소리가 좌우로 움직입니다. 이어폰으로 들어야 제맛입니다.</string>
-    <string name="ok">알겠어요</string>
-
-    <string name="controls">조작법</string>
-    <string name="controls_title">조작법</string>
-    <string name="controls_body">깨기\n· 볼 위를 톡 치면 그 자리가 깨집니다\n· 꾹 누르고 있으면 힘이 쌓여 깊게 깨집니다\n· 볼 위를 쭉 문지르면 지나간 자리가 줄줄이 까입니다\n\n굴리기\n· 볼 <b>바깥 여백</b>을 끌면 볼이 굴러갑니다\n· 두 손가락으로는 어디서든 굴릴 수 있습니다\n· 뒤통수까지 굴려서 까야 다 깝니다\n\n그 밖에\n· 두 손가락을 벌리면 확대됩니다\n· 오른쪽 아래 “굴리기 잠금”을 켜면 화면 전체가 깨기 영역이 됩니다\n· 껍질을 다 벗기면 안쪽 말랑이가 나옵니다. 눌러 보세요\n\n이어폰을 끼면 손가락 위치에 따라 소리가 좌우로 움직입니다.</string>
-
-    <string name="collection_title">도감</string>
-    <string name="collection_count">30개 중 %d개</string>
-    <!-- 값이 물음표로 시작하면 aapt가 테마 속성 참조로 읽어 버려서 이스케이프한다 -->
-    <string name="collection_unknown">\?\?\?</string>
-    <string name="collection_locked_hint">아직 열지 않은 볼입니다.</string>
 
     <string name="settings_title">설정</string>
     <string name="settings_haptics">진동</string>
@@ -58,10 +22,10 @@
     <string name="settings_raw_playback">녹음 원본 그대로 재생</string>
     <string name="settings_raw_hint">파편으로 쪼개지 않고 녹음을 통째로 틉니다. 소리 비교용입니다.</string>
     <string name="settings_reset">기록 전부 지우기</string>
-    <string name="settings_reset_confirm">코인·해금·도감이 전부 사라집니다. 되돌릴 수 없습니다.</string>
+    <!-- 코인·해금·도감이 있던 시절 문구. 지금 지우는 것은 설정과 마지막으로 고른 볼뿐이다. -->
+    <string name="settings_reset_confirm">설정과 마지막으로 고른 볼이 초기화됩니다. 되돌릴 수 없습니다.</string>
     <string name="settings_reset_done">기록을 지웠습니다.</string>
 
-    <string name="ar_mode">손바닥에 올리기</string>
     <string name="ar_show_palm">손바닥을 펴서 카메라에 보여주세요</string>
     <string name="ar_squeeze">손을 쥐어서 부수세요</string>
     <string name="ar_no_camera">카메라를 쓸 수 없어 손바닥 모드를 열 수 없습니다</string>
@@ -69,10 +33,7 @@
     <string name="ar_count">공 %d개</string>
     <string name="ar_refresh">새로고침</string>
 
-    <string name="smash_mode">화면 뿌시기</string>
-    <string name="smash_again">다시 찍기</string>
-    <string name="smash_no_camera">카메라를 쓸 수 없어 기본 화면을 깹니다</string>
-
-    <string name="audio_failed">이 기기에서 소리를 낼 수 없어 무음으로 진행합니다.</string>
-    <string name="gl_unsupported">이 기기는 OpenGL ES 3.0을 지원하지 않아 실행할 수 없습니다.</string>
+    <string name="language_picker_cd">언어 선택</string>
+    <string name="language_picker_title">언어 선택</string>
+    <string name="language_follow_system">기기 언어 따르기</string>
 </resources>

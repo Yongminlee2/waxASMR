@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ワックスボール ASMR</string>
+    <string name="back">戻る</string>
+    <string name="ar_count">ボール %d個</string>
+    <string name="ar_no_camera">カメラが使えないため手のひらモードを開けません</string>
+    <string name="ar_permission_needed">手のひらに乗せるにはカメラの権限が必要です</string>
+    <string name="ar_refresh">新しいボール</string>
+    <string name="ar_show_palm">手のひらを開いてカメラに見せてください</string>
+    <string name="ar_squeeze">手を握って砕いてください</string>
+    <string name="cancel">キャンセル</string>
+    <string name="home_balls">ボールを選ぶ</string>
+    <string name="home_settings">設定</string>
+    <string name="home_start">はじめる</string>
+    <string name="home_tagline">手のひらに乗せて握って砕こう</string>
+    <string name="settings_haptics">振動</string>
+    <string name="settings_orbit_lock">回転ロック</string>
+    <string name="settings_quality">画質</string>
+    <string name="settings_quality_auto">自動</string>
+    <string name="settings_quality_high">高</string>
+    <string name="settings_quality_low">低</string>
+    <string name="settings_quality_medium">中</string>
+    <string name="settings_raw_hint">破片に分けず録音をそのまま再生します。音の比較用です。</string>
+    <string name="settings_raw_playback">録音をそのまま再生</string>
+    <string name="settings_reset">データを全て消去</string>
+    <string name="settings_reset_confirm">設定と最後に選んだボールが初期化されます。元に戻せません。</string>
+    <string name="settings_reset_done">データを消去しました。</string>
+    <string name="settings_title">設定</string>
+    <string name="settings_volume">音量</string>
+    <string name="language_picker_cd">言語を選択</string>
+    <string name="language_picker_title">言語を選択</string>
+    <string name="language_follow_system">端末の言語に従う</string>
+
+    <string-array name="ball_names">
+        <item>地球</item>
+        <item>太陽</item>
+        <item>水星</item>
+        <item>金星</item>
+        <item>月</item>
+        <item>火星</item>
+        <item>ケレス</item>
+        <item>サイコロ</item>
+        <item>ゴルフボール</item>
+        <item>木星</item>
+        <item>テニスボール</item>
+        <item>野球ボール</item>
+        <item>バスケットボール</item>
+        <item>ボウリングボール</item>
+        <item>土星</item>
+        <item>サッカーボール</item>
+        <item>ひよこ</item>
+        <item>くま</item>
+        <item>天王星</item>
+        <item>海王星</item>
+        <item>ぶた</item>
+        <item>エイトボール</item>
+        <item>スイカ</item>
+        <item>エリス</item>
+        <item>マケマケ</item>
+        <item>レインボーキューブ</item>
+        <item>パンダ</item>
+        <item>かえる</item>
+        <item>天の川</item>
+        <item>ねこ</item>
+        <item>いちごミルク粘土</item>
+        <item>ミントチョコ粘土</item>
+        <item>パステル粘土</item>
+        <item>ぶどう粘土</item>
+        <item>レインボー粘土</item>
+        <item>キャンディー粘土</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>基準となる音。乾いて硬いパキッという音</item>
+        <item>一番明るく鋭くはじける</item>
+        <item>小さくて厚みがあり、重いポコッという音</item>
+        <item>一番鈍くこもった潰れ方</item>
+        <item>小さいので音が高め</item>
+        <item>粒感が長く続くパチパチ音</item>
+        <item>でこぼこで音の高さが幅広く散る</item>
+        <item>角からポロポロ崩れていく</item>
+        <item>薄く明るく砕ける</item>
+        <item>一番大きく低音が深い</item>
+        <item>高くて鋭いチリンという音</item>
+        <item>革の下で明るく細かくパチパチ</item>
+        <item>大きいほど低音が乗る</item>
+        <item>厚くて鈍く、長持ちする</item>
+        <item>細長いので響きが増す</item>
+        <item>一番鈍くこもっている</item>
+        <item>ピヨピヨと小さく高く砕ける</item>
+        <item>丸い頭が乾いてパキッと鳴る</item>
+        <item>柔らかく低いプニッという音</item>
+        <item>もちもちと密に続く</item>
+        <item>低く鈍いプニッという音</item>
+        <item>薄く明るく細かいシャリシャリ</item>
+        <item>薄く明るく散らばる</item>
+        <item>厚く鈍く押しつぶされる</item>
+        <item>もちもちと密</item>
+        <item>一番明るく鋭い</item>
+        <item>一番大きく厚く、長く持ちこたえる</item>
+        <item>細かく明るいシャリシャリ</item>
+        <item>薄く明るい細かいシャリシャリ</item>
+        <item>もちもちと終わりなく続く</item>
+        <item>柔らかく低いプニプニ音</item>
+        <item>もちもち厚みがあり長持ちする</item>
+        <item>柔らかくつぶれるプニュッという音</item>
+        <item>鈍くこもったポコポコ音</item>
+        <item>明るく細かいシャリシャリ</item>
+        <item>砂糖ガラスのようにパリッと砕ける</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>硬いワックス</item>
+        <item>キラキラワックス</item>
+        <item>シュガーグラス</item>
+        <item>もちもちワックス</item>
+        <item>厚いワックス</item>
+        <item>ガラスビーズ</item>
+        <item>粒々ワックス</item>
+        <item>柔らかいワックス</item>
+        <item>ぷにぷにワックス</item>
+        <item>粘土ワックス</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>丸い</item>
+        <item>卵形</item>
+        <item>角ばった</item>
+        <item>でこぼこ</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>小</item>
+        <item>中</item>
+        <item>大</item>
+        <item>特大</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>薄い殻</item>
+        <item>普通の殻</item>
+        <item>厚い殻</item>
+    </string-array>
+</resources>

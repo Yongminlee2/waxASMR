@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Kembali</string>
+    <string name="ar_count">%d bola</string>
+    <string name="ar_no_camera">Kamera tidak tersedia, mode telapak tangan tidak bisa dibuka</string>
+    <string name="ar_permission_needed">Izin kamera diperlukan untuk meletakkan bola di telapak tangan</string>
+    <string name="ar_refresh">Bola baru</string>
+    <string name="ar_show_palm">Buka telapak tangan ke arah kamera</string>
+    <string name="ar_squeeze">Genggam tangan untuk menghancurkannya</string>
+    <string name="cancel">Batal</string>
+    <string name="home_balls">Pilih bola</string>
+    <string name="home_settings">Pengaturan</string>
+    <string name="home_start">Mulai</string>
+    <string name="home_tagline">Letakkan di telapak tangan lalu genggam</string>
+    <string name="settings_haptics">Getaran</string>
+    <string name="settings_orbit_lock">Kunci putaran</string>
+    <string name="settings_quality">Kualitas</string>
+    <string name="settings_quality_auto">Otomatis</string>
+    <string name="settings_quality_high">Tinggi</string>
+    <string name="settings_quality_low">Rendah</string>
+    <string name="settings_quality_medium">Sedang</string>
+    <string name="settings_raw_hint">Memutar rekaman asli utuh, bukan potongan-potongan. Untuk membandingkan suara.</string>
+    <string name="settings_raw_playback">Putar rekaman asli</string>
+    <string name="settings_reset">Hapus semua data</string>
+    <string name="settings_reset_confirm">Pengaturan dan bola terakhir yang dipilih akan direset. Tidak bisa dibatalkan.</string>
+    <string name="settings_reset_done">Data telah dihapus.</string>
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_volume">Volume</string>
+    <string name="language_picker_cd">Pilih bahasa</string>
+    <string name="language_picker_title">Pilih bahasa</string>
+    <string name="language_follow_system">Ikuti bahasa perangkat</string>
+
+    <string-array name="ball_names">
+        <item>Bumi</item>
+        <item>Matahari</item>
+        <item>Merkurius</item>
+        <item>Venus</item>
+        <item>Bulan</item>
+        <item>Mars</item>
+        <item>Ceres</item>
+        <item>Dadu</item>
+        <item>Bola golf</item>
+        <item>Jupiter</item>
+        <item>Bola tenis</item>
+        <item>Bisbol</item>
+        <item>Basket</item>
+        <item>Bola boling</item>
+        <item>Saturnus</item>
+        <item>Bola sepak</item>
+        <item>Anak ayam</item>
+        <item>Beruang</item>
+        <item>Uranus</item>
+        <item>Neptunus</item>
+        <item>Babi</item>
+        <item>Bola delapan</item>
+        <item>Semangka</item>
+        <item>Eris</item>
+        <item>Makemake</item>
+        <item>Kubus pelangi</item>
+        <item>Panda</item>
+        <item>Katak</item>
+        <item>Bima Sakti</item>
+        <item>Kucing</item>
+        <item>Adonan susu stroberi</item>
+        <item>Adonan mint cokelat</item>
+        <item>Adonan pastel</item>
+        <item>Adonan anggur</item>
+        <item>Adonan pelangi</item>
+        <item>Adonan permen</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>Suara acuan: retakan kering dan tegas</item>
+        <item>Letupan paling terang dan tajam</item>
+        <item>Kecil dan tebal — retakan berat dan tumpul</item>
+        <item>Remukan paling tumpul dan teredam</item>
+        <item>Kecil, jadi nadanya sedikit lebih tinggi</item>
+        <item>Retakan berbutir yang berlangsung lama</item>
+        <item>Bergelombang, jadi nada tersebar luas</item>
+        <item>Runtuh dari sudut-sudutnya lebih dulu</item>
+        <item>Retakan tipis dan terang</item>
+        <item>Paling besar, dengan nada rendah yang dalam</item>
+        <item>Dentingan tinggi dan tajam</item>
+        <item>Retakan halus dan terang di bawah kulitnya</item>
+        <item>Makin besar, nada makin rendah</item>
+        <item>Tebal dan tumpul — bertahan lama</item>
+        <item>Memanjang, jadi resonansinya lebih besar</item>
+        <item>Paling tumpul dan teredam dari semuanya</item>
+        <item>Bunyi kecil bernada tinggi saat retak</item>
+        <item>Kepala bundar yang retak kering dan tegas</item>
+        <item>Derit lembut bernada rendah</item>
+        <item>Retakan kenyal dan padat</item>
+        <item>Derit rendah dan tumpul</item>
+        <item>Retakan tipis, terang, dan halus</item>
+        <item>Tipis dan terang, tersebar</item>
+        <item>Tebal dan tumpul, terasa tertekan</item>
+        <item>Kenyal dan padat</item>
+        <item>Paling terang dan tajam dari semuanya</item>
+        <item>Paling besar dan tebal — bertahan lama sekali</item>
+        <item>Retakan halus dan terang</item>
+        <item>Retakan tipis, terang, dan halus</item>
+        <item>Retakan kenyal yang seperti tak berujung</item>
+        <item>Derit lembut bernada rendah</item>
+        <item>Kenyal dan tebal, bertahan cukup lama</item>
+        <item>Retakan lembut dan lembek</item>
+        <item>Retakan tumpul dan teredam</item>
+        <item>Retakan halus dan terang</item>
+        <item>Retakan tajam dan jernih seperti kaca gula</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Lilin keras</item>
+        <item>Lilin glitter</item>
+        <item>Kaca gula</item>
+        <item>Lilin kenyal</item>
+        <item>Lilin tebal</item>
+        <item>Manik kaca</item>
+        <item>Lilin berbutir</item>
+        <item>Lilin lembut</item>
+        <item>Lilin lembek</item>
+        <item>Lilin tanah liat</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Bulat</item>
+        <item>Berbentuk telur</item>
+        <item>Bersudut</item>
+        <item>Bergelombang</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Kecil</item>
+        <item>Sedang</item>
+        <item>Besar</item>
+        <item>Raksasa</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Kulit tipis</item>
+        <item>Kulit normal</item>
+        <item>Kulit tebal</item>
+    </string-array>
+</resources>

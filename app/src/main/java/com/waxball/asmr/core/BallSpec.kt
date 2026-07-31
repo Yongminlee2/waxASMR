@@ -187,7 +187,4 @@ data class BallSpec(
     fun baseSubdivision(quality: Int): Int = if (quality <= 0) 3 else 4
 
     val shellThickness: Float get() = thickness.value
-
-    val summaryKo: String
-        get() = "${size.labelKo} · ${thickness.labelKo} 껍질 · ${shape.labelKo} · ${material.labelKo}"
 }

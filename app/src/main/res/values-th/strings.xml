@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">ย้อนกลับ</string>
+    <string name="ar_count">%d ลูก</string>
+    <string name="ar_no_camera">ใช้กล้องไม่ได้ จึงเปิดโหมดฝ่ามือไม่ได้</string>
+    <string name="ar_permission_needed">ต้องได้รับสิทธิ์กล้องจึงจะวางลูกบอลบนฝ่ามือได้</string>
+    <string name="ar_refresh">ลูกใหม่</string>
+    <string name="ar_show_palm">แบมือให้กล้องเห็น</string>
+    <string name="ar_squeeze">กำมือเพื่อบี้มันให้แตก</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="home_balls">เลือกลูกบอล</string>
+    <string name="home_settings">ตั้งค่า</string>
+    <string name="home_start">เริ่ม</string>
+    <string name="home_tagline">วางบนฝ่ามือแล้วกำบี้</string>
+    <string name="settings_haptics">การสั่น</string>
+    <string name="settings_orbit_lock">ล็อกการหมุน</string>
+    <string name="settings_quality">คุณภาพ</string>
+    <string name="settings_quality_auto">อัตโนมัติ</string>
+    <string name="settings_quality_high">สูง</string>
+    <string name="settings_quality_low">ต่ำ</string>
+    <string name="settings_quality_medium">ปานกลาง</string>
+    <string name="settings_raw_hint">เปิดเสียงบันทึกต้นฉบับทั้งหมดแทนการตัดเป็นชิ้นเล็ก ๆ ใช้เพื่อเทียบเสียง</string>
+    <string name="settings_raw_playback">เล่นเสียงบันทึกต้นฉบับ</string>
+    <string name="settings_reset">ล้างข้อมูลทั้งหมด</string>
+    <string name="settings_reset_confirm">การตั้งค่าและลูกบอลที่เลือกล่าสุดจะถูกรีเซ็ต ย้อนกลับไม่ได้</string>
+    <string name="settings_reset_done">ล้างข้อมูลแล้ว</string>
+    <string name="settings_title">ตั้งค่า</string>
+    <string name="settings_volume">ระดับเสียง</string>
+    <string name="language_picker_cd">เลือกภาษา</string>
+    <string name="language_picker_title">เลือกภาษา</string>
+    <string name="language_follow_system">ใช้ภาษาของอุปกรณ์</string>
+
+    <string-array name="ball_names">
+        <item>โลก</item>
+        <item>ดวงอาทิตย์</item>
+        <item>ดาวพุธ</item>
+        <item>ดาวศุกร์</item>
+        <item>ดวงจันทร์</item>
+        <item>ดาวอังคาร</item>
+        <item>เซเรส</item>
+        <item>ลูกเต๋า</item>
+        <item>ลูกกอล์ฟ</item>
+        <item>ดาวพฤหัสบดี</item>
+        <item>ลูกเทนนิส</item>
+        <item>ลูกเบสบอล</item>
+        <item>ลูกบาสเกตบอล</item>
+        <item>ลูกโบว์ลิ่ง</item>
+        <item>ดาวเสาร์</item>
+        <item>ลูกฟุตบอล</item>
+        <item>ลูกเจี๊ยบ</item>
+        <item>หมี</item>
+        <item>ดาวยูเรนัส</item>
+        <item>ดาวเนปจูน</item>
+        <item>หมู</item>
+        <item>ลูกบิลเลียดเลข 8</item>
+        <item>แตงโม</item>
+        <item>อีริส</item>
+        <item>มาคีมาคี</item>
+        <item>ลูกบาศก์สายรุ้ง</item>
+        <item>แพนด้า</item>
+        <item>กบ</item>
+        <item>ทางช้างเผือก</item>
+        <item>แมว</item>
+        <item>แป้งโดว์นมสตรอว์เบอร์รี</item>
+        <item>แป้งโดว์มินต์ช็อกโกแลต</item>
+        <item>แป้งโดว์พาสเทล</item>
+        <item>แป้งโดว์องุ่น</item>
+        <item>แป้งโดว์สายรุ้ง</item>
+        <item>แป้งโดว์ลูกอม</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>เสียงมาตรฐาน แตกกรอบแห้งและหนักแน่น</item>
+        <item>แตกสว่างและคมที่สุด</item>
+        <item>เล็กและหนา เสียงป็อกทึบหนัก</item>
+        <item>บี้ทึบและอู้อี้ที่สุด</item>
+        <item>เล็กจึงเสียงสูงขึ้นนิดหน่อย</item>
+        <item>แตกเป็นเม็ดต่อเนื่องยาวนาน</item>
+        <item>ขรุขระเสียงจึงกระจายกว้าง</item>
+        <item>ร่วงจากมุมก่อนเป็นเศษ ๆ</item>
+        <item>แตกบางและสว่าง</item>
+        <item>ใหญ่ที่สุด เสียงทุ้มลึก</item>
+        <item>เสียงกรุ๊งกริ๊งสูงและคม</item>
+        <item>แตกกรอบสว่างละเอียดใต้หนัง</item>
+        <item>ยิ่งใหญ่ยิ่งมีเสียงทุ้มมาก</item>
+        <item>หนาและทึบ อยู่ได้นาน</item>
+        <item>ยาวรีจึงกังวานมากขึ้น</item>
+        <item>ทึบและอู้อี้ที่สุดในบรรดาทั้งหมด</item>
+        <item>เสียงจิ๊บ ๆ เล็กและสูงตอนแตก</item>
+        <item>หัวกลมแตกกรอบแห้งหนักแน่น</item>
+        <item>เสียงเอี๊ยดอ่อนและทุ้ม</item>
+        <item>แตกกรอบเหนียวและแน่นถี่</item>
+        <item>เสียงเอี๊ยดทุ้มและอู้อี้</item>
+        <item>แตกกรอบบางสว่างละเอียด</item>
+        <item>บางและสว่าง กระจายออก</item>
+        <item>หนาและทึบ ถูกบีบอัด</item>
+        <item>เหนียวและแน่นถี่</item>
+        <item>สว่างและคมที่สุดในบรรดาทั้งหมด</item>
+        <item>ใหญ่และหนาที่สุด อยู่ได้นานมาก</item>
+        <item>แตกกรอบละเอียดและสว่าง</item>
+        <item>แตกกรอบบางสว่างละเอียด</item>
+        <item>แตกกรอบเหนียวไม่มีที่สิ้นสุด</item>
+        <item>เสียงเอี๊ยดอ่อนและทุ้ม</item>
+        <item>เหนียวและหนา อยู่ได้นานพอควร</item>
+        <item>แตกกรอบอ่อนนุ่มยวบ</item>
+        <item>แตกป็อก ๆ ทึบและอู้อี้</item>
+        <item>แตกกรอบสว่างละเอียด</item>
+        <item>แตกคมกรอบใสเหมือนแก้วน้ำตาล</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>ขี้ผึ้งแข็ง</item>
+        <item>ขี้ผึ้งกากเพชร</item>
+        <item>แก้วน้ำตาล</item>
+        <item>ขี้ผึ้งเหนียว</item>
+        <item>ขี้ผึ้งหนา</item>
+        <item>ลูกปัดแก้ว</item>
+        <item>ขี้ผึ้งเม็ด</item>
+        <item>ขี้ผึ้งนุ่ม</item>
+        <item>ขี้ผึ้งนิ่ม</item>
+        <item>ขี้ผึ้งดินเหนียว</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>ทรงกลม</item>
+        <item>ทรงไข่</item>
+        <item>เหลี่ยม</item>
+        <item>ขรุขระ</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>เล็ก</item>
+        <item>กลาง</item>
+        <item>ใหญ่</item>
+        <item>ใหญ่มาก</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>เปลือกบาง</item>
+        <item>เปลือกปกติ</item>
+        <item>เปลือกหนา</item>
+    </string-array>
+</resources>

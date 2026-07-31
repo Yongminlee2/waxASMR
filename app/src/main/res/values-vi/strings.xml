@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Quay lại</string>
+    <string name="ar_count">%d quả bóng</string>
+    <string name="ar_no_camera">Không dùng được camera nên không mở được chế độ lòng bàn tay</string>
+    <string name="ar_permission_needed">Cần quyền camera để đặt bóng lên lòng bàn tay</string>
+    <string name="ar_refresh">Bóng mới</string>
+    <string name="ar_show_palm">Xòe lòng bàn tay hướng vào camera</string>
+    <string name="ar_squeeze">Nắm tay để bóp vỡ bóng</string>
+    <string name="cancel">Hủy</string>
+    <string name="home_balls">Chọn bóng</string>
+    <string name="home_settings">Cài đặt</string>
+    <string name="home_start">Bắt đầu</string>
+    <string name="home_tagline">Đặt lên lòng bàn tay rồi nắm bóp</string>
+    <string name="settings_haptics">Rung</string>
+    <string name="settings_orbit_lock">Khóa xoay</string>
+    <string name="settings_quality">Chất lượng</string>
+    <string name="settings_quality_auto">Tự động</string>
+    <string name="settings_quality_high">Cao</string>
+    <string name="settings_quality_low">Thấp</string>
+    <string name="settings_quality_medium">Trung bình</string>
+    <string name="settings_raw_hint">Phát nguyên bản bản ghi âm thay vì cắt thành mảnh. Dùng để so sánh âm thanh.</string>
+    <string name="settings_raw_playback">Phát bản ghi âm gốc</string>
+    <string name="settings_reset">Xóa toàn bộ dữ liệu</string>
+    <string name="settings_reset_confirm">Cài đặt và quả bóng chọn lần cuối sẽ được đặt lại. Không thể hoàn tác.</string>
+    <string name="settings_reset_done">Đã xóa dữ liệu.</string>
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_volume">Âm lượng</string>
+    <string name="language_picker_cd">Chọn ngôn ngữ</string>
+    <string name="language_picker_title">Chọn ngôn ngữ</string>
+    <string name="language_follow_system">Theo ngôn ngữ thiết bị</string>
+
+    <string-array name="ball_names">
+        <item>Trái Đất</item>
+        <item>Mặt Trời</item>
+        <item>Sao Thủy</item>
+        <item>Sao Kim</item>
+        <item>Mặt Trăng</item>
+        <item>Sao Hỏa</item>
+        <item>Ceres</item>
+        <item>Xúc xắc</item>
+        <item>Bóng golf</item>
+        <item>Sao Mộc</item>
+        <item>Bóng tennis</item>
+        <item>Bóng chày</item>
+        <item>Bóng rổ</item>
+        <item>Bóng bowling</item>
+        <item>Sao Thổ</item>
+        <item>Bóng đá</item>
+        <item>Gà con</item>
+        <item>Gấu bông</item>
+        <item>Sao Thiên Vương</item>
+        <item>Sao Hải Vương</item>
+        <item>Lợn con</item>
+        <item>Bi số 8</item>
+        <item>Dưa hấu</item>
+        <item>Eris</item>
+        <item>Makemake</item>
+        <item>Khối lập phương cầu vồng</item>
+        <item>Gấu trúc</item>
+        <item>Ếch</item>
+        <item>Dải Ngân Hà</item>
+        <item>Mèo con</item>
+        <item>Đất nặn sữa dâu</item>
+        <item>Đất nặn bạc hà sô-cô-la</item>
+        <item>Đất nặn pastel</item>
+        <item>Đất nặn nho</item>
+        <item>Đất nặn cầu vồng</item>
+        <item>Đất nặn kẹo</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>Âm thanh chuẩn: tiếng rắc khô và chắc</item>
+        <item>Tiếng nổ sáng và sắc nhất</item>
+        <item>Nhỏ và dày — tiếng nứt nặng và trầm đục</item>
+        <item>Tiếng bóp vỡ trầm đục nhất</item>
+        <item>Nhỏ nên âm cao hơn một chút</item>
+        <item>Tiếng lạo xạo hạt kéo dài liên tục</item>
+        <item>Gồ ghề nên cao độ tỏa rộng</item>
+        <item>Vỡ vụn từ các góc trước tiên</item>
+        <item>Tiếng nứt mỏng và sáng</item>
+        <item>Lớn nhất, với âm trầm sâu</item>
+        <item>Tiếng leng keng cao và sắc</item>
+        <item>Tiếng lạo xạo sáng và mịn dưới lớp da</item>
+        <item>Càng lớn âm trầm càng nặng</item>
+        <item>Dày và trầm đục — kéo dài lâu</item>
+        <item>Thuôn dài nên vang hơn</item>
+        <item>Trầm đục và nghẹt nhất trong tất cả</item>
+        <item>Tiếng chiêm chiếp nhỏ và cao khi vỡ</item>
+        <item>Đầu tròn nứt khô và chắc</item>
+        <item>Tiếng kẽo kẹt mềm và trầm</item>
+        <item>Tiếng lạo xạo dai và dày đặc</item>
+        <item>Tiếng kẽo kẹt trầm và đục</item>
+        <item>Tiếng lạo xạo mỏng, sáng, mịn</item>
+        <item>Mỏng và sáng, tỏa ra</item>
+        <item>Dày và trầm đục, bị ép chặt</item>
+        <item>Dai và dày đặc</item>
+        <item>Sáng và sắc nhất trong tất cả</item>
+        <item>Lớn và dày nhất — kéo dài mãi</item>
+        <item>Tiếng lạo xạo mịn và sáng</item>
+        <item>Tiếng lạo xạo mỏng, sáng, mịn</item>
+        <item>Tiếng dai lạo xạo dường như không dứt</item>
+        <item>Tiếng kẽo kẹt mềm và trầm</item>
+        <item>Dai và dày, kéo dài khá lâu</item>
+        <item>Tiếng lạo xạo mềm và nhão</item>
+        <item>Tiếng lộp bộp trầm và đục</item>
+        <item>Tiếng lạo xạo sáng và mịn</item>
+        <item>Tiếng nứt sắc và trong như thủy tinh đường</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Sáp cứng</item>
+        <item>Sáp lấp lánh</item>
+        <item>Kính đường</item>
+        <item>Sáp dai</item>
+        <item>Sáp dày</item>
+        <item>Hạt thủy tinh</item>
+        <item>Sáp hạt</item>
+        <item>Sáp mềm</item>
+        <item>Sáp mềm dẻo</item>
+        <item>Sáp đất sét</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Tròn</item>
+        <item>Hình quả trứng</item>
+        <item>Nhiều cạnh</item>
+        <item>Gồ ghề</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Nhỏ</item>
+        <item>Vừa</item>
+        <item>Lớn</item>
+        <item>Khổng lồ</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Vỏ mỏng</item>
+        <item>Vỏ vừa</item>
+        <item>Vỏ dày</item>
+    </string-array>
+</resources>

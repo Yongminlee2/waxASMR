@@ -158,7 +158,7 @@ class ArPlayActivity : AppCompatActivity() {
                 })
                 val pad = dp(3)
                 setPadding(pad, pad, pad, pad)
-                contentDescription = candidate.nameKo
+                contentDescription = com.waxball.asmr.core.BallLocalization.name(this@ArPlayActivity, candidate)
                 setOnClickListener { switchBall(candidate, progress) }
             }
             com.waxball.asmr.ui.BallThumbs.into(swatch, candidate, dp(40))

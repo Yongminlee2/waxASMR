@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Back</string>
+    <string name="ar_count">%d balls</string>
+    <string name="ar_no_camera">Camera unavailable, can\'t open palm mode</string>
+    <string name="ar_permission_needed">Camera permission is needed to place a ball on your palm</string>
+    <string name="ar_refresh">New ball</string>
+    <string name="ar_show_palm">Open your palm to the camera</string>
+    <string name="ar_squeeze">Squeeze your hand to crush it</string>
+    <string name="cancel">Cancel</string>
+    <string name="home_balls">Choose a ball</string>
+    <string name="home_settings">Settings</string>
+    <string name="home_start">Start</string>
+    <string name="home_tagline">Place it on your palm and squeeze</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_orbit_lock">Lock rolling</string>
+    <string name="settings_quality">Quality</string>
+    <string name="settings_quality_auto">Auto</string>
+    <string name="settings_quality_high">High</string>
+    <string name="settings_quality_low">Low</string>
+    <string name="settings_quality_medium">Medium</string>
+    <string name="settings_raw_hint">Plays the raw recording instead of splitting it into fragments. For comparing sounds.</string>
+    <string name="settings_raw_playback">Play raw recording</string>
+    <string name="settings_reset">Clear all data</string>
+    <string name="settings_reset_confirm">This resets your settings and last chosen ball. It can\'t be undone.</string>
+    <string name="settings_reset_done">Data cleared.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_volume">Volume</string>
+    <string name="language_picker_cd">Choose language</string>
+    <string name="language_picker_title">Choose language</string>
+    <string name="language_follow_system">Follow device language</string>
+
+    <string-array name="ball_names">
+        <item>Earth</item>
+        <item>Sun</item>
+        <item>Mercury</item>
+        <item>Venus</item>
+        <item>Moon</item>
+        <item>Mars</item>
+        <item>Ceres</item>
+        <item>Dice</item>
+        <item>Golf ball</item>
+        <item>Jupiter</item>
+        <item>Tennis ball</item>
+        <item>Baseball</item>
+        <item>Basketball</item>
+        <item>Bowling ball</item>
+        <item>Saturn</item>
+        <item>Soccer ball</item>
+        <item>Chick</item>
+        <item>Bear</item>
+        <item>Uranus</item>
+        <item>Neptune</item>
+        <item>Pig</item>
+        <item>Eight ball</item>
+        <item>Watermelon</item>
+        <item>Eris</item>
+        <item>Makemake</item>
+        <item>Rainbow cube</item>
+        <item>Panda</item>
+        <item>Frog</item>
+        <item>Milky Way</item>
+        <item>Cat</item>
+        <item>Strawberry milk dough</item>
+        <item>Mint choco dough</item>
+        <item>Pastel dough</item>
+        <item>Grape dough</item>
+        <item>Rainbow dough</item>
+        <item>Candy dough</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>The reference sound. Dry, firm, crisp cracks</item>
+        <item>The brightest, sharpest bursts</item>
+        <item>Small and thick — a heavy, dull crack</item>
+        <item>The dullest, most muffled crumble</item>
+        <item>Small, so it\'s pitched a bit higher</item>
+        <item>Grainy crackles that go on and on</item>
+        <item>Lumpy, so the pitch scatters widely</item>
+        <item>Crumbles from the corners first</item>
+        <item>Thin and bright cracks</item>
+        <item>The biggest, with deep low tones</item>
+        <item>A high, sharp jingle</item>
+        <item>Bright, fine crackles under the leather</item>
+        <item>Deeper tones the bigger it gets</item>
+        <item>Thick and dull — it lasts a long time</item>
+        <item>Elongated, so it resonates more</item>
+        <item>The dullest, most muffled of all</item>
+        <item>Tiny, high-pitched peeps as it cracks</item>
+        <item>A round head that cracks dry and firm</item>
+        <item>A soft, low creak</item>
+        <item>A chewy, tightly packed crackle</item>
+        <item>A low, dull creak</item>
+        <item>Thin, bright, fine crackling</item>
+        <item>Thin and bright, scattering apart</item>
+        <item>Thick and dull, presses in</item>
+        <item>Chewy and tightly packed</item>
+        <item>The brightest, sharpest of all</item>
+        <item>The biggest and thickest — lasts forever</item>
+        <item>Fine, bright crackling</item>
+        <item>Thin, bright, fine crackling</item>
+        <item>A chewy crackle that never seems to end</item>
+        <item>A soft, low creak, creak</item>
+        <item>Chewy and thick, lasts a long while</item>
+        <item>A soft, mushy crackle</item>
+        <item>Dull and muffled crunches</item>
+        <item>Bright, fine crackling</item>
+        <item>Sharp, clear cracks like sugar glass</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Hard wax</item>
+        <item>Glitter wax</item>
+        <item>Sugar glass</item>
+        <item>Chewy wax</item>
+        <item>Thick wax</item>
+        <item>Glass bead</item>
+        <item>Crunchy beads</item>
+        <item>Soft wax</item>
+        <item>Squishy wax</item>
+        <item>Clay wax</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Round</item>
+        <item>Egg-shaped</item>
+        <item>Faceted</item>
+        <item>Lumpy</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+        <item>Giant</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Thin shell</item>
+        <item>Normal shell</item>
+        <item>Thick shell</item>
+    </string-array>
+</resources>

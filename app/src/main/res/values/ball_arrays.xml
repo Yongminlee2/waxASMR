@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="ball_names">
+        <item>지구</item>
+        <item>태양</item>
+        <item>수성</item>
+        <item>금성</item>
+        <item>달</item>
+        <item>화성</item>
+        <item>세레스</item>
+        <item>주사위</item>
+        <item>골프공</item>
+        <item>목성</item>
+        <item>테니스공</item>
+        <item>야구공</item>
+        <item>농구공</item>
+        <item>볼링공</item>
+        <item>토성</item>
+        <item>축구공</item>
+        <item>병아리</item>
+        <item>곰돌이</item>
+        <item>천왕성</item>
+        <item>해왕성</item>
+        <item>돼지</item>
+        <item>당구 8번공</item>
+        <item>수박</item>
+        <item>에리스</item>
+        <item>마케마케</item>
+        <item>알록 큐브</item>
+        <item>판다</item>
+        <item>개구리</item>
+        <item>은하수</item>
+        <item>고양이</item>
+        <item>딸기우유 반죽</item>
+        <item>민트초코 반죽</item>
+        <item>파스텔 반죽</item>
+        <item>포도 반죽</item>
+        <item>무지개 반죽</item>
+        <item>사탕 반죽</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>기준이 되는 소리. 마르고 단단한 빠작</item>
+        <item>가장 밝고 뾰족하게 터진다</item>
+        <item>작고 두꺼워 묵직한 뽀각</item>
+        <item>가장 둔하고 답답하게 뭉개진다</item>
+        <item>작아서 한 음 높다</item>
+        <item>알갱이가 오래 이어지는 빠자자작</item>
+        <item>울퉁불퉁해 음높이가 넓게 흩어진다</item>
+        <item>모서리부터 우수수 떨어진다</item>
+        <item>얇고 밝게 부서진다</item>
+        <item>가장 크고 저음이 깊게 깔린다</item>
+        <item>높고 뾰족한 챙그랑</item>
+        <item>가죽 아래서 밝게 자잘거린다</item>
+        <item>커진 만큼 저음이 실린다</item>
+        <item>두껍고 둔해 오래 버틴다</item>
+        <item>길쭉해 공명이 더 산다</item>
+        <item>가장 둔하고 먹먹하다</item>
+        <item>삐약삐약 작고 높게 부서진다</item>
+        <item>둥근 머리가 마르게 빠작인다</item>
+        <item>말랑하게 낮은 뿌직</item>
+        <item>쫀득하게 촘촘히 이어진다</item>
+        <item>낮고 둔한 뿌직</item>
+        <item>얇고 밝게 자잘한 사각사각</item>
+        <item>얇고 밝게 흩어진다</item>
+        <item>두껍고 둔하게 눌린다</item>
+        <item>쫀득하게 촘촘히</item>
+        <item>가장 밝고 날카롭다</item>
+        <item>가장 크고 두꺼워 한참 버틴다</item>
+        <item>자잘하고 밝게 사각사각</item>
+        <item>얇고 밝게 자잘한 사각사각</item>
+        <item>쫀득하게 끝없이 이어진다</item>
+        <item>말랑하게 낮은 뿌직 뿌직</item>
+        <item>쫀득하고 두꺼워 오래 간다</item>
+        <item>무르게 뭉개지는 뿌지직</item>
+        <item>둔하고 먹먹한 뽀갹 뽀갹</item>
+        <item>밝고 자잘한 사각사각</item>
+        <item>설탕 유리처럼 쨍하게 부서진다</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>굳은 왁스</item>
+        <item>반짝이 왁스</item>
+        <item>설탕 유리</item>
+        <item>쫀득 왁스</item>
+        <item>두꺼운 왁스</item>
+        <item>유리알</item>
+        <item>알갱이 왁스</item>
+        <item>무른 왁스</item>
+        <item>말랑 왁스</item>
+        <item>찰흙 왁스</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>동그란</item>
+        <item>달걀형</item>
+        <item>각진</item>
+        <item>울퉁불퉁한</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>작은</item>
+        <item>보통</item>
+        <item>큰</item>
+        <item>왕</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>얇은 껍질</item>
+        <item>보통 껍질</item>
+        <item>두꺼운 껍질</item>
+    </string-array>
+</resources>

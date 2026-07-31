@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.waxball.asmr.ar.ArPlayActivity
 import com.waxball.asmr.core.BallCatalog
+import com.waxball.asmr.core.BallLocalization
 import com.waxball.asmr.core.BallSpec
 import com.waxball.asmr.core.Progress
 import com.waxball.asmr.databinding.ActivityHomeBinding
@@ -41,6 +42,7 @@ class HomeActivity : AppCompatActivity() {
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+        binding.languageButton.setOnClickListener { LanguagePicker.show(this) }
         binding.startButton.setOnClickListener {
             startActivity(
                 Intent(this, ArPlayActivity::class.java)
@@ -67,7 +69,7 @@ class HomeActivity : AppCompatActivity() {
                 setImageDrawable(placeholder(spec))
                 val pad = dp(5)
                 setPadding(pad, pad, pad, pad)
-                contentDescription = spec.nameKo
+                contentDescription = BallLocalization.name(this@HomeActivity, spec)
                 setOnClickListener { choose(spec) }
             }
             BallThumbs.into(thumb, spec, dp(56))
@@ -101,8 +103,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showPicked() {
-        binding.ballName.text = picked.nameKo
-        binding.ballDesc.text = "${picked.summaryKo} · ${picked.soundDesc}"
+        binding.ballName.text = BallLocalization.name(this, picked)
+        binding.ballDesc.text =
+            "${BallLocalization.summary(this, picked)} · ${BallLocalization.soundDesc(this, picked)}"
         binding.ballPreview.tag = picked.id
         binding.ballPreview.setImageDrawable(placeholder(picked))
         BallThumbs.into(binding.ballPreview, picked, dp(176))

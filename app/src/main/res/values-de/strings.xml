@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Zurück</string>
+    <string name="ar_count">%d Bälle</string>
+    <string name="ar_no_camera">Kamera nicht verfügbar, Handflächenmodus kann nicht geöffnet werden</string>
+    <string name="ar_permission_needed">Kamerazugriff wird benötigt, um den Ball auf die Handfläche zu legen</string>
+    <string name="ar_refresh">Neuer Ball</string>
+    <string name="ar_show_palm">Zeig der Kamera deine offene Handfläche</string>
+    <string name="ar_squeeze">Ballen Sie die Hand, um ihn zu zerdrücken</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="home_balls">Ball wählen</string>
+    <string name="home_settings">Einstellungen</string>
+    <string name="home_start">Start</string>
+    <string name="home_tagline">Auf die Handfläche legen und drücken</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_orbit_lock">Drehen sperren</string>
+    <string name="settings_quality">Qualität</string>
+    <string name="settings_quality_auto">Automatisch</string>
+    <string name="settings_quality_high">Hoch</string>
+    <string name="settings_quality_low">Niedrig</string>
+    <string name="settings_quality_medium">Mittel</string>
+    <string name="settings_raw_hint">Spielt die Originalaufnahme statt Bruchstücken ab. Zum Klangvergleich.</string>
+    <string name="settings_raw_playback">Originalaufnahme abspielen</string>
+    <string name="settings_reset">Alle Daten löschen</string>
+    <string name="settings_reset_confirm">Einstellungen und der zuletzt gewählte Ball werden zurückgesetzt. Das kann nicht rückgängig gemacht werden.</string>
+    <string name="settings_reset_done">Daten gelöscht.</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_volume">Lautstärke</string>
+    <string name="language_picker_cd">Sprache wählen</string>
+    <string name="language_picker_title">Sprache wählen</string>
+    <string name="language_follow_system">Gerätesprache verwenden</string>
+
+    <string-array name="ball_names">
+        <item>Erde</item>
+        <item>Sonne</item>
+        <item>Merkur</item>
+        <item>Venus</item>
+        <item>Mond</item>
+        <item>Mars</item>
+        <item>Ceres</item>
+        <item>Würfel</item>
+        <item>Golfball</item>
+        <item>Jupiter</item>
+        <item>Tennisball</item>
+        <item>Baseball</item>
+        <item>Basketball</item>
+        <item>Bowlingkugel</item>
+        <item>Saturn</item>
+        <item>Fußball</item>
+        <item>Küken</item>
+        <item>Bär</item>
+        <item>Uranus</item>
+        <item>Neptun</item>
+        <item>Schwein</item>
+        <item>Achterball</item>
+        <item>Wassermelone</item>
+        <item>Eris</item>
+        <item>Makemake</item>
+        <item>Regenbogenwürfel</item>
+        <item>Panda</item>
+        <item>Frosch</item>
+        <item>Milchstraße</item>
+        <item>Katze</item>
+        <item>Erdbeermilch-Knetmasse</item>
+        <item>Minz-Schoko-Knetmasse</item>
+        <item>Pastell-Knetmasse</item>
+        <item>Trauben-Knetmasse</item>
+        <item>Regenbogen-Knetmasse</item>
+        <item>Bonbon-Knetmasse</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>Der Referenzklang: trockene, feste Knackgeräusche</item>
+        <item>Das hellste, schärfste Zerplatzen</item>
+        <item>Klein und dick — ein schweres, dumpfes Knacken</item>
+        <item>Das dumpfeste, gedämpfteste Zerdrücken</item>
+        <item>Klein, also etwas höher im Ton</item>
+        <item>Körniges Knistern, das lange anhält</item>
+        <item>Klumpig, also streut die Tonhöhe stark</item>
+        <item>Zerbröckelt zuerst an den Ecken</item>
+        <item>Dünne, helle Risse</item>
+        <item>Am größten, mit tiefen Bässen</item>
+        <item>Ein hohes, scharfes Klirren</item>
+        <item>Helles, feines Knistern unter dem Leder</item>
+        <item>Je größer, desto tiefer der Ton</item>
+        <item>Dick und dumpf — hält lange</item>
+        <item>Länglich, also klingt es mehr nach</item>
+        <item>Das dumpfeste und gedämpfteste von allen</item>
+        <item>Kleine, hohe Piep-Knackser</item>
+        <item>Ein runder Kopf, der trocken und fest knackt</item>
+        <item>Ein weiches, tiefes Knarren</item>
+        <item>Ein zähes, dicht gepacktes Knistern</item>
+        <item>Ein tiefes, dumpfes Knarren</item>
+        <item>Dünnes, helles, feines Knistern</item>
+        <item>Dünn und hell, verteilt sich</item>
+        <item>Dick und dumpf, drückt sich zusammen</item>
+        <item>Zäh und dicht gepackt</item>
+        <item>Das hellste und schärfste von allen</item>
+        <item>Am größten und dicksten — hält ewig</item>
+        <item>Feines, helles Knistern</item>
+        <item>Dünnes, helles, feines Knistern</item>
+        <item>Ein zähes Knistern, das nie aufzuhören scheint</item>
+        <item>Ein weiches, tiefes Knarren</item>
+        <item>Zäh und dick, hält lange</item>
+        <item>Ein weiches, matschiges Knistern</item>
+        <item>Dumpfes, gedämpftes Knacken</item>
+        <item>Helles, feines Knistern</item>
+        <item>Scharfe, klare Risse wie Zuckerglas</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Harter Wachs</item>
+        <item>Glitzerwachs</item>
+        <item>Zuckerglas</item>
+        <item>Zäher Wachs</item>
+        <item>Dicker Wachs</item>
+        <item>Glasperle</item>
+        <item>Körniger Wachs</item>
+        <item>Weicher Wachs</item>
+        <item>Weicher Knetwachs</item>
+        <item>Ton-Wachs</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Rund</item>
+        <item>Eiförmig</item>
+        <item>Facettiert</item>
+        <item>Klumpig</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Klein</item>
+        <item>Mittel</item>
+        <item>Groß</item>
+        <item>Riesig</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Dünne Schale</item>
+        <item>Normale Schale</item>
+        <item>Dicke Schale</item>
+    </string-array>
+</resources>
