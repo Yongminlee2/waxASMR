@@ -89,7 +89,7 @@ class PalmPose {
         val delta = squeeze - previousSqueeze
         force = if (delta > 0f && dt > 1e-4f) {
             // 상한이 없으면 인식이 한 프레임 튈 때 힘이 수십으로 치솟아 볼이 단숨에 부서진다.
-            ((delta / dt) * sqrt(squeeze.coerceAtLeast(0f)) * FORCE_GAIN).coerceAtMost(4.5f)
+            ((delta / dt) * sqrt(squeeze.coerceAtLeast(0f)) * FORCE_GAIN).coerceAtMost(3.5f)
         } else {
             0f
         }
@@ -159,8 +159,9 @@ class PalmPose {
          *
          * 처음에 2.5로 뒀더니 한 번 쥐는 것만으로 볼이 사라졌다. 쥐는 힘이 구 전체에
          * 걸리도록 바꾸면서 실제로 들어가는 손상이 배로 늘어난 탓이다.
-         * 여러 번 쥐었다 폈다 해야 다 부서지도록 낮춘다. 한 번에 부서지면 깨는 맛이 없다.
+         * 0.55로 낮췄는데도 두세 번 쥐면 다 부서진다고 해서 다시 절반쯤 낮췄다.
+         * 한 번에 부서지면 깨는 맛이 없다.
          */
-        const val FORCE_GAIN = 0.55f
+        const val FORCE_GAIN = 0.3f
     }
 }

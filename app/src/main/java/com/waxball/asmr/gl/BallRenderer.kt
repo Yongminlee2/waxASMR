@@ -410,17 +410,21 @@ class BallRenderer : GLSurfaceView.Renderer {
 
             // 금이 갈수록 조각이 자기 중심으로 조금씩 줄어들어 틈이 벌어진다.
             val knead = s.debris.knead
+            // 조각은 반죽 후반에야 스며든다. 반죽 진행과 같은 속도로 지우면
+            // 색이 반쯤 섞였을 때 조각이 이미 다 사라져 버린다 — 껍질 조각은
+            // 색이 다 섞일 때쯤에 맞춰 마지막으로 녹아 없어져야 한다.
+            val melt = ((knead - 0.55f) / 0.45f).coerceIn(0f, 1f)
             val shrink = when (s.model.state[i]) {
                 ShardState.HAIRLINE -> 0.008f
                 ShardState.CRACKED -> 0.018f
                 ShardState.LOOSE -> 0.032f
                 // 떨어진 뒤에는 치댈수록 속살에 반죽되어 작아진다.
-                else -> s.debris.shrinkOf(i) + knead * 0.5f
+                else -> s.debris.shrinkOf(i) + melt * 0.5f
             }
             val alpha = when {
                 s.model.state[i] >= ShardState.DETACHED && !s.debris.isActive(i) -> 0f
-                // 반죽이 진행되면 조각이 말랑이에 섞여 옅어진다. 그 색은 속살이 대신 머금는다.
-                s.model.state[i] >= ShardState.DETACHED -> 1f - knead * 0.92f
+                // 반죽 후반에 조각이 말랑이에 섞여 옅어진다. 그 색은 속살이 대신 머금는다.
+                s.model.state[i] >= ShardState.DETACHED -> 1f - melt * 0.95f
                 else -> 1f
             }
 

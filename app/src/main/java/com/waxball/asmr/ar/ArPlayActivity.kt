@@ -67,7 +67,7 @@ class ArPlayActivity : AppCompatActivity() {
         private const val SQUEEZE_CONTACT_COS = -1f
 
         /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
-        private const val KNEAD_RATE = 0.12f
+        private const val KNEAD_RATE = 0.18f
 
     }
 
