@@ -107,8 +107,14 @@ class PalmPose {
         // 쥔 채 가만히 있어도 계속 부서지면 조작하는 느낌이 사라진다.
         val delta = squeeze - previousSqueeze
         force = if (delta > 0f && dt > 1e-4f) {
+            val speed = delta / dt
+            // 접는 속도가 셀수록 곱으로 더 세게. 속도에 정비례만 하면 힘×시간이
+            // 상쇄되어 살살 쥐든 확 쥐든 한 번에 부서지는 총량이 같아진다.
+            // 그러면 "세게 쥐면 더 부서진다"는 감각이 통째로 사라진다.
+            val boost = Math.pow((speed / SPEED_REF).toDouble(), 0.6).toFloat()
+                .coerceIn(0.35f, 2.2f)
             // 상한이 없으면 인식이 한 프레임 튈 때 힘이 수십으로 치솟아 볼이 단숨에 부서진다.
-            ((delta / dt) * sqrt(squeeze.coerceAtLeast(0f)) * FORCE_GAIN).coerceAtMost(3.5f)
+            (speed * sqrt(squeeze.coerceAtLeast(0f)) * FORCE_GAIN * boost).coerceAtMost(3.5f)
         } else {
             0f
         }
@@ -182,5 +188,11 @@ class PalmPose {
          * 한 번에 부서지면 깨는 맛이 없다.
          */
         const val FORCE_GAIN = 0.3f
+
+        /**
+         * "보통 세기"로 접는 속도(쥠/초). 이보다 빠르면 곱으로 세지고 느리면 약해진다.
+         * 평활을 거친 실제 쥠 속도가 보통 1 근처라 여기에 맞췄다.
+         */
+        const val SPEED_REF = 1.2f
     }
 }
