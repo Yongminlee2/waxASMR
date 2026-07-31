@@ -388,11 +388,14 @@ class ArPlayActivity : AppCompatActivity() {
             if (now - lostSince > 500L) {
                 binding.hint.setText(R.string.ar_show_palm)
                 binding.hint.visibility = View.VISIBLE
+                // 손 놓을 자리를 알려 주는 것이라 "손을 보여주세요"와 운명을 같이한다.
+                binding.handGuide.visibility = View.VISIBLE
             }
             return
         }
 
         lostSince = 0L
+        binding.handGuide.visibility = View.GONE
         if (pose.squeeze < 0.1f) {
             binding.hint.setText(R.string.ar_squeeze)
             binding.hint.visibility = View.VISIBLE
