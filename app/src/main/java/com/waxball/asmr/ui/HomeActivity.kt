@@ -3,7 +3,7 @@ package com.waxball.asmr.ui
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.waxball.asmr.ar.ArPlayActivity
@@ -59,21 +59,37 @@ class HomeActivity : AppCompatActivity() {
     private fun buildBallList() {
         binding.ballList.removeAllViews()
         for (spec in BallCatalog.all) {
-            val swatch = View(this).apply {
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    colors = intArrayOf(spec.shellColor, spec.fleshColor)
-                    gradientType = GradientDrawable.RADIAL_GRADIENT
-                    gradientRadius = dp(26).toFloat()
-                    setStroke(dp(2), if (spec.id == picked.id) 0xFFFFFFFF.toInt() else 0x33FFFFFF)
-                }
+            // 색 원이 아니라 손 위에 올라올 모습 그대로. 볼이 전부 텍스처를 입은 뒤로는
+            // 색만 보고는 무슨 볼인지 알 수 없다.
+            val thumb = ImageView(this).apply {
+                tag = spec.id
+                background = ring(spec.id == picked.id)
+                setImageDrawable(placeholder(spec))
+                val pad = dp(5)
+                setPadding(pad, pad, pad, pad)
                 contentDescription = spec.nameKo
                 setOnClickListener { choose(spec) }
             }
-            val params = LinearLayout.LayoutParams(dp(52), dp(52))
+            BallThumbs.into(thumb, spec, dp(56))
+            val params = LinearLayout.LayoutParams(dp(60), dp(60))
             params.marginEnd = dp(10)
-            binding.ballList.addView(swatch, params)
+            binding.ballList.addView(thumb, params)
         }
+    }
+
+    private fun ring(selected: Boolean) = GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(0x00000000)
+        setStroke(
+            if (selected) dp(3) else dp(1),
+            if (selected) 0xFFE87CA0.toInt() else 0x22000000,
+        )
+    }
+
+    /** 썸네일이 도착하기 전 잠깐 보이는 껍질색 원. */
+    private fun placeholder(spec: BallSpec) = GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(spec.shellColor)
     }
 
     private fun choose(spec: BallSpec) {
@@ -87,6 +103,9 @@ class HomeActivity : AppCompatActivity() {
     private fun showPicked() {
         binding.ballName.text = picked.nameKo
         binding.ballDesc.text = "${picked.summaryKo} · ${picked.soundDesc}"
+        binding.ballPreview.tag = picked.id
+        binding.ballPreview.setImageDrawable(placeholder(picked))
+        BallThumbs.into(binding.ballPreview, picked, dp(176))
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()

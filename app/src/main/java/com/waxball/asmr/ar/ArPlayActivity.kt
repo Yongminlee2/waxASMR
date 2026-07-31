@@ -61,7 +61,7 @@ class ArPlayActivity : AppCompatActivity() {
         private const val SQUEEZE_CONTACT_COS = -1f
 
         /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
-        private const val KNEAD_RATE = 0.085f
+        private const val KNEAD_RATE = 0.12f
 
     }
 
@@ -132,16 +132,25 @@ class ArPlayActivity : AppCompatActivity() {
         val unlocked = BallCatalog.all.filter { progress.isUnlocked(it.id) }
 
         for (candidate in unlocked) {
-            val swatch = android.view.View(this).apply {
+            // 홈과 같은 "실제 볼 모습" 썸네일. 색 원만으로는 무슨 볼인지 안 보인다.
+            val swatch = android.widget.ImageView(this).apply {
+                tag = candidate.id
                 background = android.graphics.drawable.GradientDrawable().apply {
                     shape = android.graphics.drawable.GradientDrawable.OVAL
-                    setColor(candidate.shellColor)
+                    setColor(0x00000000)
                     setStroke(dp(2), if (candidate.id == spec.id) 0xFFFFFFFF.toInt() else 0x40FFFFFF)
                 }
+                setImageDrawable(android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.OVAL
+                    setColor(candidate.shellColor)
+                })
+                val pad = dp(3)
+                setPadding(pad, pad, pad, pad)
                 contentDescription = candidate.nameKo
                 setOnClickListener { switchBall(candidate, progress) }
             }
-            val params = android.widget.LinearLayout.LayoutParams(dp(40), dp(40))
+            com.waxball.asmr.ui.BallThumbs.into(swatch, candidate, dp(40))
+            val params = android.widget.LinearLayout.LayoutParams(dp(44), dp(44))
             params.marginEnd = dp(10)
             binding.arBallList.addView(swatch, params)
         }

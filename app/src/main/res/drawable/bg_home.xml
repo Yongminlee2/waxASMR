@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 다이소 파스텔 왁뿌볼의 크림·분홍·하늘색. 홈만 밝은 파스텔이고 플레이는 카메라 화면이다. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="315"
+        android:startColor="#FFF9F0"
+        android:centerColor="#FBE7EE"
+        android:endColor="#E7EFFB"
+        android:type="linear" />
+</shape>

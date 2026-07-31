@@ -1,7 +1,7 @@
 package com.waxball.asmr.core
 
 /**
- * 볼 30종. 실사 지도가 있는 태양계 14종 + 장난감·캐릭터 16종.
+ * 볼 36종. 실사 지도가 있는 태양계 14종 + 장난감·캐릭터 16종 + 파스텔 반죽 6종.
  *
  * 처음에는 30종 전부 태양계였는데, 사진이 없는 천체는 잡음 함수 무늬라 실사
  * 행성 옆에 서면 디테일 차이가 확 났다. 그래서 절차 무늬였던 자리를 전부
@@ -14,6 +14,10 @@ package com.waxball.asmr.core
  * [kneadColors]는 반죽에 섞인 재료색이다. 주무르면 속살이 이 색들을 차례로
  * 배어들다 끝에는 전부 섞인 색으로 굳는다. 단색 반죽도 몇 개 남겨 뒀다 —
  * 실제 왁뿌볼도 단색과 알록달록이 섞여 있다.
+ *
+ * 파스텔 반죽 6종은 다이소식 왁뿌볼 그대로다 — 겉면부터 2·3·4색 덩어리가
+ * 마블로 뭉쳐 있고, 그 색들이 그대로 반죽색이 된다. 재질 조합은 기존 볼과
+ * 겹치지 않는 것을 골라 36종 전부 다르게 들린다 검증을 유지한다.
  */
 object BallCatalog {
 
@@ -181,6 +185,38 @@ object BallCatalog {
             "쫀득하게 끝없이 이어진다", SurfaceKind.SPECKLE, 0xFFE88AA0.toInt(),
             textureAsset = "ball_cat.jpg",
             kneadColors = listOf(0xFFF2E8DC.toInt(), 0xFF8A8894.toInt(), 0xFFE88AA0.toInt())),
+
+        // --- 파스텔 반죽 ---
+        BallSpec(30, "딸기우유 반죽", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.SQUISHY_WAX,
+            0xFFF6B8C8.toInt(), 0xFFFDF3EE.toInt(), 0xFFFBE4E8.toInt(), "🍓", 0,
+            "말랑하게 낮은 뿌직 뿌직", SurfaceKind.SPECKLE, 0xFFFDF3EE.toInt(),
+            textureAsset = "ball_clay_strawberry.jpg",
+            kneadColors = listOf(0xFFF6B8C8.toInt(), 0xFFFDF3EE.toInt())),
+        BallSpec(31, "민트초코 반죽", SizeClass.L, Thickness.THICK, ShapeKind.SPHERE, Material.CHEWY_WAX,
+            0xFFA8E0C8.toInt(), 0xFF6B4A36.toInt(), 0xFFC8EAD8.toInt(), "🍫", 0,
+            "쫀득하고 두꺼워 오래 간다", SurfaceKind.SPECKLE, 0xFF6B4A36.toInt(),
+            textureAsset = "ball_clay_mintchoco.jpg",
+            kneadColors = listOf(0xFFA8E0C8.toInt(), 0xFF6B4A36.toInt())),
+        BallSpec(32, "파스텔 반죽", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.SOFT_WAX,
+            0xFFAECBF2.toInt(), 0xFFF6EBA8.toInt(), 0xFFF6F0E0.toInt(), "🎀", 0,
+            "무르게 뭉개지는 뿌지직", SurfaceKind.SPECKLE, 0xFFF2B8C4.toInt(),
+            textureAsset = "ball_clay_pastel.jpg",
+            kneadColors = listOf(0xFFAECBF2.toInt(), 0xFFF6EBA8.toInt(), 0xFFF2B8C4.toInt())),
+        BallSpec(33, "포도 반죽", SizeClass.S, Thickness.THICK, ShapeKind.SPHERE, Material.CLAY_WAX,
+            0xFF9C7CC8.toInt(), 0xFFC8B4E4.toInt(), 0xFFEDE4F6.toInt(), "🍇", 0,
+            "둔하고 먹먹한 뽀갹 뽀갹", SurfaceKind.SPECKLE, 0xFFC8B4E4.toInt(),
+            textureAsset = "ball_clay_grape.jpg",
+            kneadColors = listOf(0xFF9C7CC8.toInt(), 0xFFC8B4E4.toInt(), 0xFFF2EAF6.toInt())),
+        BallSpec(34, "무지개 반죽", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.GLITTER,
+            0xFFF2B8C4.toInt(), 0xFFF6EBA8.toInt(), 0xFFF6F0E8.toInt(), "🌈", 0,
+            "밝고 자잘한 사각사각", SurfaceKind.SPECKLE, 0xFFAECBF2.toInt(),
+            textureAsset = "ball_clay_rainbow.jpg",
+            kneadColors = listOf(0xFFF2B8C4.toInt(), 0xFFF6EBA8.toInt(), 0xFFA8E0C8.toInt(), 0xFFAECBF2.toInt())),
+        BallSpec(35, "사탕 반죽", SizeClass.M, Thickness.THICK, ShapeKind.SPHERE, Material.SUGAR_GLASS,
+            0xFFE86A6A.toInt(), 0xFFFDF3EE.toInt(), 0xFFF6E8E0.toInt(), "🍬", 0,
+            "설탕 유리처럼 쨍하게 부서진다", SurfaceKind.SPECKLE, 0xFFF0A048.toInt(),
+            textureAsset = "ball_clay_candy.jpg",
+            kneadColors = listOf(0xFFE86A6A.toInt(), 0xFFFDF3EE.toInt(), 0xFFF0A048.toInt(), 0xFF78C86A.toInt())),
     )
 
     /** 전부 열려 있다. 코인으로 여는 것은 없앴다. */

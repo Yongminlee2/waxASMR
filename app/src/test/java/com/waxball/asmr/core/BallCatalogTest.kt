@@ -8,10 +8,10 @@ import org.junit.Test
 class BallCatalogTest {
 
     @Test
-    fun thirtyBallsWithUniqueIdsAndNames() {
-        assertEquals(30, BallCatalog.all.size)
-        assertEquals(30, BallCatalog.all.map { it.id }.toSet().size)
-        assertEquals(30, BallCatalog.all.map { it.nameKo }.toSet().size)
+    fun thirtySixBallsWithUniqueIdsAndNames() {
+        assertEquals(36, BallCatalog.all.size)
+        assertEquals(36, BallCatalog.all.map { it.id }.toSet().size)
+        assertEquals(36, BallCatalog.all.map { it.nameKo }.toSet().size)
     }
 
     @Test
@@ -155,7 +155,7 @@ class BallCatalogTest {
                 p.baseFreq, p.decayMsMax, p.propagation, p.brightness, p.density, p.resonance, p.freqSpread,
             )
         }
-        assertEquals("소리가 겹치는 볼이 있음", 30, signatures.toSet().size)
+        assertEquals("소리가 겹치는 볼이 있음", 36, signatures.toSet().size)
     }
 
     @Test

@@ -5,4 +5,13 @@
         <item name="android:navigationBarColor">@color/surface</item>
         <item name="android:windowBackground">@color/surface</item>
     </style>
+
+    <!-- 홈만 파스텔 밝은 화면이라 상태바 아이콘을 어둡게 뒤집는다. -->
+    <style name="Theme.WaxBall.Home">
+        <item name="android:statusBarColor">#FFF9F0</item>
+        <item name="android:navigationBarColor">#E7EFFB</item>
+        <item name="android:windowBackground">@drawable/bg_home</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
 </resources>
