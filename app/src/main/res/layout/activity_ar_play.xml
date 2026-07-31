@@ -23,6 +23,8 @@
         android:layout_marginBottom="140dp"
         android:contentDescription="@string/ar_show_palm"
         android:scaleType="fitCenter"
+        android:scaleX="0.7"
+        android:scaleY="0.7"
         android:src="@drawable/ic_hand_guide" />
 
     <TextView
