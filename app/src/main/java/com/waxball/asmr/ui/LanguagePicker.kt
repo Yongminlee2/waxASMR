@@ -28,6 +28,8 @@ object LanguagePicker {
         "Español" to "es",
         "Português" to "pt",
         "Deutsch" to "de",
+        "Français" to "fr",
+        "Русский" to "ru",
         "Bahasa Indonesia" to "id",
         "Tiếng Việt" to "vi",
         "ภาษาไทย" to "th",

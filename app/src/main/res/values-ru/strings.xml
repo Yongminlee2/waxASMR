@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Назад</string>
+    <string name="ar_count">Шариков: %d</string>
+    <string name="ar_no_camera">Камера недоступна, режим ладони не открыть</string>
+    <string name="ar_permission_needed">Нужен доступ к камере, чтобы положить шарик на ладонь</string>
+    <string name="ar_refresh">Новый шарик</string>
+    <string name="ar_show_palm">Покажите раскрытую ладонь камере</string>
+    <string name="ar_squeeze">Сожмите руку, чтобы раздавить</string>
+    <string name="cancel">Отмена</string>
+    <string name="home_balls">Выбрать шарик</string>
+    <string name="home_settings">Настройки</string>
+    <string name="home_start">Начать</string>
+    <string name="home_tagline">Положите на ладонь и сожмите</string>
+    <string name="settings_haptics">Вибрация</string>
+    <string name="settings_quality">Качество</string>
+    <string name="settings_quality_auto">Авто</string>
+    <string name="settings_quality_high">Высокое</string>
+    <string name="settings_quality_low">Низкое</string>
+    <string name="settings_quality_medium">Среднее</string>
+    <string name="settings_reset">Стереть все данные</string>
+    <string name="settings_reset_confirm">Настройки и последний выбранный шарик будут сброшены. Отменить нельзя.</string>
+    <string name="settings_reset_done">Данные стёрты.</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_volume">Громкость</string>
+    <string name="language_picker_cd">Выбрать язык</string>
+    <string name="language_picker_title">Выбрать язык</string>
+    <string name="language_follow_system">Язык устройства</string>
+
+    <string-array name="ball_names">
+        <item>Земля</item>
+        <item>Солнце</item>
+        <item>Меркурий</item>
+        <item>Венера</item>
+        <item>Луна</item>
+        <item>Марс</item>
+        <item>Церера</item>
+        <item>Кубик</item>
+        <item>Мяч для гольфа</item>
+        <item>Юпитер</item>
+        <item>Теннисный мяч</item>
+        <item>Бейсбольный мяч</item>
+        <item>Баскетбольный мяч</item>
+        <item>Шар для боулинга</item>
+        <item>Сатурн</item>
+        <item>Футбольный мяч</item>
+        <item>Цыплёнок</item>
+        <item>Мишка</item>
+        <item>Уран</item>
+        <item>Нептун</item>
+        <item>Поросёнок</item>
+        <item>Шар номер 8</item>
+        <item>Арбуз</item>
+        <item>Эрида</item>
+        <item>Макемаке</item>
+        <item>Радужный кубик</item>
+        <item>Панда</item>
+        <item>Лягушка</item>
+        <item>Млечный Путь</item>
+        <item>Котик</item>
+        <item>Клубнично-молочная масса</item>
+        <item>Мятно-шоколадная масса</item>
+        <item>Пастельная масса</item>
+        <item>Виноградная масса</item>
+        <item>Радужная масса</item>
+        <item>Конфетная масса</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>Эталонный звук. Сухой, твёрдый, чёткий треск</item>
+        <item>Самые яркие и резкие хлопки</item>
+        <item>Маленький и толстый — тяжёлый глухой треск</item>
+        <item>Самое глухое и приглушённое сминание</item>
+        <item>Маленький, поэтому звук чуть выше</item>
+        <item>Зернистый треск, который всё длится и длится</item>
+        <item>Бугристый, поэтому звук разлетается широко</item>
+        <item>Осыпается сначала с углов</item>
+        <item>Тонкий и звонкий треск</item>
+        <item>Самый большой, с глубокими низами</item>
+        <item>Высокий и резкий звон</item>
+        <item>Яркий мелкий треск под кожей</item>
+        <item>Чем больше, тем ниже звук</item>
+        <item>Толстый и глухой — держится долго</item>
+        <item>Вытянутый, поэтому звучит гулче</item>
+        <item>Самый глухой и приглушённый из всех</item>
+        <item>Тонкий высокий писк при трещинах</item>
+        <item>Круглая голова трещит сухо и твёрдо</item>
+        <item>Мягкий низкий скрип</item>
+        <item>Тягучий, плотно набитый треск</item>
+        <item>Низкий глухой скрип</item>
+        <item>Тонкий, звонкий, мелкий треск</item>
+        <item>Тонкий и звонкий, разлетается в стороны</item>
+        <item>Толстый и глухой, сминается</item>
+        <item>Тягучий и плотно набитый</item>
+        <item>Самый яркий и резкий из всех</item>
+        <item>Самый большой и толстый — держится вечно</item>
+        <item>Мелкий яркий треск</item>
+        <item>Тонкий, звонкий, мелкий треск</item>
+        <item>Тягучий треск, которому нет конца</item>
+        <item>Мягкий низкий скрип</item>
+        <item>Тягучая и толстая, держится долго</item>
+        <item>Мягкий вязкий треск</item>
+        <item>Глухие приглушённые хрусты</item>
+        <item>Яркий мелкий треск</item>
+        <item>Резкий чистый треск, как сахарное стекло</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Твёрдый воск</item>
+        <item>Блёстки в воске</item>
+        <item>Сахарное стекло</item>
+        <item>Тягучий воск</item>
+        <item>Толстый воск</item>
+        <item>Стеклянная бусина</item>
+        <item>Зернистый воск</item>
+        <item>Мягкий воск</item>
+        <item>Пластичный воск</item>
+        <item>Глиняный воск</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Круглый</item>
+        <item>Яйцевидный</item>
+        <item>Гранёный</item>
+        <item>Бугристый</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Маленький</item>
+        <item>Средний</item>
+        <item>Большой</item>
+        <item>Огромный</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Тонкая оболочка</item>
+        <item>Обычная оболочка</item>
+        <item>Толстая оболочка</item>
+    </string-array>
+</resources>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WaxBall ASMR</string>
+    <string name="back">Retour</string>
+    <string name="ar_count">%d boules</string>
+    <string name="ar_no_camera">Caméra indisponible, impossible d\'ouvrir le mode paume</string>
+    <string name="ar_permission_needed">L\'accès à la caméra est nécessaire pour poser la boule sur ta paume</string>
+    <string name="ar_refresh">Nouvelle boule</string>
+    <string name="ar_show_palm">Montre ta paume ouverte à la caméra</string>
+    <string name="ar_squeeze">Serre la main pour l\'écraser</string>
+    <string name="cancel">Annuler</string>
+    <string name="home_balls">Choisir une boule</string>
+    <string name="home_settings">Réglages</string>
+    <string name="home_start">Commencer</string>
+    <string name="home_tagline">Pose-la sur ta paume et serre</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_quality">Qualité</string>
+    <string name="settings_quality_auto">Auto</string>
+    <string name="settings_quality_high">Élevée</string>
+    <string name="settings_quality_low">Basse</string>
+    <string name="settings_quality_medium">Moyenne</string>
+    <string name="settings_reset">Effacer toutes les données</string>
+    <string name="settings_reset_confirm">Cela réinitialise tes réglages et la dernière boule choisie. C\'est irréversible.</string>
+    <string name="settings_reset_done">Données effacées.</string>
+    <string name="settings_title">Réglages</string>
+    <string name="settings_volume">Volume</string>
+    <string name="language_picker_cd">Choisir la langue</string>
+    <string name="language_picker_title">Choisir la langue</string>
+    <string name="language_follow_system">Suivre la langue de l\'appareil</string>
+
+    <string-array name="ball_names">
+        <item>Terre</item>
+        <item>Soleil</item>
+        <item>Mercure</item>
+        <item>Vénus</item>
+        <item>Lune</item>
+        <item>Mars</item>
+        <item>Cérès</item>
+        <item>Dé</item>
+        <item>Balle de golf</item>
+        <item>Jupiter</item>
+        <item>Balle de tennis</item>
+        <item>Balle de baseball</item>
+        <item>Ballon de basket</item>
+        <item>Boule de bowling</item>
+        <item>Saturne</item>
+        <item>Ballon de foot</item>
+        <item>Poussin</item>
+        <item>Ourson</item>
+        <item>Uranus</item>
+        <item>Neptune</item>
+        <item>Cochon</item>
+        <item>Boule numéro 8</item>
+        <item>Pastèque</item>
+        <item>Éris</item>
+        <item>Makémaké</item>
+        <item>Cube arc-en-ciel</item>
+        <item>Panda</item>
+        <item>Grenouille</item>
+        <item>Voie lactée</item>
+        <item>Chat</item>
+        <item>Pâte lait-fraise</item>
+        <item>Pâte menthe-chocolat</item>
+        <item>Pâte pastel</item>
+        <item>Pâte raisin</item>
+        <item>Pâte arc-en-ciel</item>
+        <item>Pâte bonbon</item>
+    </string-array>
+    <string-array name="ball_sound_descs">
+        <item>Le son de référence. Des craquements secs et fermes</item>
+        <item>Les éclats les plus vifs et les plus nets</item>
+        <item>Petite et épaisse, un craquement lourd et sourd</item>
+        <item>L\'écrasement le plus sourd et le plus étouffé</item>
+        <item>Petite, donc le son est un peu plus aigu</item>
+        <item>Des craquements granuleux qui n\'en finissent pas</item>
+        <item>Irrégulière, la hauteur du son se disperse largement</item>
+        <item>S\'effrite d\'abord par les coins</item>
+        <item>Des craquements fins et clairs</item>
+        <item>La plus grande, avec des graves profonds</item>
+        <item>Un tintement aigu et net</item>
+        <item>Des craquements fins et clairs sous le cuir</item>
+        <item>Plus elle est grande, plus le son est grave</item>
+        <item>Épaisse et sourde, elle tient longtemps</item>
+        <item>Allongée, elle résonne davantage</item>
+        <item>La plus sourde et la plus étouffée de toutes</item>
+        <item>De petits couinements aigus quand elle craque</item>
+        <item>Une tête ronde qui craque sec et ferme</item>
+        <item>Un grincement doux et grave</item>
+        <item>Un craquement élastique et bien serré</item>
+        <item>Un grincement grave et sourd</item>
+        <item>Un craquement fin, clair et léger</item>
+        <item>Fine et claire, elle se disperse</item>
+        <item>Épaisse et sourde, elle se comprime</item>
+        <item>Élastique et bien serrée</item>
+        <item>La plus vive et la plus nette de toutes</item>
+        <item>La plus grande et la plus épaisse, elle tient une éternité</item>
+        <item>Un craquement fin et clair</item>
+        <item>Un craquement fin, clair et léger</item>
+        <item>Un craquement élastique qui ne s\'arrête jamais</item>
+        <item>Un grincement doux et grave</item>
+        <item>Élastique et épaisse, elle tient un bon moment</item>
+        <item>Un craquement mou et pâteux</item>
+        <item>Des craquements sourds et étouffés</item>
+        <item>Un craquement fin et clair</item>
+        <item>Des craquements nets comme du sucre vitrifié</item>
+    </string-array>
+    <string-array name="material_labels">
+        <item>Cire dure</item>
+        <item>Cire pailletée</item>
+        <item>Sucre vitrifié</item>
+        <item>Cire élastique</item>
+        <item>Cire épaisse</item>
+        <item>Perle de verre</item>
+        <item>Cire granuleuse</item>
+        <item>Cire molle</item>
+        <item>Cire moelleuse</item>
+        <item>Cire argileuse</item>
+    </string-array>
+    <string-array name="shape_labels">
+        <item>Ronde</item>
+        <item>Ovale</item>
+        <item>Facettée</item>
+        <item>Bosselée</item>
+    </string-array>
+    <string-array name="size_labels">
+        <item>Petite</item>
+        <item>Moyenne</item>
+        <item>Grande</item>
+        <item>Géante</item>
+    </string-array>
+    <string-array name="thickness_shell_labels">
+        <item>Coque fine</item>
+        <item>Coque normale</item>
+        <item>Coque épaisse</item>
+    </string-array>
+</resources>
