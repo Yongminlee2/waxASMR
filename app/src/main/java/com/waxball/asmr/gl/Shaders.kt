@@ -311,6 +311,7 @@ uniform float uVertTime;
 
 out vec3 vNormal;
 out vec3 vWorld;
+out vec3 vObj;
 
 void main() {
     vec3 p = aPos;
@@ -327,6 +328,7 @@ void main() {
 
     vNormal = nrm;
     vWorld = world;
+    vObj = aPos;
     gl_Position = uViewProj * vec4(world, 1.0);
 }
 """
@@ -336,6 +338,7 @@ precision mediump float;
 
 in vec3 vNormal;
 in vec3 vWorld;
+in vec3 vObj;
 
 uniform vec3 uColor;
 uniform vec3 uLightDir;
@@ -347,7 +350,49 @@ uniform vec3 uCamPos;
  */
 uniform float uAlpha;
 
+/**
+ * 속 반죽의 재료색. 실제 왁뿌볼 속은 단색이 아니라 2~4색 점토가 마블로
+ * 뭉쳐 있고, 주무를수록 그 덩어리들이 서로 섞여 한 색이 되어 간다.
+ * uClayMix 0 = 덩어리 뚜렷, 1 = 전부 섞인 평균색.
+ */
+uniform vec3 uClayColors[4];
+uniform int uClayCount;
+uniform float uClayMix;
+uniform float uClaySeed;
+
 out vec4 fragColor;
+
+float claynoise(vec3 p) {
+    return sin(dot(p, vec3(4.1, 5.3, 3.7)) + uClaySeed)
+         * sin(dot(p, vec3(2.3, 3.1, 4.9)) * 1.7 - uClaySeed * 0.7);
+}
+
+/** 색 덩어리 소프트맥스. 뾰족할수록(k↑) 경계가 뚜렷하고, k=0이면 전부 평균이 된다. */
+vec3 clay(vec3 dir) {
+    vec3 axes[4];
+    axes[0] = vec3(0.577, 0.577, 0.577);
+    axes[1] = vec3(0.577, -0.577, -0.577);
+    axes[2] = vec3(-0.577, 0.577, -0.577);
+    axes[3] = vec3(-0.577, -0.577, 0.577);
+
+    float k = mix(7.0, 0.0, clamp(uClayMix, 0.0, 1.0));
+    float fs[4];
+    float fmax = -10.0;
+    for (int i = 0; i < uClayCount; i++) {
+        fs[i] = dot(dir, axes[i])
+              + claynoise(dir * (1.0 + float(i) * 0.37) + vec3(float(i) * 9.3)) * 0.55;
+        fmax = max(fmax, fs[i]);
+    }
+    vec3 acc = vec3(0.0);
+    float wsum = 0.0;
+    for (int i = 0; i < uClayCount; i++) {
+        // 최대값을 빼서 exp가 mediump 범위를 넘지 않게 한다.
+        float w = exp(k * (fs[i] - fmax));
+        acc += uClayColors[i] * w;
+        wsum += w;
+    }
+    return acc / max(wsum, 1e-4);
+}
 
 void main() {
     vec3 n = normalize(vNormal);
@@ -355,8 +400,10 @@ void main() {
     vec3 v = normalize(uCamPos - vWorld);
     float wrap = dot(n, l) * 0.5 + 0.5;
     float rim = pow(1.0 - max(dot(n, v), 0.0), 2.0);
+    // 풍선(반투명)은 마블 없이 제 색 그대로. 반죽은 속살에만 있다.
+    vec3 base = (uClayCount >= 2 && uAlpha > 0.999) ? clay(normalize(vObj)) : uColor;
     // 말랑한 것은 빛이 속으로 스며 가장자리가 밝다
-    vec3 col = uColor * (0.3 + 0.8 * wrap) + uColor * rim * 0.5;
+    vec3 col = base * (0.3 + 0.8 * wrap) + base * rim * 0.5;
 
     if (uAlpha < 0.999) {
         // 고무풍선은 가운데가 비치고 가장자리에서 두꺼워 보인다. 알파를 프레넬로 준다.
