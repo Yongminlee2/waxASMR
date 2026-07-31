@@ -187,8 +187,17 @@ class BallRenderer : GLSurfaceView.Renderer {
      */
     @Volatile private var squashAmount = 0f
 
-    fun setSquash(amount: Float) {
+    /** 납작해지는 축(월드 XY, 정규화). 손바닥이 접히는 방향. 기본은 세로다. */
+    @Volatile private var squashDirX = 0f
+    @Volatile private var squashDirY = 1f
+
+    fun setSquash(amount: Float, dirX: Float = 0f, dirY: Float = 1f) {
         squashAmount = amount.coerceIn(0f, 1f)
+        val len = kotlin.math.sqrt(dirX * dirX + dirY * dirY)
+        if (len > 1e-4f) {
+            squashDirX = dirX / len
+            squashDirY = dirY / len
+        }
     }
 
     private val squashX: Float get() = 1f + 0.10f * squashAmount
@@ -497,6 +506,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUniform1i(GLES30.glGetUniformLocation(shellProgram, "uUseTex"), if (ball.planetTex != 0) 1 else 0)
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(shellProgram, "uSquash"), squashX, squashX, squashZ)
+        GLES30.glUniform2f(GLES30.glGetUniformLocation(shellProgram, "uSquashDir"), squashDirX, squashDirY)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uWobble"), squashAmount)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(shellProgram, "uVertTime"), surfaceTime)
         GLES30.glUniform3f(
@@ -615,6 +625,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         val sx = 1f + 0.10f * squashAmount * squashMul
         val sz = (1f - 0.30f * squashAmount * squashMul).coerceAtLeast(0.45f)
         GLES30.glUniform3f(GLES30.glGetUniformLocation(coreProgram, "uSquash"), sx, sx, sz)
+        GLES30.glUniform2f(GLES30.glGetUniformLocation(coreProgram, "uSquashDir"), squashDirX, squashDirY)
         GLES30.glUniform1f(
             GLES30.glGetUniformLocation(coreProgram, "uWobble"),
             (squashAmount * wobbleMul).coerceAtMost(1.6f),

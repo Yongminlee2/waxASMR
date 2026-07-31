@@ -69,10 +69,11 @@ class ArPlayActivity : AppCompatActivity() {
         /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
         /**
          * 쥠 변화량 1(완전히 쥐거나 완전히 펴는 것)마다 쌓이는 반죽.
-         * 한 번 쥐었다 폈다 = 변화량 약 2. 부서진 바닥값 0.45에서 시작하면
-         * 두 번쯤 주무르면 다 섞인다. 펴는 동작도 치대는 것으로 친다.
+         * 한 번 쥐었다 폈다 = 변화량 약 2. 부서진 바닥값 0.45에서 시작해
+         * 네 번쯤 주무르면 다 섞인다. 펴는 동작도 치대는 것으로 친다.
+         * 0.14는 두 번 만에 끝나 너무 빨랐다.
          */
-        private const val KNEAD_PER_GRIP = 0.14f
+        private const val KNEAD_PER_GRIP = 0.07f
 
     }
 
@@ -309,7 +310,8 @@ class ArPlayActivity : AppCompatActivity() {
 
             // 쥔 만큼 볼 전체(껍질·풍선·조각)가 함께 눌리고 일렁인다.
             val grip = ((pose.squeeze - 0.08f) / 0.92f).coerceIn(0f, 1f)
-            renderer.setSquash(grip)
+            // 손바닥이 접히는 축으로 찌그러진다. 화면 y는 아래가 +라 GL로 뒤집는다.
+            renderer.setSquash(grip, pose.foldX, -pose.foldY)
 
             // 손을 좌우·앞뒤로 움직이면 볼이 딸려 돌아간다. 쥔 채로는 거의 안 돌게
             // 눌러 둔다 — 부수는 도중에 볼이 핑핑 돌면 조준이 안 된다.

@@ -31,6 +31,15 @@ class PalmPose {
     var force = 0f
         private set
 
+    /**
+     * 손바닥이 접히는 방향(화면 좌표, 손목 → 가운데 손가락 뿌리).
+     * 쥐면 볼이 이 축으로 찌그러져야 손과 볼이 한 몸으로 보인다.
+     */
+    var foldX = 0f
+        private set
+    var foldY = -1f
+        private set
+
     private var started = false
     private var previousSqueeze = 0f
 
@@ -38,6 +47,7 @@ class PalmPose {
         hasHand = false
         centerX = 0f; centerY = 0f
         span = 0f; squeeze = 0f; force = 0f
+        foldX = 0f; foldY = -1f
         started = false
         previousSqueeze = 0f
     }
@@ -68,10 +78,17 @@ class PalmPose {
         val rawSpan = distance(hand, HandLandmarks.INDEX_MCP, HandLandmarks.PINKY_MCP)
         val rawSqueeze = curlOf(hand)
 
+        var rawFoldX = hand.x[HandLandmarks.MIDDLE_MCP] - hand.x[HandLandmarks.WRIST]
+        var rawFoldY = hand.y[HandLandmarks.MIDDLE_MCP] - hand.y[HandLandmarks.WRIST]
+        val foldLen = sqrt(rawFoldX * rawFoldX + rawFoldY * rawFoldY)
+        if (foldLen > 1e-5f) { rawFoldX /= foldLen; rawFoldY /= foldLen }
+        else { rawFoldX = foldX; rawFoldY = foldY }
+
         if (!started) {
             started = true
             centerX = rawCenterX; centerY = rawCenterY
             span = rawSpan; squeeze = rawSqueeze
+            foldX = rawFoldX; foldY = rawFoldY
             previousSqueeze = rawSqueeze
             force = 0f
             return
@@ -83,6 +100,8 @@ class PalmPose {
         centerY += (rawCenterY - centerY) * SMOOTH
         span += (rawSpan - span) * SMOOTH
         squeeze += (rawSqueeze - squeeze) * SMOOTH
+        foldX += (rawFoldX - foldX) * SMOOTH
+        foldY += (rawFoldY - foldY) * SMOOTH
 
         // 쥐는 세기가 늘어나는 동안에만 힘을 준다.
         // 쥔 채 가만히 있어도 계속 부서지면 조작하는 느낌이 사라진다.
