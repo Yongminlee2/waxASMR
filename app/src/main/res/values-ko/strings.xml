@@ -12,6 +12,7 @@
 
     <string name="settings_title">설정</string>
     <string name="settings_haptics">진동</string>
+    <string name="settings_rolling">손 따라 굴리기</string>
     <string name="settings_volume">음량</string>
     <string name="settings_quality">화질</string>
     <string name="settings_quality_auto">자동</string>

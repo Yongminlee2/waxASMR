@@ -105,6 +105,21 @@ class ChunkSoundTest {
     }
 
     @Test
+    fun doughModePlaysOnlyTheBed() {
+        // 다 부수고 색까지 다 섞이면 반죽이다. 문지름이 파열 덩어리를 얹으면 안 되고,
+        // 원본 반죽 소리는 계속 흘러야 한다.
+        val s = bedSynth()
+        s.doughMode = true
+        s.on(EventKind.RUB, -1, 0, 0.5f, 0f, 0f)
+        assertEquals("반죽인데 파열 덩어리가 얹힘", 0, s.activeGrains)
+        val out = FloatArray(512 * 2)
+        s.render(out, 512)
+        var peak = 0f
+        for (v in out) if (kotlin.math.abs(v) > peak) peak = kotlin.math.abs(v)
+        assertTrue("반죽인데 반죽 소리가 안 남", peak > 0.01f)
+    }
+
+    @Test
     fun landIsSilentInChunkMode() {
         // 조각은 풍선 안에 갇혀 바닥에 닿지 않는다. 착지음이 나면 모델이 깨진 것이다.
         val s = synth()

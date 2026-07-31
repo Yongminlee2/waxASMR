@@ -78,6 +78,11 @@ class AudioEngine(context: Context) {
     /** 쥐고 있는 도구에 따라 음색을 밝게/둔하게 옮긴다. */
     fun setToolBrightness(v: Float) { synth.toolBrightness = v.coerceIn(0.5f, 2f) }
 
+    /** 껍질이 다 부서지고 색까지 다 섞였는지. 켜면 반죽 소리만 흐른다. */
+    fun setDoughMode(on: Boolean) {
+        synth.doughMode = on
+    }
+
     /** 터치 순간을 표시해 두면 지연을 측정할 수 있다. */
     fun markTouch() { touchMarkNs = System.nanoTime() }
 

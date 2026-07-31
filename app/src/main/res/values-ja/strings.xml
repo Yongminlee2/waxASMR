@@ -14,6 +14,7 @@
     <string name="home_start">はじめる</string>
     <string name="home_tagline">手のひらに乗せて握って砕こう</string>
     <string name="settings_haptics">振動</string>
+    <string name="settings_rolling">手に合わせて回る</string>
     <string name="settings_quality">画質</string>
     <string name="settings_quality_auto">自動</string>
     <string name="settings_quality_high">高</string>

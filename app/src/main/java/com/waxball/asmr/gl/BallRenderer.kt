@@ -553,9 +553,10 @@ class BallRenderer : GLSurfaceView.Renderer {
             squashMul = 1f + 0.9f * knead,
             wobbleMul = 1f + 2.5f * knead,
             clayColors = if (palette.size >= 2) palette else null,
-            // 소프트맥스 경계는 후반에야 확 풀린다. 제곱근으로 앞당겨야
-            // 첫 조각이 떨어질 때부터 섞이는 게 눈에 보인다.
-            clayMix = kotlin.math.sqrt(knead),
+            // 소프트맥스 경계는 후반에야 확 풀린다. 조금 앞당겨야 첫 조각부터
+            // 섞이는 게 보이되, 제곱근(0.5제곱)은 너무 앞당겨서 다 부수기도 전에
+            // 색이 절반 넘게 변해 버렸다. 0.7제곱이 그 사이다.
+            clayMix = Math.pow(knead.toDouble(), 0.7).toFloat(),
             claySeed = spec.id * 1.7f,
         )
     }

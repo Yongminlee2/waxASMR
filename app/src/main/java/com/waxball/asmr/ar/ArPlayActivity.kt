@@ -66,12 +66,10 @@ class ArPlayActivity : AppCompatActivity() {
         private const val ROLL_GAIN = 4.5f
         private const val SQUEEZE_CONTACT_COS = -1f
 
-        /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
         /**
          * 쥠 변화량 1(완전히 쥐거나 완전히 펴는 것)마다 쌓이는 반죽.
-         * 한 번 쥐었다 폈다 = 변화량 약 2. 부서진 바닥값 0.45에서 시작해
-         * 네 번쯤 주무르면 다 섞인다. 펴는 동작도 치대는 것으로 친다.
-         * 0.14는 두 번 만에 끝나 너무 빨랐다.
+         * 한 번 쥐었다 폈다 = 변화량 약 2. 부서진 바닥값 0.3에서 시작해
+         * 대여섯 번 주무르면 다 섞인다. 펴는 동작도 치대는 것으로 친다.
          */
         private const val KNEAD_PER_GRIP = 0.07f
 
@@ -92,6 +90,9 @@ class ArPlayActivity : AppCompatActivity() {
     private val scenes = ArrayList<BallScene>()
     private var ballCount = 1
     private var lostSince = 0L
+
+    /** 설정의 "손 따라 굴리기". 기본 켜짐. */
+    private var rollingEnabled = true
 
     /** 인식 스레드가 쓰고 화면 스레드가 읽는다. */
     @Volatile private var latestHand: HandLandmarks? = null
@@ -195,6 +196,7 @@ class ArPlayActivity : AppCompatActivity() {
         binding.arView.onResume()
         audio.setProfile(spec.soundProfile())
         audio.setMaterial(spec.material.bank)
+        rollingEnabled = PrefsProgressStore(this).load().rollingOn
         audio.start()
     }
 
@@ -314,7 +316,7 @@ class ArPlayActivity : AppCompatActivity() {
 
             // 손을 좌우·앞뒤로 움직이면 볼이 딸려 돌아간다. 쥔 채로는 거의 안 돌게
             // 눌러 둔다 — 부수는 도중에 볼이 핑핑 돌면 조준이 안 된다.
-            if (prevHandValid) {
+            if (prevHandValid && rollingEnabled) {
                 val damp = 1f - grip * 0.8f
                 renderer.rotate(
                     (pose.centerX - prevHandX) * ROLL_GAIN * damp,
@@ -367,11 +369,21 @@ class ArPlayActivity : AppCompatActivity() {
 
         for (s in scenes) {
             // 부수는 것 자체가 치대는 것이다. 부서진 비율만큼 반죽이 바로 따라 올라
-            // 첫 조각부터 색이 조금씩 섞이기 시작한다. 나머지 절반은 계속 주물러야 한다.
-            s.debris.raiseKneadTo(s.model.detachedCount.toFloat() / s.shards.size * 0.45f)
+            // 첫 조각부터 색이 조금씩 섞이기 시작한다. 나머지 2/3는 계속 주물러야 한다 —
+            // 0.45로 뒀더니 다 부수면 색이 벌써 반 넘게 섞여 "몇 번 더 주무르면
+            // 바뀐다"는 맛이 없었다.
+            s.debris.raiseKneadTo(s.model.detachedCount.toFloat() / s.shards.size * 0.3f)
             // 조각은 풍선 안에 갇혀 있다. 바닥도 착지음도 없다.
             s.debris.update(dt, s.geometry.shardCenters)
         }
+
+        // 다 부수고 색까지 다 섞였으면 이제 반죽이다. 파열 덩어리를 멈추고
+        // 원본 반죽 소리만 흐른다. 다 치댄 반죽에서 깨지는 소리가 나면 거짓말이다.
+        audio.setDoughMode(
+            scenes.isNotEmpty() && scenes.all {
+                it.model.detachedCount == it.shards.size && it.debris.knead >= 0.95f
+            }
+        )
 
         // 새 볼은 새로고침 버튼으로만 깐다. 다 부순 뒤에도 반죽 덩어리를 계속
         // 주무를 수 있어야 한다 — 진짜 왁뿌볼도 부순 다음이 본편이다.

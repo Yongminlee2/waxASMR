@@ -14,6 +14,7 @@
     <string name="home_start">Começar</string>
     <string name="home_tagline">Coloque na palma da mão e aperte</string>
     <string name="settings_haptics">Vibração</string>
+    <string name="settings_rolling">Rolar com a mão</string>
     <string name="settings_quality">Qualidade</string>
     <string name="settings_quality_auto">Automática</string>
     <string name="settings_quality_high">Alta</string>

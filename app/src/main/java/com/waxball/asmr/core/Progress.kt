@@ -22,6 +22,9 @@ class Progress private constructor() {
 
     /** -1이면 기기 성능을 재서 자동으로 정한다. 0=낮음 1=보통 2=높음. */
     var qualitySetting: Int = -1
+
+    /** 손을 흔들면 볼이 딸려 도는 것. 기본 켜짐이고, 어지러우면 끈다. */
+    var rollingOn: Boolean = true
     var seenHeadphoneTip: Boolean = false
     var seenControlsTip: Boolean = false
 
@@ -58,6 +61,7 @@ class Progress private constructor() {
         append("haptics=").append(if (hapticsOn) 1 else 0).append('\n')
         append("volume=").append(volume).append('\n')
         append("quality=").append(qualitySetting).append('\n')
+        append("rolling=").append(if (rollingOn) 1 else 0).append('\n')
         append("headphoneTip=").append(if (seenHeadphoneTip) 1 else 0).append('\n')
         append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
         append("lastBall=").append(lastBallId).append('\n')
@@ -101,6 +105,7 @@ class Progress private constructor() {
                     "haptics" -> p.hapticsOn = value != "0"
                     "volume" -> value.toFloatOrNull()?.let { p.volume = it.coerceIn(0f, 1f) }
                     "quality" -> value.toIntOrNull()?.let { p.qualitySetting = it.coerceIn(-1, 2) }
+                    "rolling" -> p.rollingOn = value != "0"
                     "headphoneTip" -> p.seenHeadphoneTip = value == "1"
                     "controlsTip" -> p.seenControlsTip = value == "1"
                     "lastBall" -> value.toIntOrNull()?.let { p.lastBallId = it.coerceAtLeast(0) }

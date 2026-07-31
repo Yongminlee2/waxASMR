@@ -51,6 +51,13 @@ class Synth(
      * 주무르는 내내 소리가 이어진다. 그 연속성은 자르지 않은 원본만 갖고 있다.
      */
     var raw: RawRecording? = null
+
+    /**
+     * 반죽이 다 됐다는 표시. 껍질이 다 부서지고 색까지 다 섞인 뒤에는
+     * 파열 덩어리를 얹지 않고 원본 반죽 소리만 흐른다. 다 치댄 반죽에서
+     * 깨지는 소리가 나면 거짓말이다.
+     */
+    @Volatile var doughMode = false
     private var profile = SoundProfile.hardWax()
     private var rngState = 0x2545_F491
 
@@ -341,6 +348,8 @@ class Synth(
     private fun rub(speed: Float, pan: Float) {
         val s = speed.coerceIn(0f, 1f)
         if (usingChunks) {
+            // 반죽이 다 됐으면 덩어리는 끝. 깔개 원본(주무르는 소리)만 남는다.
+            if (doughMode) return
             // 잔여물을 쥘 때 안의 조각이 바스락거리는 소리. 문지름 이벤트는 프레임마다
             // 오므로, 올 때마다 얹으면 순식간에 덩어리가 쌓여 뭉갠다.
             // 조용할 때만 하나를, 파열보다 작게 튼다.
@@ -402,7 +411,8 @@ class Synth(
         java.util.Arrays.fill(out, 0, frames * 2, 0f)
         pool.render(out, frames)
         // 주무르는 동안 밑에 깔리는 원본 결. 파열 덩어리 사이의 무음을 메운다.
-        if (usingChunks) raw?.render(out, frames, KNEAD_BED_GAIN)
+        // 반죽이 다 되면 이 소리만 남으므로 더 크게 튼다.
+        if (usingChunks) raw?.render(out, frames, if (doughMode) DOUGH_GAIN else KNEAD_BED_GAIN)
 
         // 소프트 리미터. 그레인이 한꺼번에 몰려도 하드클립으로 찢어지지 않게 한다.
         val g = masterGain
@@ -473,6 +483,9 @@ class Synth(
 
         /** 파열 덩어리 밑에 깔리는 원본 결의 크기. 덩어리를 덮으면 안 된다. */
         const val KNEAD_BED_GAIN = 0.65f
+
+        /** 반죽이 다 된 뒤 홀로 남은 반죽 소리의 크기. */
+        const val DOUGH_GAIN = 0.95f
 
         /**
          * 덩어리를 동시에 몇 개까지 울릴지.

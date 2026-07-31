@@ -14,6 +14,7 @@
     <string name="home_start">Mulai</string>
     <string name="home_tagline">Letakkan di telapak tangan lalu genggam</string>
     <string name="settings_haptics">Getaran</string>
+    <string name="settings_rolling">Berputar mengikuti tangan</string>
     <string name="settings_quality">Kualitas</string>
     <string name="settings_quality_auto">Otomatis</string>
     <string name="settings_quality_high">Tinggi</string>

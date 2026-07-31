@@ -33,6 +33,12 @@ class SettingsActivity : AppCompatActivity() {
             store.save(progress)
         }
 
+        binding.rollingSwitch.isChecked = progress.rollingOn
+        binding.rollingSwitch.setOnCheckedChangeListener { _, on ->
+            progress.rollingOn = on
+            store.save(progress)
+        }
+
         binding.volumeBar.progress = (progress.volume * 100).toInt()
         binding.volumeBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(bar: SeekBar?, value: Int, fromUser: Boolean) {

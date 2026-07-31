@@ -62,24 +62,25 @@ class HandGuideView @JvmOverloads constructor(
         fun capsule(l: Float, t: Float, r: Float, b: Float, radius: Float): Path =
             Path().apply { addRoundRect(RectF(l, t, r, b), radius, radius, Path.Direction.CW) }
 
+        // 비율은 손 해부 지침을 따른다: 손바닥 높이 ≈ 중지 길이, 엄지 폭은
+        // 손가락과 비슷하고 끝은 다른 손가락 뿌리 높이까지만 온다.
         // 손바닥. 손목 쪽이 더 둥글다.
-        handPath.addRoundRect(RectF(30f, 56f, 102f, 122f), 22f, 22f, Path.Direction.CW)
+        handPath.addRoundRect(RectF(32f, 62f, 100f, 126f), 18f, 18f, Path.Direction.CW)
 
-        // 검지·중지·약지·새끼. 중지가 가장 길고 새끼가 가장 짧다.
+        // 검지·중지·약지·새끼. 중지가 가장 길고(≈손바닥 높이) 새끼는 2/3쯤.
         //
         // 손가락 사이를 넉넉히 벌린다. 붙여 놓으면 틈이 실오라기처럼 좁아서, 점선
         // 두 줄이 나란히 붙어 손가락이 아니라 지저분한 세로줄로 보인다.
-        // 손가락 폭 13에 사이 6이면 대시 굵기(폭의 1.8%)를 빼고도 틈이 남는다.
-        handPath.op(capsule(31f, 22f, 44f, 70f, 6.5f), Path.Op.UNION)
-        handPath.op(capsule(50f, 12f, 63f, 70f, 6.5f), Path.Op.UNION)
-        handPath.op(capsule(69f, 20f, 82f, 70f, 6.5f), Path.Op.UNION)
-        handPath.op(capsule(88f, 36f, 101f, 70f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(33f, 20f, 46f, 74f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(51.5f, 12f, 64.5f, 74f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(70f, 18f, 83f, 74f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(87.5f, 34f, 99.5f, 74f, 6f), Path.Op.UNION)
 
-        // 엄지는 손바닥 왼쪽에서 위-바깥으로 뻗는다. 편 손은 엄지도 같이 올라간다.
-        // 세워 만든 뒤 손바닥 안쪽(42, 88)을 축으로 반시계로 돌린다. 축을 가장자리에
-        // 두면 돌린 엄지가 손바닥에서 떨어져 허공에 뜬 점선이 된다.
-        val thumb = capsule(20f, 40f, 42f, 95f, 11f)
-        thumb.transform(Matrix().apply { setRotate(-35f, 42f, 88f) })
+        // 엄지는 손바닥 왼쪽에서 위-바깥으로 뻗는다. 폭은 손가락 수준(14), 끝은
+        // 손가락 뿌리 높이. 세워 만든 뒤 손바닥 안쪽(40, 90)을 축으로 반시계로
+        // 돌린다. 축을 가장자리에 두면 돌린 엄지가 떨어져 허공에 뜬 점선이 된다.
+        val thumb = capsule(26f, 46f, 40f, 96f, 7f)
+        thumb.transform(Matrix().apply { setRotate(-36f, 40f, 90f) })
         handPath.op(thumb, Path.Op.UNION)
 
         handPath.computeBounds(bounds, true)

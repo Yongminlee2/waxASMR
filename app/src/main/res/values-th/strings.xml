@@ -14,6 +14,7 @@
     <string name="home_start">เริ่ม</string>
     <string name="home_tagline">วางบนฝ่ามือแล้วกำบี้</string>
     <string name="settings_haptics">การสั่น</string>
+    <string name="settings_rolling">หมุนตามมือ</string>
     <string name="settings_quality">คุณภาพ</string>
     <string name="settings_quality_auto">อัตโนมัติ</string>
     <string name="settings_quality_high">สูง</string>
