@@ -17,7 +17,11 @@ class ArPlayView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
 ) : GLSurfaceView(context, attrs) {
 
-    val renderer = BallRenderer().apply { transparentBackground = true }
+    val renderer = BallRenderer().apply {
+        transparentBackground = true
+        // 손을 잡기 전에는 볼을 그리지 않는다. 그 사이에는 손 안내선만 보여야 한다.
+        enableArPlacement()
+    }
 
     init {
         setEGLContextClientVersion(3)

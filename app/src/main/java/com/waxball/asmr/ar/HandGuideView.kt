@@ -65,11 +65,15 @@ class HandGuideView @JvmOverloads constructor(
         // 손바닥. 손목 쪽이 더 둥글다.
         handPath.addRoundRect(RectF(30f, 56f, 102f, 122f), 22f, 22f, Path.Direction.CW)
 
-        // 검지·중지·약지·새끼. 중지가 가장 길고 새끼가 가장 짧고 가늘다.
-        handPath.op(capsule(36f, 20f, 52f, 72f, 8f), Path.Op.UNION)
-        handPath.op(capsule(54f, 10f, 70f, 72f, 8f), Path.Op.UNION)
-        handPath.op(capsule(72f, 18f, 88f, 72f, 8f), Path.Op.UNION)
-        handPath.op(capsule(89f, 34f, 103f, 72f, 7f), Path.Op.UNION)
+        // 검지·중지·약지·새끼. 중지가 가장 길고 새끼가 가장 짧다.
+        //
+        // 손가락 사이를 넉넉히 벌린다. 붙여 놓으면 틈이 실오라기처럼 좁아서, 점선
+        // 두 줄이 나란히 붙어 손가락이 아니라 지저분한 세로줄로 보인다.
+        // 손가락 폭 13에 사이 6이면 대시 굵기(폭의 1.8%)를 빼고도 틈이 남는다.
+        handPath.op(capsule(31f, 22f, 44f, 70f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(50f, 12f, 63f, 70f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(69f, 20f, 82f, 70f, 6.5f), Path.Op.UNION)
+        handPath.op(capsule(88f, 36f, 101f, 70f, 6.5f), Path.Op.UNION)
 
         // 엄지는 손바닥 왼쪽에서 비스듬히 뻗는다. 세워 만든 뒤 붙는 자리를 축으로 돌린다.
         // 축이 손바닥 안쪽(42)이라야 돌린 뒤에도 겹쳐서 하나로 합쳐진다. 가장자리에

@@ -164,6 +164,17 @@ class BallRenderer : GLSurfaceView.Renderer {
     /** AR에서는 볼을 세계 좌표에 흩어 놓는다. 일반 모드는 원점 하나뿐이다. */
     @Volatile private var arPlacement = false
 
+    /**
+     * AR 화면임을 미리 알린다. 손 위에 자리를 잡기 전까지 아무것도 그리지 않는다.
+     *
+     * 이게 없으면 [placeAt] 이 처음 불릴 때까지 일반 모드로 떨어져, 손을 대기도 전에
+     * 볼이 화면 한가운데 큼직하게 떠 있다. 손 안내선과 겹쳐서 어디에 손을 대라는
+     * 그림인지 알 수 없게 된다.
+     */
+    fun enableArPlacement() {
+        arPlacement = true
+    }
+
     private class Placement(var screenX: Float, var screenY: Float, var radiusPx: Float, var visible: Boolean)
 
     private val placements = ArrayList<Placement>()
