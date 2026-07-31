@@ -58,6 +58,9 @@ class Synth(
      * 깨지는 소리가 나면 거짓말이다.
      */
     @Volatile var doughMode = false
+
+    /** 다 치댄 반죽을 주무르는 소리. 녹음이 아니라 합성이다. */
+    val dough = DoughVoice(sampleRate)
     private var profile = SoundProfile.hardWax()
     private var rngState = 0x2545_F491
 
@@ -410,9 +413,13 @@ class Synth(
     fun render(out: FloatArray, frames: Int) {
         java.util.Arrays.fill(out, 0, frames * 2, 0f)
         pool.render(out, frames)
-        // 주무르는 동안 밑에 깔리는 원본 결. 파열 덩어리 사이의 무음을 메운다.
-        // 반죽이 다 되면 이 소리만 남으므로 더 크게 튼다.
-        if (usingChunks) raw?.render(out, frames, if (doughMode) DOUGH_GAIN else KNEAD_BED_GAIN)
+        if (doughMode) {
+            // 다 치댄 반죽. 왁스 녹음은 파열음이라 여기선 쓸 수 없다.
+            dough.render(out, frames, DOUGH_GAIN)
+        } else if (usingChunks) {
+            // 주무르는 동안 밑에 깔리는 원본 결. 파열 덩어리 사이의 무음을 메운다.
+            raw?.render(out, frames, KNEAD_BED_GAIN)
+        }
 
         // 소프트 리미터. 그레인이 한꺼번에 몰려도 하드클립으로 찢어지지 않게 한다.
         val g = masterGain
@@ -485,7 +492,7 @@ class Synth(
         const val KNEAD_BED_GAIN = 0.65f
 
         /** 반죽이 다 된 뒤 홀로 남은 반죽 소리의 크기. */
-        const val DOUGH_GAIN = 0.95f
+        const val DOUGH_GAIN = 0.85f
 
         /**
          * 덩어리를 동시에 몇 개까지 울릴지.

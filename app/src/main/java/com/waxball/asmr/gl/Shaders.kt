@@ -377,6 +377,12 @@ uniform float uClaySeed;
 uniform float uClayStir;
 uniform float uClayTime;
 
+/**
+ * 다 섞인 뒤에도 계속 치댄 양(라디안). 섞인 색을 색상환에서 그만큼 돌린다.
+ * 진짜 반죽은 한 색으로 합쳐진 뒤에도 더 치대면 색이 조금씩 계속 달라진다.
+ */
+uniform float uClayHue;
+
 out vec4 fragColor;
 
 float claynoise(vec3 p) {
@@ -417,7 +423,17 @@ vec3 clay(vec3 dir) {
         acc += uClayColors[i] * w;
         wsum += w;
     }
-    return acc / max(wsum, 1e-4);
+    vec3 mixed = acc / max(wsum, 1e-4);
+
+    if (uClayHue > 0.001) {
+        // (1,1,1) 축을 도는 회전. RGB↔HSV 변환 없이 색상만 돌리는 값싼 방법이다.
+        const vec3 axis = vec3(0.57735);
+        float c = cos(uClayHue);
+        float s = sin(uClayHue);
+        mixed = mixed * c + cross(axis, mixed) * s + axis * dot(axis, mixed) * (1.0 - c);
+        mixed = clamp(mixed, 0.0, 1.0);
+    }
+    return mixed;
 }
 
 void main() {

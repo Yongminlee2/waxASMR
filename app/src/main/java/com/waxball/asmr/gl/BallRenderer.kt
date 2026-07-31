@@ -558,6 +558,8 @@ class BallRenderer : GLSurfaceView.Renderer {
             // 색이 절반 넘게 변해 버렸다. 0.7제곱이 그 사이다.
             clayMix = Math.pow(knead.toDouble(), 0.7).toFloat(),
             claySeed = spec.id * 1.7f,
+            // 다 섞인 뒤에도 계속 치대면 색이 조금씩 계속 달라진다.
+            clayHue = (ball.scene.debris.kneadTotal - 1f).coerceAtLeast(0f) * HUE_PER_KNEAD,
         )
     }
 
@@ -615,6 +617,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         clayColors: List<Int>? = null,
         clayMix: Float = 0f,
         claySeed: Float = 0f,
+        clayHue: Float = 0f,
     ) {
         GLES30.glUseProgram(coreProgram)
         bindAttrib(vbo, 0, 3)
@@ -631,6 +634,7 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUniform1i(GLES30.glGetUniformLocation(coreProgram, "uClayCount"), clayCount)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayMix"), clayMix)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClaySeed"), claySeed)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayHue"), clayHue)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayStir"), squashAmount)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayTime"), surfaceTime)
         // 배율은 반죽된 속살에만 1보다 크다. 납작해지는 쪽은 밑이 남게 잘라 둔다.
@@ -706,6 +710,12 @@ class BallRenderer : GLSurfaceView.Renderer {
     }
 
     private companion object {
+        /**
+         * 다 섞인 뒤 반죽을 한 번 더 치댈 때 색이 도는 각도(라디안).
+         * 한 번 쥐었다 폈다가 약 0.14이므로, 서너 번이면 눈에 띄게 다른 색이 된다.
+         */
+        const val HUE_PER_KNEAD = 2.2f
+
         const val FOV_DEG = 42f
         const val XFORM_ROWS = 4
 

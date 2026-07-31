@@ -62,9 +62,21 @@ class TrappedShards(
     @Volatile var knead = 0f
         private set
 
+    /**
+     * 상한 없이 계속 쌓이는 반죽 총량.
+     *
+     * [knead] 는 1에서 멈춘다 — 조각이 다 스며들고 색이 다 섞인 상태다.
+     * 하지만 진짜 반죽은 거기서 끝이 아니라, 더 치대면 색이 조금씩 계속 달라진다.
+     * 그 "1 이후"를 여기에 담는다.
+     */
+    @Volatile var kneadTotal = 0f
+        private set
+
     fun addKnead(amount: Float) {
         // 반죽은 되돌아가지 않는다. 음수가 들어와도 섞인 색이 다시 갈라지면 이상하다.
-        knead = (knead + amount.coerceAtLeast(0f)).coerceIn(0f, 1f)
+        val add = amount.coerceAtLeast(0f)
+        knead = (knead + add).coerceIn(0f, 1f)
+        kneadTotal += add
     }
 
     /**
@@ -74,7 +86,10 @@ class TrappedShards(
      */
     fun raiseKneadTo(target: Float) {
         val t = target.coerceIn(0f, 1f)
-        if (t > knead) knead = t
+        if (t > knead) {
+            kneadTotal += t - knead
+            knead = t
+        }
     }
 
     /**
@@ -201,6 +216,7 @@ class TrappedShards(
         java.util.Arrays.fill(hang, 0)
         cageScale = 1f
         knead = 0f
+        kneadTotal = 0f
         count = 0
     }
 

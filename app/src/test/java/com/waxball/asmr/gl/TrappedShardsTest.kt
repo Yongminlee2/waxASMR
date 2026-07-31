@@ -110,12 +110,23 @@ class TrappedShardsTest {
     }
 
     @Test
+    fun kneadTotalKeepsGrowingPastFullyMixed() {
+        // 색이 다 섞인 뒤에도 더 치대면 색이 조금씩 계속 달라져야 한다.
+        // knead 는 1에서 멈추지만 총량은 계속 쌓여 그 변화를 이끈다.
+        val (t, _) = settled()
+        repeat(10) { t.addKnead(0.3f) }
+        assertEquals("반죽이 1을 넘음", 1f, t.knead, 1e-6f)
+        assertEquals("총량이 1에서 멈춤", 3f, t.kneadTotal, 1e-5f)
+    }
+
+    @Test
     fun clearResetsKnead() {
         // 새 볼은 아직 안 주무른 볼이다. 반죽이 남아 있으면 새 볼이 처음부터 섞여 보인다.
         val (t, _) = settled()
         t.addKnead(0.8f)
         t.clear()
         assertEquals(0f, t.knead, 1e-6f)
+        assertEquals("새 볼인데 반죽 총량이 남음", 0f, t.kneadTotal, 1e-6f)
     }
 
     @Test

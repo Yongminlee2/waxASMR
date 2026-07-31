@@ -80,7 +80,13 @@ class AudioEngine(context: Context) {
 
     /** 껍질이 다 부서지고 색까지 다 섞였는지. 켜면 반죽 소리만 흐른다. */
     fun setDoughMode(on: Boolean) {
+        if (!on && synth.doughMode) synth.dough.reset()
         synth.doughMode = on
+    }
+
+    /** 반죽을 주무르는 정도 0~1. 반죽 소리의 크기와 방울 빈도를 정한다. */
+    fun setDoughActivity(level: Float) {
+        synth.dough.activity = level
     }
 
     /** 터치 순간을 표시해 두면 지연을 측정할 수 있다. */
