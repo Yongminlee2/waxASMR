@@ -1,6 +1,20 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
 }
+
+/**
+ * 출시 서명 키. 루트의 `keystore.properties` 가 있을 때만 읽는다.
+ *
+ * 키 파일과 비밀번호는 저장소에 넣지 않는다(.gitignore). 새어 나가면 남이 내 앱
+ * 이름으로 업데이트를 올릴 수 있고, 잃어버리면 내가 다시는 업데이트를 못 올린다.
+ */
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val hasReleaseKey = keystoreProperties.getProperty("storeFile") != null
 
 android {
     namespace = "com.waxball.asmr"
@@ -21,10 +35,26 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // 코드 축소는 꺼 둔다. APK 57MB 중 34MB가 소리·모델 자산이라 줄여 봐야
+            // 얼마 안 되는데, MediaPipe가 리플렉션으로 부르는 클래스가 지워지면
+            // 손 인식이 조용히 죽는다. 그건 설치해 보기 전에는 모른다.
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            // 키가 없으면 서명을 붙이지 않는다. 디버그 키로 서명하면 겉보기에는
+            // 릴리즈 빌드가 되지만 스토어가 받아 주지 않는다.
+            signingConfig = if (hasReleaseKey) signingConfigs.getByName("release") else null
         }
     }
 
