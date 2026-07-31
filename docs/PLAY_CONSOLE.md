@@ -10,7 +10,16 @@
 - 개발자 계정 (최초 1회 $25) — https://play.google.com/console
 - 서명된 AAB — `docs/RELEASE.md` 1~2번 먼저
 - 출시용 이미지 (아이콘 512×512, 그래픽 1024×500, 스크린샷 2장 이상)
-- 개인정보처리방침 URL: `https://yongminlee2.github.io/waxASMR/privacy.html`
+- 공개 문서 주소 (앱 저장소가 비공개여도 항상 열려 있다):
+
+| 쓸 곳 | 주소 |
+|---|---|
+| 개인정보처리방침 (필수) | `https://yongminlee2.github.io/legal/waxball/privacy.html` |
+| 웹사이트 (선택) | `https://yongminlee2.github.io/legal/waxball/` |
+| 지원 안내 | `https://yongminlee2.github.io/legal/waxball/support.html` |
+
+  문서는 별도 공개 저장소 `Yongminlee2/legal` 에 있다. 앱 소스 저장소는 비공개로
+  돌려도 이 주소들은 계속 살아 있어야 한다 — 스토어에 등록하는 링크이기 때문이다.
 
 ---
 
@@ -38,7 +47,7 @@
 
 ### 2-1. 개인정보처리방침
 ```
-https://yongminlee2.github.io/waxASMR/privacy.html
+https://yongminlee2.github.io/legal/waxball/privacy.html
 ```
 
 ### 2-2. 앱 액세스 권한
@@ -108,6 +117,14 @@ https://yongminlee2.github.io/waxASMR/privacy.html
 | 앱 아이콘 | 512×512 PNG | `docs/icons/_스토어_512.png` |
 | 그래픽 이미지 | 1024×500 | 준비한 것 |
 | 휴대전화 스크린샷 | 최소 2장, 최대 8장 | 준비한 것 |
+
+**연락처 정보** (같은 화면 아래쪽):
+
+| 칸 | 값 |
+|---|---|
+| 이메일 (필수) | `dydals5678@gmail.com` |
+| 웹사이트 | `https://yongminlee2.github.io/legal/waxball/` |
+| 전화번호 | 비워 둔다 |
 
 ---
 

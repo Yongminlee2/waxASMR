@@ -45,7 +45,7 @@ Play Console → 앱 만들기 → 아래를 채운다.
 
 **앱 콘텐츠**에서 채울 것:
 
-- 개인정보처리방침: `https://yongminlee2.github.io/waxASMR/privacy.html`
+- 개인정보처리방침: `https://yongminlee2.github.io/legal/waxball/privacy.html`
 - 광고: 없음
 - 앱 액세스: 제한 없음 (로그인이 없다)
 - 데이터 보안: **수집·공유 없음**. 카메라 영상은 기기에서만 처리하고 저장·전송하지 않는다
