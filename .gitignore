@@ -5,11 +5,16 @@ local.properties
 .idea/
 .kotlin/
 *.apk
-app/reference/*.wav
+*.aab
+
+# 서명 키. 이게 새면 남이 내 앱 이름으로 업데이트를 올릴 수 있고,
+# 잃어버리면 내가 다시는 업데이트를 못 올린다. 저장소에 절대 넣지 않는다.
+*.jks
+*.keystore
+keystore.properties
+
+# 남의 앱 소리. 분석에만 쓰고 저장소·앱에 넣지 않는다.
 app/reference/rival/
-app/src/main/assets/chunks.bin
-app/src/main/assets/chunks.idx
-app/src/main/assets/grains.bin
-app/src/main/assets/grains.idx
-app/src/main/assets/hand_landmarker.task
-app/src/main/assets/original.pcm
+
+# 소리 자산과 손 인식 모델은 이제 저장소에 올린다. 이게 없으면 다른 컴퓨터에서
+# 빌드했을 때 소리 없는 앱이 조용히 만들어져, 설치해 보기 전에는 알 수가 없다.
