@@ -14,14 +14,11 @@
     <string name="home_start">เริ่ม</string>
     <string name="home_tagline">วางบนฝ่ามือแล้วกำบี้</string>
     <string name="settings_haptics">การสั่น</string>
-    <string name="settings_orbit_lock">ล็อกการหมุน</string>
     <string name="settings_quality">คุณภาพ</string>
     <string name="settings_quality_auto">อัตโนมัติ</string>
     <string name="settings_quality_high">สูง</string>
     <string name="settings_quality_low">ต่ำ</string>
     <string name="settings_quality_medium">ปานกลาง</string>
-    <string name="settings_raw_hint">เปิดเสียงบันทึกต้นฉบับทั้งหมดแทนการตัดเป็นชิ้นเล็ก ๆ ใช้เพื่อเทียบเสียง</string>
-    <string name="settings_raw_playback">เล่นเสียงบันทึกต้นฉบับ</string>
     <string name="settings_reset">ล้างข้อมูลทั้งหมด</string>
     <string name="settings_reset_confirm">การตั้งค่าและลูกบอลที่เลือกล่าสุดจะถูกรีเซ็ต ย้อนกลับไม่ได้</string>
     <string name="settings_reset_done">ล้างข้อมูลแล้ว</string>

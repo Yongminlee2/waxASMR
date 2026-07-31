@@ -14,14 +14,11 @@
     <string name="home_start">Começar</string>
     <string name="home_tagline">Coloque na palma da mão e aperte</string>
     <string name="settings_haptics">Vibração</string>
-    <string name="settings_orbit_lock">Bloquear rotação</string>
     <string name="settings_quality">Qualidade</string>
     <string name="settings_quality_auto">Automática</string>
     <string name="settings_quality_high">Alta</string>
     <string name="settings_quality_low">Baixa</string>
     <string name="settings_quality_medium">Média</string>
-    <string name="settings_raw_hint">Toca a gravação original inteira em vez de fragmentos. Para comparar sons.</string>
-    <string name="settings_raw_playback">Tocar gravação original</string>
     <string name="settings_reset">Apagar todos os dados</string>
     <string name="settings_reset_confirm">As configurações e a última bola escolhida serão reiniciadas. Não pode ser desfeito.</string>
     <string name="settings_reset_done">Dados apagados.</string>

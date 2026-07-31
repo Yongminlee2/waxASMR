@@ -14,14 +14,11 @@
     <string name="home_start">开始</string>
     <string name="home_tagline">放在手掌上，握紧捏碎</string>
     <string name="settings_haptics">震动</string>
-    <string name="settings_orbit_lock">锁定旋转</string>
     <string name="settings_quality">画质</string>
     <string name="settings_quality_auto">自动</string>
     <string name="settings_quality_high">高</string>
     <string name="settings_quality_low">低</string>
     <string name="settings_quality_medium">中</string>
-    <string name="settings_raw_hint">不切成碎片，直接播放原始录音。用于比较音色。</string>
-    <string name="settings_raw_playback">播放原始录音</string>
     <string name="settings_reset">清除全部数据</string>
     <string name="settings_reset_confirm">将重置设置和上次选择的球，无法恢复。</string>
     <string name="settings_reset_done">数据已清除。</string>

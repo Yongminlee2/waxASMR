@@ -78,12 +78,6 @@ class AudioEngine(context: Context) {
     /** 쥐고 있는 도구에 따라 음색을 밝게/둔하게 옮긴다. */
     fun setToolBrightness(v: Float) { synth.toolBrightness = v.coerceIn(0.5f, 2f) }
 
-    /** 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 비교용. */
-    fun setRawPlayback(on: Boolean) {
-        synth.useRaw = on && synth.raw != null
-        if (!synth.useRaw) synth.raw?.reset()
-    }
-
     /** 터치 순간을 표시해 두면 지연을 측정할 수 있다. */
     fun markTouch() { touchMarkNs = System.nanoTime() }
 

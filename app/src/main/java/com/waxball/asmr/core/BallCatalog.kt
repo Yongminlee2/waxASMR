@@ -223,4 +223,16 @@ object BallCatalog {
     val free: List<Int> = all.map { it.id }
 
     fun byId(id: Int): BallSpec = all.getOrElse(id) { all[0] }
+
+    /**
+     * 볼 고르기 줄에 보이는 순서.
+     *
+     * [all]의 순서(=id)는 손대지 않는다. id가 곧 언어별 이름·설명 배열의 인덱스이고
+     * 저장된 "마지막에 고른 볼"도 그 값이라, 순서를 바꾸면 이름이 통째로 어긋난다.
+     * 앞자리는 성격이 뚜렷해서 처음 만져 보기 좋은 것들로 골랐다.
+     */
+    private val FIRST = intArrayOf(0, 7, 20, 32, 21)  // 지구·주사위·돼지·파스텔 반죽·8번공
+
+    val displayOrder: List<BallSpec> =
+        FIRST.map { byId(it) } + all.filter { it.id !in FIRST.toSet() }
 }

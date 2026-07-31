@@ -60,7 +60,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun buildBallList() {
         binding.ballList.removeAllViews()
-        for (spec in BallCatalog.all) {
+        for (spec in BallCatalog.displayOrder) {
             // 색 원이 아니라 손 위에 올라올 모습 그대로. 볼이 전부 텍스처를 입은 뒤로는
             // 색만 보고는 무슨 볼인지 알 수 없다.
             val thumb = ImageView(this).apply {

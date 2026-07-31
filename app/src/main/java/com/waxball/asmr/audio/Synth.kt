@@ -45,11 +45,12 @@ class Synth(
     }
 
     /**
-     * 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 비교용이다.
-     * 소리가 이상할 때 원인이 뿌리는 방식인지 원본 자체인지 가른다.
+     * 주무르는 내내 파열 덩어리 밑에 깔리는 원본 녹음.
+     *
+     * 덩어리는 깨지는 순간에만 나가서 사이사이가 무음이 되는데, 실제 왁뿌볼은
+     * 주무르는 내내 소리가 이어진다. 그 연속성은 자르지 않은 원본만 갖고 있다.
      */
     var raw: RawRecording? = null
-    var useRaw = false
     private var profile = SoundProfile.hardWax()
     private var rngState = 0x2545_F491
 
@@ -89,14 +90,7 @@ class Synth(
     }
 
     override fun on(kind: Int, shardId: Int, level: Int, energy: Float, pan: Float, areaFrac: Float) {
-        if (useRaw) {
-            // 원본 그대로 듣는 모드. 부수는 동안만 녹음이 흐른다.
-            if (kind != EventKind.RUB) raw?.keepAlive()
-            return
-        }
-        // 덩어리 방식에서는 원본 녹음이 밑에 깔린다. 파열 덩어리는 깨지는 순간에만
-        // 나가서 주무르는 사이사이가 무음이 되는데, 실제 왁뿌볼은 주무르는 내내
-        // 소리가 이어진다. 그 연속성은 자르지 않은 원본만 갖고 있다.
+        // 덩어리 방식에서는 원본 녹음이 밑에 깔린다. 손이 닿는 동안 살려 둔다.
         if (usingChunks && kind != EventKind.LAND) raw?.keepAlive()
         when (kind) {
             EventKind.CRACK -> crack(level, energy, pan, areaFrac)
@@ -406,13 +400,9 @@ class Synth(
      */
     fun render(out: FloatArray, frames: Int) {
         java.util.Arrays.fill(out, 0, frames * 2, 0f)
-        if (useRaw) {
-            raw?.render(out, frames, RAW_GAIN)
-        } else {
-            pool.render(out, frames)
-            // 주무르는 동안 밑에 깔리는 원본 결. 파열 덩어리 사이의 무음을 메운다.
-            if (usingChunks) raw?.render(out, frames, KNEAD_BED_GAIN)
-        }
+        pool.render(out, frames)
+        // 주무르는 동안 밑에 깔리는 원본 결. 파열 덩어리 사이의 무음을 메운다.
+        if (usingChunks) raw?.render(out, frames, KNEAD_BED_GAIN)
 
         // 소프트 리미터. 그레인이 한꺼번에 몰려도 하드클립으로 찢어지지 않게 한다.
         val g = masterGain
@@ -480,9 +470,6 @@ class Synth(
 
         /** 파편을 끝까지 틀라는 뜻. 어떤 파편보다도 길다. */
         const val FULL_FRAGMENT_MS = 5000f
-
-        /** 원본을 통째로 틀 때의 크기. 녹음이 이미 정규화돼 있어 그대로 두면 크다. */
-        const val RAW_GAIN = 0.8f
 
         /** 파열 덩어리 밑에 깔리는 원본 결의 크기. 덩어리를 덮으면 안 된다. */
         const val KNEAD_BED_GAIN = 0.65f

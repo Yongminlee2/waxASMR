@@ -19,7 +19,15 @@ class BallCatalogTest {
         BallCatalog.all.forEachIndexed { i, spec -> assertEquals(i, spec.id) }
     }
 
-
+    @Test
+    fun displayOrderShowsThePickedFiveFirstAndLosesNothing() {
+        // id는 언어별 이름 배열의 인덱스이자 저장된 "마지막 볼" 값이라 순서를 못 바꾼다.
+        // 보이는 순서만 따로 두는데, 그러다 볼이 빠지거나 겹치면 고를 수 없게 된다.
+        val order = BallCatalog.displayOrder
+        assertEquals(BallCatalog.all.size, order.size)
+        assertEquals(BallCatalog.all.toSet(), order.toSet())
+        assertEquals(listOf(0, 7, 20, 32, 21), order.take(5).map { it.id })
+    }
 
     @Test
     fun allMaterialsShapesSizesAndThicknessesAppear() {

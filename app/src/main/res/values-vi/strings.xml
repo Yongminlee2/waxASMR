@@ -14,14 +14,11 @@
     <string name="home_start">Bắt đầu</string>
     <string name="home_tagline">Đặt lên lòng bàn tay rồi nắm bóp</string>
     <string name="settings_haptics">Rung</string>
-    <string name="settings_orbit_lock">Khóa xoay</string>
     <string name="settings_quality">Chất lượng</string>
     <string name="settings_quality_auto">Tự động</string>
     <string name="settings_quality_high">Cao</string>
     <string name="settings_quality_low">Thấp</string>
     <string name="settings_quality_medium">Trung bình</string>
-    <string name="settings_raw_hint">Phát nguyên bản bản ghi âm thay vì cắt thành mảnh. Dùng để so sánh âm thanh.</string>
-    <string name="settings_raw_playback">Phát bản ghi âm gốc</string>
     <string name="settings_reset">Xóa toàn bộ dữ liệu</string>
     <string name="settings_reset_confirm">Cài đặt và quả bóng chọn lần cuối sẽ được đặt lại. Không thể hoàn tác.</string>
     <string name="settings_reset_done">Đã xóa dữ liệu.</string>

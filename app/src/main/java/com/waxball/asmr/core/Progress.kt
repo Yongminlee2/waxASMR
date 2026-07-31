@@ -22,15 +22,11 @@ class Progress private constructor() {
 
     /** -1이면 기기 성능을 재서 자동으로 정한다. 0=낮음 1=보통 2=높음. */
     var qualitySetting: Int = -1
-    var orbitLocked: Boolean = false
     var seenHeadphoneTip: Boolean = false
     var seenControlsTip: Boolean = false
 
     /** 마지막에 고른 볼. 앱을 다시 켜도 그대로 두면 매번 다시 고르지 않아도 된다. */
     var lastBallId: Int = 0
-
-    /** 켜면 파편을 뿌리지 않고 녹음을 통째로 튼다. 소리 비교용. */
-    var rawPlayback: Boolean = false
 
     /** 조각 수와 완파 여부로 코인을 준다. 소모품이 없으니 용처는 볼 해금뿐이다. */
     fun awardForRun(detachedShards: Int, cleared: Boolean): Int =
@@ -62,10 +58,8 @@ class Progress private constructor() {
         append("haptics=").append(if (hapticsOn) 1 else 0).append('\n')
         append("volume=").append(volume).append('\n')
         append("quality=").append(qualitySetting).append('\n')
-        append("orbitLocked=").append(if (orbitLocked) 1 else 0).append('\n')
         append("headphoneTip=").append(if (seenHeadphoneTip) 1 else 0).append('\n')
         append("controlsTip=").append(if (seenControlsTip) 1 else 0).append('\n')
-        append("rawPlayback=").append(if (rawPlayback) 1 else 0).append('\n')
         append("lastBall=").append(lastBallId).append('\n')
     }
 
@@ -107,10 +101,8 @@ class Progress private constructor() {
                     "haptics" -> p.hapticsOn = value != "0"
                     "volume" -> value.toFloatOrNull()?.let { p.volume = it.coerceIn(0f, 1f) }
                     "quality" -> value.toIntOrNull()?.let { p.qualitySetting = it.coerceIn(-1, 2) }
-                    "orbitLocked" -> p.orbitLocked = value == "1"
                     "headphoneTip" -> p.seenHeadphoneTip = value == "1"
                     "controlsTip" -> p.seenControlsTip = value == "1"
-                    "rawPlayback" -> p.rawPlayback = value == "1"
                     "lastBall" -> value.toIntOrNull()?.let { p.lastBallId = it.coerceAtLeast(0) }
                 }
             }

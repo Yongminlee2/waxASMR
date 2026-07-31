@@ -14,14 +14,11 @@
     <string name="home_start">はじめる</string>
     <string name="home_tagline">手のひらに乗せて握って砕こう</string>
     <string name="settings_haptics">振動</string>
-    <string name="settings_orbit_lock">回転ロック</string>
     <string name="settings_quality">画質</string>
     <string name="settings_quality_auto">自動</string>
     <string name="settings_quality_high">高</string>
     <string name="settings_quality_low">低</string>
     <string name="settings_quality_medium">中</string>
-    <string name="settings_raw_hint">破片に分けず録音をそのまま再生します。音の比較用です。</string>
-    <string name="settings_raw_playback">録音をそのまま再生</string>
     <string name="settings_reset">データを全て消去</string>
     <string name="settings_reset_confirm">設定と最後に選んだボールが初期化されます。元に戻せません。</string>
     <string name="settings_reset_done">データを消去しました。</string>

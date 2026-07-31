@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">왁뿌볼 ASMR</string>
+
+    <string name="back">나가기</string>
+    <string name="cancel">취소</string>
+
+    <string name="home_balls">볼 고르기</string>
+    <string name="home_tagline">손바닥에 올려놓고 쥐어서 부수세요</string>
+    <string name="home_start">시작하기</string>
+    <string name="home_settings">설정</string>
+
+    <string name="settings_title">설정</string>
+    <string name="settings_haptics">진동</string>
+    <string name="settings_volume">음량</string>
+    <string name="settings_quality">화질</string>
+    <string name="settings_quality_auto">자동</string>
+    <string name="settings_quality_low">낮음</string>
+    <string name="settings_quality_medium">보통</string>
+    <string name="settings_quality_high">높음</string>
+    <string name="settings_reset">기록 전부 지우기</string>
+    <string name="settings_reset_confirm">설정과 마지막으로 고른 볼이 초기화됩니다. 되돌릴 수 없습니다.</string>
+    <string name="settings_reset_done">기록을 지웠습니다.</string>
+
+    <string name="ar_show_palm">손바닥을 펴서 카메라에 보여주세요</string>
+    <string name="ar_squeeze">손을 쥐어서 부수세요</string>
+    <string name="ar_no_camera">카메라를 쓸 수 없어 손바닥 모드를 열 수 없습니다</string>
+    <string name="ar_permission_needed">카메라 권한이 있어야 손바닥에 올릴 수 있습니다</string>
+    <string name="ar_count">공 %d개</string>
+    <string name="ar_refresh">새로고침</string>
+
+    <string name="language_picker_cd">언어 선택</string>
+    <string name="language_picker_title">언어 선택</string>
+    <string name="language_follow_system">기기 언어 따르기</string>
+</resources>

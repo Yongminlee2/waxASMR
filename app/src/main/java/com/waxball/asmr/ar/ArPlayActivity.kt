@@ -141,7 +141,7 @@ class ArPlayActivity : AppCompatActivity() {
      */
     private fun buildBallPicker(progress: com.waxball.asmr.core.Progress) {
         binding.arBallList.removeAllViews()
-        val unlocked = BallCatalog.all.filter { progress.isUnlocked(it.id) }
+        val unlocked = BallCatalog.displayOrder.filter { progress.isUnlocked(it.id) }
 
         for (candidate in unlocked) {
             // 홈과 같은 "실제 볼 모습" 썸네일. 색 원만으로는 무슨 볼인지 안 보인다.
@@ -195,7 +195,6 @@ class ArPlayActivity : AppCompatActivity() {
         binding.arView.onResume()
         audio.setProfile(spec.soundProfile())
         audio.setMaterial(spec.material.bank)
-        audio.setRawPlayback(PrefsProgressStore(this).load().rawPlayback)
         audio.start()
     }
 

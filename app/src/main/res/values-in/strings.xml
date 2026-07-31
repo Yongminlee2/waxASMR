@@ -14,14 +14,11 @@
     <string name="home_start">Mulai</string>
     <string name="home_tagline">Letakkan di telapak tangan lalu genggam</string>
     <string name="settings_haptics">Getaran</string>
-    <string name="settings_orbit_lock">Kunci putaran</string>
     <string name="settings_quality">Kualitas</string>
     <string name="settings_quality_auto">Otomatis</string>
     <string name="settings_quality_high">Tinggi</string>
     <string name="settings_quality_low">Rendah</string>
     <string name="settings_quality_medium">Sedang</string>
-    <string name="settings_raw_hint">Memutar rekaman asli utuh, bukan potongan-potongan. Untuk membandingkan suara.</string>
-    <string name="settings_raw_playback">Putar rekaman asli</string>
     <string name="settings_reset">Hapus semua data</string>
     <string name="settings_reset_confirm">Pengaturan dan bola terakhir yang dipilih akan direset. Tidak bisa dibatalkan.</string>
     <string name="settings_reset_done">Data telah dihapus.</string>

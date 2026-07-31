@@ -14,14 +14,11 @@
     <string name="home_start">Start</string>
     <string name="home_tagline">Auf die Handfläche legen und drücken</string>
     <string name="settings_haptics">Vibration</string>
-    <string name="settings_orbit_lock">Drehen sperren</string>
     <string name="settings_quality">Qualität</string>
     <string name="settings_quality_auto">Automatisch</string>
     <string name="settings_quality_high">Hoch</string>
     <string name="settings_quality_low">Niedrig</string>
     <string name="settings_quality_medium">Mittel</string>
-    <string name="settings_raw_hint">Spielt die Originalaufnahme statt Bruchstücken ab. Zum Klangvergleich.</string>
-    <string name="settings_raw_playback">Originalaufnahme abspielen</string>
     <string name="settings_reset">Alle Daten löschen</string>
     <string name="settings_reset_confirm">Einstellungen und der zuletzt gewählte Ball werden zurückgesetzt. Das kann nicht rückgängig gemacht werden.</string>
     <string name="settings_reset_done">Daten gelöscht.</string>
