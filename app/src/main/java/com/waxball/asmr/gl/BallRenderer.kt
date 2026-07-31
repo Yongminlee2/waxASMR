@@ -609,6 +609,8 @@ class BallRenderer : GLSurfaceView.Renderer {
         GLES30.glUniform1i(GLES30.glGetUniformLocation(coreProgram, "uClayCount"), clayCount)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayMix"), clayMix)
         GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClaySeed"), claySeed)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayStir"), squashAmount)
+        GLES30.glUniform1f(GLES30.glGetUniformLocation(coreProgram, "uClayTime"), surfaceTime)
         // 배율은 반죽된 속살에만 1보다 크다. 납작해지는 쪽은 밑이 남게 잘라 둔다.
         val sx = 1f + 0.10f * squashAmount * squashMul
         val sz = (1f - 0.30f * squashAmount * squashMul).coerceAtLeast(0.45f)

@@ -360,6 +360,10 @@ uniform int uClayCount;
 uniform float uClayMix;
 uniform float uClaySeed;
 
+/** 지금 쥐는 세기(0~1)와 시간. 주무르는 동안 무늬가 휘저어지는 데 쓴다. */
+uniform float uClayStir;
+uniform float uClayTime;
+
 out vec4 fragColor;
 
 float claynoise(vec3 p) {
@@ -369,13 +373,22 @@ float claynoise(vec3 p) {
 
 /** 색 덩어리 소프트맥스. 뾰족할수록(k↑) 경계가 뚜렷하고, k=0이면 전부 평균이 된다. */
 vec3 clay(vec3 dir) {
+    // 경계만 흐려지면 "섞인다"가 아니라 "바랜다"로 보인다. 진짜 반죽처럼
+    // 치댈수록 무늬 자체가 높이에 따라 비틀려 감기고(스미어), 쥐는 동안에는
+    // 살짝 휘저어져야 손이 반죽을 젓고 있다는 느낌이 든다.
+    float ang = uClayMix * 5.0 * dir.y
+              + uClayStir * sin(uClayTime * 2.4 + dir.y * 4.0) * 0.35;
+    float c = cos(ang);
+    float s = sin(ang);
+    dir = vec3(c * dir.x + s * dir.z, dir.y, -s * dir.x + c * dir.z);
+
     vec3 axes[4];
     axes[0] = vec3(0.577, 0.577, 0.577);
     axes[1] = vec3(0.577, -0.577, -0.577);
     axes[2] = vec3(-0.577, 0.577, -0.577);
     axes[3] = vec3(-0.577, -0.577, 0.577);
 
-    float k = mix(7.0, 0.0, clamp(uClayMix, 0.0, 1.0));
+    float k = mix(6.0, 0.0, clamp(uClayMix, 0.0, 1.0));
     float fs[4];
     float fmax = -10.0;
     for (int i = 0; i < uClayCount; i++) {

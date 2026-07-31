@@ -67,7 +67,12 @@ class ArPlayActivity : AppCompatActivity() {
         private const val SQUEEZE_CONTACT_COS = -1f
 
         /** 치댈수록 조각이 속살에 섞이는 속도. 힘 2로 6초쯤 주무르면 다 섞인다. */
-        private const val KNEAD_RATE = 0.18f
+        /**
+         * 쥠 변화량 1(완전히 쥐거나 완전히 펴는 것)마다 쌓이는 반죽.
+         * 한 번 쥐었다 폈다 = 변화량 약 2. 부서진 바닥값 0.45에서 시작하면
+         * 두 번쯤 주무르면 다 섞인다. 펴는 동작도 치대는 것으로 친다.
+         */
+        private const val KNEAD_PER_GRIP = 0.14f
 
     }
 
@@ -277,6 +282,7 @@ class ArPlayActivity : AppCompatActivity() {
     private var prevHandX = 0f
     private var prevHandY = 0f
     private var prevHandValid = false
+    private var prevGrip = 0f
 
     private fun onFrame(dt: Float) {
         if (scenes.isEmpty()) return
@@ -314,6 +320,15 @@ class ArPlayActivity : AppCompatActivity() {
                     (pose.centerY - prevHandY) * ROLL_GAIN * damp,
                 )
             }
+            // 쥐었다 폈다 두 방향 모두 치대는 동작이다. 쥘 때만 세면
+            // "주물럭거리는데 색이 안 변한다"가 된다. 손을 다시 잡은 첫 프레임은
+            // 이전 값이 낡아서 건너뛴다.
+            val gripDelta = if (prevHandValid) kotlin.math.abs(grip - prevGrip) else 0f
+            prevGrip = grip
+            for (s in scenes) {
+                if (s.model.detachedCount > 0) s.debris.addKnead(gripDelta * KNEAD_PER_GRIP)
+            }
+
             prevHandX = pose.centerX
             prevHandY = pose.centerY
             prevHandValid = true
@@ -333,9 +348,6 @@ class ArPlayActivity : AppCompatActivity() {
                     // 주무르는 동안에는 늘 소리가 흘러야 한다. 문지름 이벤트가
                     // 깔개 녹음을 살리고, 조용할 때는 바스락 덩어리도 하나 얹는다.
                     s.model.rub(pose.force / 4f, 0f)
-                    // 껍질이 다 깨진 뒤에도 계속 치대면 조각이 속살에 반죽되어
-                    // 색이 섞인다. 영상에서 조각과 속이 합쳐지며 색이 바뀌는 그것이다.
-                    if (s.model.detachedCount > 0) s.debris.addKnead(pose.force * dt * KNEAD_RATE)
                     broken += DebrisSpawner.spawnFreshlyDetached(s, renderer.ballRotation)
                 }
                 if (broken > 0f) {
