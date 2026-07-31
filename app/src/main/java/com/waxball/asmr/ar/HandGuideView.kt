@@ -75,11 +75,11 @@ class HandGuideView @JvmOverloads constructor(
         handPath.op(capsule(69f, 20f, 82f, 70f, 6.5f), Path.Op.UNION)
         handPath.op(capsule(88f, 36f, 101f, 70f, 6.5f), Path.Op.UNION)
 
-        // 엄지는 손바닥 왼쪽에서 비스듬히 뻗는다. 세워 만든 뒤 붙는 자리를 축으로 돌린다.
-        // 축이 손바닥 안쪽(42)이라야 돌린 뒤에도 겹쳐서 하나로 합쳐진다. 가장자리에
-        // 두면 엄지가 떨어져 나가 허공에 뜬 점선이 된다.
-        val thumb = capsule(20f, 68f, 42f, 120f, 11f)
-        thumb.transform(Matrix().apply { setRotate(32f, 42f, 74f) })
+        // 엄지는 손바닥 왼쪽에서 위-바깥으로 뻗는다. 편 손은 엄지도 같이 올라간다.
+        // 세워 만든 뒤 손바닥 안쪽(42, 88)을 축으로 반시계로 돌린다. 축을 가장자리에
+        // 두면 돌린 엄지가 손바닥에서 떨어져 허공에 뜬 점선이 된다.
+        val thumb = capsule(20f, 40f, 42f, 95f, 11f)
+        thumb.transform(Matrix().apply { setRotate(-35f, 42f, 88f) })
         handPath.op(thumb, Path.Op.UNION)
 
         handPath.computeBounds(bounds, true)
@@ -99,17 +99,19 @@ class HandGuideView @JvmOverloads constructor(
         handPath.transform(matrix, scaled)
 
         val handWidth = bounds.width() * scale
-        val dash = handWidth * 0.035f
+        // 점 사이를 점 길이보다 넓게 띄운다. 촘촘하면 실선처럼 뭉쳐 보인다.
+        val dash = handWidth * 0.022f
+        val gap = handWidth * 0.040f
         if (startedAt == 0L) startedAt = SystemClock.uptimeMillis()
         // 점선이 천천히 흐르면 "여기에 대라"는 신호로 읽힌다. 빠르면 눈이 피곤하다.
-        val phase = ((SystemClock.uptimeMillis() - startedAt) % 4000L) / 4000f * (dash * 2f)
-        val effect = DashPathEffect(floatArrayOf(dash, dash), -phase)
+        val phase = ((SystemClock.uptimeMillis() - startedAt) % 4000L) / 4000f * (dash + gap)
+        val effect = DashPathEffect(floatArrayOf(dash, gap), -phase)
 
-        outline.strokeWidth = handWidth * 0.030f
+        outline.strokeWidth = handWidth * 0.020f
         outline.pathEffect = effect
         canvas.drawPath(scaled, outline)
 
-        dashes.strokeWidth = handWidth * 0.018f
+        dashes.strokeWidth = handWidth * 0.011f
         dashes.pathEffect = effect
         canvas.drawPath(scaled, dashes)
 
