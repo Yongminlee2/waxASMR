@@ -174,13 +174,19 @@ Tiếng Việt – vi
 
 ## 5. 스토어 문구 (12개 언어)
 
-앱 이름은 브랜드라서 한국어·일본어·중국어만 현지 문자로 쓰고 나머지는 로마자 그대로 둔다.
+앱 이름은 브랜드 뒤에 **AR·ASMR** 같은 검색어를 붙인 형태로 통일했다. 검색으로 앱을
+찾는 사람에게 걸리게 하기 위해서다. 한국어·일본어·중국어만 브랜드를 현지 문자로 쓰고
+나머지는 로마자로 둔다. 12개 전부 30자 제한 안이다.
+
+> **언어 바꾸는 법:** 등록정보 화면 위쪽의 **"기본값 – 한국어 – ko-KR"** 드롭다운을
+> 누르면 추가해 둔 언어가 나온다. 고르면 그 언어용 빈 화면이 뜨고, 거기에 아래
+> 해당 언어 문단을 붙여넣으면 된다. 목록에 없는 언어는 4번(번역 관리)에서 먼저 추가한다.
 
 ### 한국어 (ko-KR) — 기본
 
 **앱 이름**
 ```
-왁뿌볼 ASMR
+왁뿌볼 - 증강현실 AR·ASMR
 ```
 **간단한 설명**
 ```
@@ -219,7 +225,7 @@ Tiếng Việt – vi
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - AR ASMR Squishy
 ```
 **간단한 설명**
 ```
@@ -259,7 +265,7 @@ Camera permission is required. The app still opens if you decline.
 
 **앱 이름**
 ```
-ワックスボール ASMR
+ワックスボール - AR ASMR
 ```
 **간단한 설명**
 ```
@@ -299,7 +305,7 @@ Camera permission is required. The app still opens if you decline.
 
 **앱 이름**
 ```
-捏蜡球 ASMR
+捏蜡球 - AR ASMR 解压
 ```
 **간단한 설명**
 ```
@@ -338,7 +344,7 @@ Camera permission is required. The app still opens if you decline.
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - ASMR en RA
 ```
 **간단한 설명**
 ```
@@ -379,7 +385,7 @@ Se necesita permiso de cámara. La aplicación se abre igualmente si lo rechazas
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - ASMR em RA
 ```
 **간단한 설명**
 ```
@@ -420,7 +426,7 @@ russo, indonésio, vietnamita e tailandês.
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - AR ASMR Knete
 ```
 **간단한 설명**
 ```
@@ -461,7 +467,7 @@ Kamerazugriff wird benötigt. Die App startet auch, wenn du ihn ablehnst.
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - ASMR en RA
 ```
 **간단한 설명**
 ```
@@ -503,7 +509,7 @@ L'accès à la caméra est requis. L'application s'ouvre même si tu le refuses.
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - AR ASMR антистресс
 ```
 **간단한 설명**
 ```
@@ -545,7 +551,7 @@ WaxBall ASMR
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - ASMR AR Squishy
 ```
 **간단한 설명**
 ```
@@ -587,7 +593,7 @@ Izin kamera diperlukan. Aplikasi tetap terbuka jika Anda menolaknya.
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - ASMR AR bóp dẻo
 ```
 **간단한 설명**
 ```
@@ -629,7 +635,7 @@ Cần quyền camera. Ứng dụng vẫn mở được nếu bạn từ chối.
 
 **앱 이름**
 ```
-WaxBall ASMR
+WaxBall - ASMR AR บีบคลาย
 ```
 **간단한 설명**
 ```
