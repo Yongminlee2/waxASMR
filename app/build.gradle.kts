@@ -24,8 +24,9 @@ android {
         applicationId = "com.waxball.asmr"
         minSdk = 26
         targetSdk = 36
-        // 1번은 인터넷 권한이 남아 있던 빌드로 콘솔에 이미 올라갔다. 콘솔은 같은
+        // 1번은 인터넷 권한이 남아 있던 빌드로 콘솔이 이미 받아 갔다. 콘솔은 같은
         // 번호를 두 번 받지 않으므로, 내용을 고쳐 다시 올릴 때마다 이 값을 올린다.
+        // 지금 출시 중인 것이 2번이다.
         versionCode = 2
         versionName = "1.0"
 
@@ -57,6 +58,11 @@ android {
             // 키가 없으면 서명을 붙이지 않는다. 디버그 키로 서명하면 겉보기에는
             // 릴리즈 빌드가 되지만 스토어가 받아 주지 않는다.
             signingConfig = if (hasReleaseKey) signingConfigs.getByName("release") else null
+
+            // 콘솔이 "네이티브 디버그 기호가 없다"고 경고하지만 없앨 수 없다.
+            // debugSymbolLevel 을 켜 봐도 아무것도 안 실린다 — 구글이 배포하는
+            // libmediapipe_tasks_vision_jni.so 가 이미 스트립되어 .symtab 도
+            // 디버그 섹션도 없기 때문이다. 우리가 짠 네이티브 코드는 없다.
         }
     }
 
