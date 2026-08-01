@@ -59,6 +59,24 @@ https://yongminlee2.github.io/legal/waxball/privacy.html
 
 > 나중에 광고 해금을 붙이면 이 답을 **예**로 바꾸고 개인정보처리방침도 고쳐야 한다.
 
+### 2-3b. 광고 ID
+targetSdk 가 33 이상이면 이 선언을 채우기 전에는 출시 버튼이 잠긴다.
+버전 만들기 화면에 **"광고 ID 선언을 작성해야 합니다"** 경고로 뜨는 것이 이것이다.
+
+→ **아니요, 앱에서 광고 ID를 사용하지 않습니다.**
+
+빌드에 `com.google.android.gms.permission.AD_ID` 권한이 없다는 것을 확인하고 답한 것이다.
+병합된 매니페스트의 권한은 `VIBRATE`, `CAMERA` 둘뿐이다. 직접 확인하려면:
+
+```
+아래 파일에서 uses-permission 줄을 본다
+app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+```
+
+> MediaPipe 가 딸고 오던 `INTERNET`·`ACCESS_NETWORK_STATE` 는 매니페스트에서
+> `tools:node="remove"` 로 걷어냈다. 개인정보처리방침에 "인터넷 권한이 없다"고
+> 적어 두었으므로, 라이브러리를 올릴 때마다 권한 목록이 그대로인지 확인해야 한다.
+
 ### 2-4. 콘텐츠 등급
 **설문 시작** → 이메일 입력 → 카테고리 **유틸리티, 생산성, 커뮤니케이션, 기타** 선택.
 이후 질문은 전부 **아니요**:
@@ -201,7 +219,7 @@ Tiếng Việt – vi
 직접 녹음한 왁뿌볼 소리를 씁니다. 합성음이 아니라 실제로 부술 때 나는
 "빠자자작" 소리를 재질별로 나눠 담았습니다. 이어폰을 끼면 더 좋습니다.
 
-■ 볼 36종
+■ 볼 42종
 지구·목성·토성 같은 실제 행성부터 농구공·주사위·판다·고양이,
 그리고 파스텔 색이 섞인 반죽볼까지. 볼마다 소리가 다릅니다.
 
@@ -240,7 +258,7 @@ Squeeze your hand and it crumbles, just as hard as you squeeze.
 Every crunch is a real recording, not synthesis. The crackle of an actual
 wax ball being crushed, sorted by material. Best with headphones.
 
-■ 36 balls
+■ 42 balls
 Real planets like Earth, Jupiter and Saturn, plus a basketball, a die,
 a panda, a cat, and pastel marbled dough balls. Each one sounds different.
 
@@ -281,7 +299,7 @@ Camera permission is required. The app still opens if you decline.
 本当に砕くときの「パチパチ」という音を素材ごとに収めました。
 イヤホンで聴くとより楽しめます。
 
-■ ボール36種
+■ ボール42種
 地球・木星・土星などの実在の惑星から、バスケットボール・サイコロ・
 パンダ・ねこ、パステル色が混ざった粘土ボールまで。音はそれぞれ違います。
 
@@ -320,7 +338,7 @@ Camera permission is required. The app still opens if you decline.
 使用亲手录制的蜡球声音，不是合成音。真正捏碎时那种"噼里啪啦"的
 声音，按材质分类收录。戴上耳机效果更好。
 
-■ 36种球
+■ 42种球
 从地球、木星、土星等真实行星，到篮球、骰子、熊猫、小猫，
 以及混着粉彩色的黏土球。每一种的声音都不一样。
 
@@ -359,7 +377,7 @@ Aprieta la mano y se desmorona, tanto como aprietes.
 Cada crujido es una grabación real, no síntesis. El chasquido de una bola
 de cera al romperse, clasificado por material. Mejor con auriculares.
 
-■ 36 bolas
+■ 42 bolas
 Planetas reales como la Tierra, Júpiter y Saturno, además de un balón de
 baloncesto, un dado, un panda, un gato y bolas de masa con vetas pastel.
 Cada una suena distinta.
@@ -400,7 +418,7 @@ Aperte a mão e ela se desfaz, na medida em que você aperta.
 Cada estalo é uma gravação real, não sintetizada. O crepitar de uma bola de
 cera sendo esmagada, separado por material. Melhor com fones de ouvido.
 
-■ 36 bolas
+■ 42 bolas
 Planetas reais como Terra, Júpiter e Saturno, além de bola de basquete,
 dado, panda, gato e massinhas com veios em tons pastel.
 Cada uma soa diferente.
@@ -441,7 +459,7 @@ Ballst du die Hand, zerbröselt er – genau so stark, wie du drückst.
 Jedes Knacken ist eine echte Aufnahme, keine Synthese. Das Knistern eines
 zerdrückten Wachsballs, nach Material sortiert. Am besten mit Kopfhörern.
 
-■ 36 Bälle
+■ 42 Bälle
 Echte Planeten wie Erde, Jupiter und Saturn, dazu ein Basketball, ein Würfel,
 ein Panda, eine Katze und Knetbälle mit Pastellmarmorierung.
 Jeder klingt anders.
@@ -483,7 +501,7 @@ Chaque craquement est un vrai enregistrement, pas une synthèse. Le
 crépitement d'une boule de cire que l'on écrase, trié par matière.
 Encore mieux au casque.
 
-■ 36 boules
+■ 42 boules
 De vraies planètes comme la Terre, Jupiter et Saturne, mais aussi un ballon
 de basket, un dé, un panda, un chat et des boules de pâte marbrée pastel.
 Chacune sonne différemment.
@@ -525,7 +543,7 @@ WaxBall - AR ASMR антистресс
 раздавленного воскового шарика, разложенный по материалам.
 В наушниках звучит лучше.
 
-■ 36 шариков
+■ 42 шариков
 Настоящие планеты — Земля, Юпитер, Сатурн, а также баскетбольный мяч,
 кубик, панда, котик и шарики из пастельной мраморной массы.
 Каждый звучит по-своему.
@@ -567,7 +585,7 @@ Setiap bunyi retak adalah rekaman nyata, bukan sintesis. Bunyi bola lilin
 yang benar-benar diremukkan, dikelompokkan menurut bahannya.
 Lebih nikmat dengan earphone.
 
-■ 36 bola
+■ 42 bola
 Planet sungguhan seperti Bumi, Jupiter, dan Saturnus, ditambah bola basket,
 dadu, panda, kucing, serta bola adonan bermarmer warna pastel.
 Bunyinya berbeda-beda.
@@ -609,7 +627,7 @@ Mỗi tiếng rắc đều là bản thu thật, không phải âm tổng hợp.
 quả bóng sáp bị bóp vỡ, được phân loại theo từng chất liệu.
 Nghe bằng tai nghe sẽ hay hơn.
 
-■ 36 quả bóng
+■ 42 quả bóng
 Từ những hành tinh có thật như Trái Đất, Sao Mộc, Sao Thổ, đến bóng rổ,
 xúc xắc, gấu trúc, mèo và những quả đất nặn vân màu pastel.
 Mỗi quả một âm thanh khác nhau.
@@ -651,7 +669,7 @@ WaxBall - ASMR AR บีบคลาย
 ลูกบอลขี้ผึ้งที่ถูกบีบจริง ๆ แยกตามชนิดของวัสดุ
 ฟังผ่านหูฟังจะได้อรรถรสมากขึ้น
 
-■ ลูกบอล 36 แบบ
+■ ลูกบอล 42 แบบ
 ตั้งแต่ดาวเคราะห์จริงอย่างโลก ดาวพฤหัสบดี ดาวเสาร์ ไปจนถึงลูกบาสเกตบอล
 ลูกเต๋า แพนด้า แมว และลูกแป้งโดว์ลายหินอ่อนสีพาสเทล
 แต่ละแบบมีเสียงต่างกัน
@@ -700,12 +718,12 @@ WaxBall - ASMR AR บีบคลาย
 **출시 노트 예시** (한국어 칸):
 ```
 첫 출시입니다.
-손바닥에 왁스볼을 올려놓고 쥐어서 부수세요. 볼 36종, 12개 언어를 지원합니다.
+손바닥에 왁스볼을 올려놓고 쥐어서 부수세요. 볼 42종, 12개 언어를 지원합니다.
 ```
 영어 칸:
 ```
 First release.
-Rest a wax ball on your palm and squeeze it. 36 balls, 12 languages.
+Rest a wax ball on your palm and squeeze it. 42 balls, 12 languages.
 ```
 
 ---
@@ -728,6 +746,7 @@ Rest a wax ball on your palm and squeeze it. 36 balls, 12 languages.
 - [ ] 2-1. 개인정보처리방침 URL
 - [ ] 2-2. 앱 액세스 권한 (제한 없음)
 - [ ] 2-3. 광고 (없음)
+- [ ] 2-3b. 광고 ID (사용 안 함)
 - [ ] 2-4. 콘텐츠 등급 설문
 - [ ] 2-5. 타겟층 (13세 이상)
 - [ ] 2-6. 데이터 보안 (수집 안 함)
