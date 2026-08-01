@@ -23,15 +23,35 @@ CROP_TOP, CROP_BOTTOM = 110, 2270  # 상태바·내비바를 걷어낸 자리
 INK = (74, 50, 56)
 SUB = (150, 122, 132)
 
-# (원본 번호, 파일 이름, 첫 줄, 둘째 줄)
-PICK = [
-    (0, "01-palm",    "손바닥에 올려놓고", "쥐어서 부수세요"),
-    (1, "02-squeeze", "쥔 만큼 부서집니다", "직접 녹음한 진짜 소리"),
-    (3, "03-dough",   "다 부순 뒤가 진짜", "주무를수록 색이 섞여요"),
-    (6, "04-home",    "왁뿌볼 42종", "행성부터 캐릭터까지"),
-    (7, "05-guide",   "점선에 손을 맞추면", "바로 올라옵니다"),
-    (5, "06-shape",   "손 모양 그대로", "볼도 함께 눌립니다"),
+# (원본 번호, 파일 이름)
+SHOTS = [
+    (0, "01-palm"), (1, "02-squeeze"), (3, "03-dough"),
+    (6, "04-home"), (7, "05-guide"), (5, "06-shape"),
 ]
+
+# 언어별 문구. 사진은 그대로 두고 글자만 바꾼다 — 다시 찍을 필요가 없다.
+#
+# 콘솔은 언어마다 스크린샷을 따로 받지만, 안 넣으면 기본 언어 것을 쓴다.
+# 12개 언어를 다 만들면 72장을 손으로 올려야 해서, 한국어와 영어 두 벌만 둔다.
+# 한국어 외 11개 언어에는 영어 벌을 올린다.
+CAPTIONS = {
+    "ko": [
+        ("손바닥에 올려놓고", "쥐어서 부수세요"),
+        ("쥔 만큼 부서집니다", "직접 녹음한 진짜 소리"),
+        ("다 부순 뒤가 진짜", "주무를수록 색이 섞여요"),
+        ("왁뿌볼 42종", "행성부터 캐릭터까지"),
+        ("점선에 손을 맞추면", "바로 올라옵니다"),
+        ("손 모양 그대로", "볼도 함께 눌립니다"),
+    ],
+    "en": [
+        ("Rest it on your palm", "and squeeze"),
+        ("It breaks as hard as you squeeze", "Real recorded sounds"),
+        ("The best part comes after", "Keep kneading, colours blend"),
+        ("42 balls", "From planets to characters"),
+        ("Match the dotted outline", "and it lands on your hand"),
+        ("It follows your hand", "The ball squashes with you"),
+    ],
+}
 
 
 def gradient():
@@ -57,37 +77,49 @@ def rounded_shadow(img, radius, blur, offset, alpha):
     return img, m, sh
 
 
+def fit(draw, text, font_path, start_size, max_width):
+    """글자가 폭을 넘으면 크기를 줄인다. 영어 문구가 한국어보다 길다."""
+    size = start_size
+    while size > 30:
+        f = ImageFont.truetype(font_path, size)
+        if draw.textlength(text, font=f) <= max_width:
+            return f
+        size -= 3
+    return ImageFont.truetype(font_path, size)
+
+
 def main():
     files = sorted(f for f in glob.glob(os.path.join(SRC, "*"))
                    if f.lower().endswith((".jpg", ".jpeg", ".png")))
-    big = ImageFont.truetype(FONT_BD, 76)
-    small = ImageFont.truetype(FONT_RG, 52)
     bg0 = gradient()
 
-    for idx, name, line1, line2 in PICK:
-        shot = Image.open(files[idx]).convert("RGB").crop(
-            (0, CROP_TOP, 1080, CROP_BOTTOM))
+    for lang, lines in CAPTIONS.items():
+        out_dir = os.path.join(OUT, lang)
+        os.makedirs(out_dir, exist_ok=True)
+        for (idx, name), (line1, line2) in zip(SHOTS, lines):
+            shot = Image.open(files[idx]).convert("RGB").crop(
+                (0, CROP_TOP, 1080, CROP_BOTTOM))
 
-        canvas = bg0.copy()
-        d = ImageDraw.Draw(canvas)
+            canvas = bg0.copy()
+            d = ImageDraw.Draw(canvas)
 
-        # 문구
-        d.text((W // 2, 150), line1, font=big, fill=INK, anchor="mt")
-        d.text((W // 2, 258), line2, font=small, fill=SUB, anchor="mt")
+            big = fit(d, line1, FONT_BD, 76, W - 130)
+            small = fit(d, line2, FONT_RG, 52, W - 150)
+            d.text((W // 2, 150), line1, font=big, fill=INK, anchor="mt")
+            d.text((W // 2, 258), line2, font=small, fill=SUB, anchor="mt")
 
-        # 화면: 폭 78%로 줄여 앉힌다
-        sw = int(W * 0.78)
-        sh_h = int(shot.height * sw / shot.width)
-        small_shot = shot.resize((sw, sh_h), Image.LANCZOS)
-        img, mask, shadow = rounded_shadow(small_shot, 44, 26, 16, 0.30)
+            # 화면: 폭 78%로 줄여 앉힌다
+            sw = int(W * 0.78)
+            sh_h = int(shot.height * sw / shot.width)
+            img, mask, shadow = rounded_shadow(
+                shot.resize((sw, sh_h), Image.LANCZOS), 44, 26, 16, 0.30)
 
-        x = (W - sw) // 2
-        y = 380
-        canvas.paste((120, 92, 104), (x - 52, y - 52), shadow)
-        canvas.paste(img, (x, y), mask)
+            x, y = (W - sw) // 2, 380
+            canvas.paste((120, 92, 104), (x - 52, y - 52), shadow)
+            canvas.paste(img, (x, y), mask)
 
-        canvas.save(os.path.join(OUT, name + ".png"))
-        print(f"  {name:12s} {canvas.size}  {line1} / {line2}")
+            canvas.save(os.path.join(out_dir, name + ".png"))
+            print(f"  {lang}/{name:12s} {canvas.size}  {line1} / {line2}")
 
 
 if __name__ == "__main__":
