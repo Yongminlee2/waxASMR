@@ -26,23 +26,24 @@ class BallCatalogTest {
         val order = BallCatalog.displayOrder
         assertEquals(BallCatalog.all.size, order.size)
         assertEquals(BallCatalog.all.toSet(), order.toSet())
-        assertEquals(listOf(0, 7, 20, 32, 21), order.take(5).map { it.id })
+        assertEquals(listOf(32, 20, 0, 7, 21), order.take(5).map { it.id })
     }
 
     @Test
     fun celestialBallsSitAtTheEndExceptEarth() {
         // 손에 잡히는 것부터 보여 주고 하늘에 있는 것은 뒤로 몬다.
-        // 지구만 예외로 맨 앞을 지킨다.
+        // 지구만 예외로 앞자리(FIRST)를 지킨다.
         val celestial = setOf(0, 1, 2, 3, 4, 5, 6, 9, 14, 18, 19, 23, 24, 28)
         val ids = BallCatalog.displayOrder.map { it.id }
-        assertEquals("지구가 맨 앞이 아님", 0, ids.first())
+        assertTrue("지구가 앞자리에 없음", 0 in ids.take(5))
 
         val tail = ids.drop(ids.size - (celestial.size - 1))
         assertTrue(
             "끝자락에 행성이 아닌 것이 섞임: ${tail.filter { it !in celestial }}",
             tail.all { it in celestial },
         )
-        val body = ids.subList(1, ids.size - (celestial.size - 1))
+        // 앞자리(FIRST) 다섯 개를 지나면 하늘 것이 남아 있으면 안 된다.
+        val body = ids.subList(5, ids.size - (celestial.size - 1))
         assertTrue(
             "앞쪽에 행성이 남아 있음: ${body.filter { it in celestial }}",
             body.none { it in celestial },

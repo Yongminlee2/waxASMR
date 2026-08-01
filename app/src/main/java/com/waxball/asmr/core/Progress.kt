@@ -17,7 +17,7 @@ class Progress private constructor() {
     val missionIds: MutableList<Int> = ArrayList()
     val missionDone: MutableSet<Int> = HashSet()
 
-    var hapticsOn: Boolean = true
+    var hapticsOn: Boolean = false
     var volume: Float = 0.85f
 
     /** -1이면 기기 성능을 재서 자동으로 정한다. 0=낮음 1=보통 2=높음. */
