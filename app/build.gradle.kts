@@ -24,7 +24,9 @@ android {
         applicationId = "com.waxball.asmr"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+        // 1번은 인터넷 권한이 남아 있던 빌드로 콘솔에 이미 올라갔다. 콘솔은 같은
+        // 번호를 두 번 받지 않으므로, 내용을 고쳐 다시 올릴 때마다 이 값을 올린다.
+        versionCode = 2
         versionName = "1.0"
 
         // 손 인식 라이브러리가 아키텍처마다 네이티브 코드를 싣는다. 전부 담으면
