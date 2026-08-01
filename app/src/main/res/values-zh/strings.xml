@@ -66,6 +66,12 @@
         <item>葡萄黏土</item>
         <item>彩虹黏土</item>
         <item>糖果黏土</item>
+        <item>兔子</item>
+        <item>小狗</item>
+        <item>企鹅</item>
+        <item>老虎</item>
+        <item>考拉</item>
+        <item>鸭子</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>基准音色，干燥结实的咔嚓声</item>
@@ -104,6 +110,12 @@
         <item>迟钝又闷的咔哒声</item>
         <item>明亮细碎的沙沙声</item>
         <item>像糖玻璃一样清脆碎裂</item>
+        <item>软软地低声碎开</item>
+        <item>厚实干脆的咔嚓</item>
+        <item>沉甸甸的啵啵声</item>
+        <item>粗颗粒接连不断</item>
+        <item>小巧软糯的吱声</item>
+        <item>清脆响亮的碎裂</item>
     </string-array>
     <string-array name="material_labels">
         <item>硬蜡</item>

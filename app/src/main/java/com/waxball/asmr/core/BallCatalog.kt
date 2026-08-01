@@ -1,7 +1,7 @@
 package com.waxball.asmr.core
 
 /**
- * 볼 36종. 실사 지도가 있는 태양계 14종 + 장난감·캐릭터 16종 + 파스텔 반죽 6종.
+ * 볼 42종. 실사 태양계 14종 + 장난감·캐릭터 22종 + 파스텔 반죽 6종.
  *
  * 처음에는 30종 전부 태양계였는데, 사진이 없는 천체는 잡음 함수 무늬라 실사
  * 행성 옆에 서면 디테일 차이가 확 났다. 그래서 절차 무늬였던 자리를 전부
@@ -217,6 +217,39 @@ object BallCatalog {
             "설탕 유리처럼 쨍하게 부서진다", SurfaceKind.SPECKLE, 0xFFF0A048.toInt(),
             textureAsset = "ball_clay_candy.jpg",
             kneadColors = listOf(0xFFE86A6A.toInt(), 0xFFFDF3EE.toInt(), 0xFFF0A048.toInt(), 0xFF78C86A.toInt())),
+
+        // --- 캐릭터 얼굴 2차 ---
+        // 재질 조합은 기존 볼과 겹치지 않게 골라 "전부 다르게 들린다" 검증을 유지한다.
+        BallSpec(36, "토끼", SizeClass.L, Thickness.NORMAL, ShapeKind.SPHERE, Material.SOFT_WAX,
+            0xFFF7F3EE.toInt(), 0xFFE3D8D2.toInt(), 0xFFCBBDB6.toInt(), "🐰", 0,
+            "무르고 낮게 뭉개진다", SurfaceKind.SPECKLE, 0xFFF2B2C0.toInt(),
+            textureAsset = "ball_rabbit.jpg",
+            kneadColors = listOf(0xFFF7F3EE.toInt(), 0xFFF2B2C0.toInt())),
+        BallSpec(37, "강아지", SizeClass.M, Thickness.THICK, ShapeKind.SPHERE, Material.HARD_WAX,
+            0xFFE8C89A.toInt(), 0xFFC49A66.toInt(), 0xFF8E6A42.toInt(), "🐶", 0,
+            "두껍고 마른 빠작", SurfaceKind.SPECKLE, 0xFF7A5230.toInt(),
+            textureAsset = "ball_dog.jpg",
+            kneadColors = listOf(0xFFE8C89A.toInt(), 0xFF7A5230.toInt(), 0xFFFAF0E1.toInt())),
+        BallSpec(38, "펭귄", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.THICK_WAX,
+            0xFF2A2E38.toInt(), 0xFF3E4450.toInt(), 0xFF1A1D24.toInt(), "🐧", 0,
+            "묵직하게 뽀각뽀각", SurfaceKind.SPECKLE, 0xFFF5F7FA.toInt(),
+            textureAsset = "ball_penguin.jpg",
+            kneadColors = listOf(0xFF2A2E38.toInt(), 0xFFF5F7FA.toInt(), 0xFFF0963C.toInt())),
+        BallSpec(39, "호랑이", SizeClass.L, Thickness.NORMAL, ShapeKind.SPHERE, Material.CRUNCH_BEADS,
+            0xFFE8963C.toInt(), 0xFFB86E24.toInt(), 0xFF7A4614.toInt(), "🐯", 0,
+            "알갱이가 굵게 이어진다", SurfaceKind.SPECKLE, 0xFF28201A.toInt(),
+            textureAsset = "ball_tiger.jpg",
+            kneadColors = listOf(0xFFE8963C.toInt(), 0xFF28201A.toInt(), 0xFFFAF4EA.toInt())),
+        BallSpec(40, "코알라", SizeClass.S, Thickness.NORMAL, ShapeKind.SPHERE, Material.SQUISHY_WAX,
+            0xFFB9B4B8.toInt(), 0xFF968F94.toInt(), 0xFF6E686C.toInt(), "🐨", 0,
+            "작고 말랑한 뿌직", SurfaceKind.SPECKLE, 0xFFE8BEC8.toInt(),
+            textureAsset = "ball_koala.jpg",
+            kneadColors = listOf(0xFFB9B4B8.toInt(), 0xFFE8BEC8.toInt())),
+        BallSpec(41, "오리", SizeClass.M, Thickness.NORMAL, ShapeKind.SPHERE, Material.SUGAR_GLASS,
+            0xFFFAF6EC.toInt(), 0xFFE8DCC2.toInt(), 0xFFC8B896.toInt(), "🦆", 0,
+            "맑고 쨍한 챙그랑", SurfaceKind.SPECKLE, 0xFFF5A03C.toInt(),
+            textureAsset = "ball_duck.jpg",
+            kneadColors = listOf(0xFFFAF6EC.toInt(), 0xFFF5A03C.toInt())),
     )
 
     /** 전부 열려 있다. 코인으로 여는 것은 없앴다. */

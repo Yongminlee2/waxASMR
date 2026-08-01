@@ -66,6 +66,12 @@
         <item>Grape dough</item>
         <item>Rainbow dough</item>
         <item>Candy dough</item>
+        <item>Rabbit</item>
+        <item>Puppy</item>
+        <item>Penguin</item>
+        <item>Tiger</item>
+        <item>Koala</item>
+        <item>Duck</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>The reference sound. Dry, firm, crisp cracks</item>
@@ -104,6 +110,12 @@
         <item>Dull and muffled crunches</item>
         <item>Bright, fine crackling</item>
         <item>Sharp, clear cracks like sugar glass</item>
+        <item>Soft, low crumbling</item>
+        <item>Thick, dry cracks</item>
+        <item>Heavy, chunky pops</item>
+        <item>Coarse grains that keep going</item>
+        <item>Small and squishy creaks</item>
+        <item>Clear, ringing cracks</item>
     </string-array>
     <string-array name="material_labels">
         <item>Hard wax</item>

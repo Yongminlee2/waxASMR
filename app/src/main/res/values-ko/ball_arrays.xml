@@ -37,6 +37,12 @@
         <item>포도 반죽</item>
         <item>무지개 반죽</item>
         <item>사탕 반죽</item>
+        <item>토끼</item>
+        <item>강아지</item>
+        <item>펭귄</item>
+        <item>호랑이</item>
+        <item>코알라</item>
+        <item>오리</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>기준이 되는 소리. 마르고 단단한 빠작</item>
@@ -75,6 +81,12 @@
         <item>둔하고 먹먹한 뽀갹 뽀갹</item>
         <item>밝고 자잘한 사각사각</item>
         <item>설탕 유리처럼 쨍하게 부서진다</item>
+        <item>무르고 낮게 뭉개진다</item>
+        <item>두껍고 마른 빠작</item>
+        <item>묵직하게 뽀각뽀각</item>
+        <item>알갱이가 굵게 이어진다</item>
+        <item>작고 말랑한 뿌직</item>
+        <item>맑고 쨍한 챙그랑</item>
     </string-array>
     <string-array name="material_labels">
         <item>굳은 왁스</item>

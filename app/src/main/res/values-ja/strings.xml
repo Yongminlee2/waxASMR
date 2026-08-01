@@ -66,6 +66,12 @@
         <item>ぶどう粘土</item>
         <item>レインボー粘土</item>
         <item>キャンディー粘土</item>
+        <item>うさぎ</item>
+        <item>いぬ</item>
+        <item>ペンギン</item>
+        <item>とら</item>
+        <item>コアラ</item>
+        <item>あひる</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>基準となる音。乾いて硬いパキッという音</item>
@@ -104,6 +110,12 @@
         <item>鈍くこもったポコポコ音</item>
         <item>明るく細かいシャリシャリ</item>
         <item>砂糖ガラスのようにパリッと砕ける</item>
+        <item>柔らかく低くつぶれる</item>
+        <item>厚く乾いたパキッ</item>
+        <item>ずっしりポコポコ</item>
+        <item>粗い粒が続く</item>
+        <item>小さくぷにっと鳴る</item>
+        <item>澄んだ音でパリッ</item>
     </string-array>
     <string-array name="material_labels">
         <item>硬いワックス</item>

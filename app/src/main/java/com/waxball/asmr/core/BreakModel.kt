@@ -110,7 +110,10 @@ class BreakModel(
             val d = hit dot s.center
             if (d < radiusCos) continue
             val falloff = ((d - radiusCos) / span).coerceIn(0f, 1f)
-            press(s.id, force * (0.3f + 0.7f * falloff), dt, pan)
+            // 조각마다 버티는 힘이 다르다. 균일하게 누르면 모든 조각이 같은 쥐기에서
+            // 임계를 함께 넘어, 첫 쥐기엔 금만 가고 둘째 쥐기에 한꺼번에 전멸한다.
+            // 실제 왁뿌볼은 두께가 제각각이라 무른 데부터 차례로 떨어져 나간다.
+            press(s.id, force * (0.3f + 0.7f * falloff) * toughness(s.id), dt, pan)
         }
         endDetachBatch(pan)
     }
@@ -175,6 +178,18 @@ class BreakModel(
     }
 
     /** 손가락이 표면을 스치는 마찰음. 파괴와 별개로 계속 깔린다. */
+    /**
+     * 조각별로 다른 "버티는 힘" 0.45~1.0. 조각 번호에서 결정적으로 나온다 —
+     * 무작위면 같은 볼을 다시 만들 때마다 다른 자리가 무르게 된다.
+     */
+    private fun toughness(id: Int): Float {
+        var h = id * -0x61c88647
+        h = h xor (h ushr 16)
+        h *= -0x7ee3623b
+        h = h xor (h ushr 13)
+        return 0.45f + 0.55f * ((h ushr 8) and 0xFFFF) / 65536f
+    }
+
     fun rub(speed: Float, pan: Float) {
         if (speed <= 0.01f) return
         out.push(EventKind.RUB, -1, 0, min(1f, speed), pan, 0f)

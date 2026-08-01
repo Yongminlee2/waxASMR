@@ -66,6 +66,12 @@
         <item>แป้งโดว์องุ่น</item>
         <item>แป้งโดว์สายรุ้ง</item>
         <item>แป้งโดว์ลูกอม</item>
+        <item>กระต่าย</item>
+        <item>ลูกหมา</item>
+        <item>เพนกวิน</item>
+        <item>เสือ</item>
+        <item>โคอาลา</item>
+        <item>เป็ด</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>เสียงมาตรฐาน แตกกรอบแห้งและหนักแน่น</item>
@@ -104,6 +110,12 @@
         <item>แตกป็อก ๆ ทึบและอู้อี้</item>
         <item>แตกกรอบสว่างละเอียด</item>
         <item>แตกคมกรอบใสเหมือนแก้วน้ำตาล</item>
+        <item>บี้นุ่มเสียงทุ้ม</item>
+        <item>แตกแห้งและหนา</item>
+        <item>ป็อกหนักแน่น</item>
+        <item>เม็ดหยาบต่อเนื่อง</item>
+        <item>เอี๊ยดเล็กนุ่มนิ่ม</item>
+        <item>แตกใสกังวาน</item>
     </string-array>
     <string-array name="material_labels">
         <item>ขี้ผึ้งแข็ง</item>

@@ -66,6 +66,12 @@
         <item>Đất nặn nho</item>
         <item>Đất nặn cầu vồng</item>
         <item>Đất nặn kẹo</item>
+        <item>Thỏ</item>
+        <item>Cún con</item>
+        <item>Chim cánh cụt</item>
+        <item>Hổ</item>
+        <item>Gấu túi</item>
+        <item>Vịt</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>Âm thanh chuẩn: tiếng rắc khô và chắc</item>
@@ -104,6 +110,12 @@
         <item>Tiếng lộp bộp trầm và đục</item>
         <item>Tiếng lạo xạo sáng và mịn</item>
         <item>Tiếng nứt sắc và trong như thủy tinh đường</item>
+        <item>Bẹp mềm và trầm</item>
+        <item>Tiếng rắc khô và dày</item>
+        <item>Tiếng bộp nặng</item>
+        <item>Hạt thô liên tiếp</item>
+        <item>Kẽo kẹt nhỏ và mềm</item>
+        <item>Tiếng nứt trong và vang</item>
     </string-array>
     <string-array name="material_labels">
         <item>Sáp cứng</item>

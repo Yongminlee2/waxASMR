@@ -66,6 +66,12 @@
         <item>Masa de uva</item>
         <item>Masa arcoíris</item>
         <item>Masa de caramelo</item>
+        <item>Conejo</item>
+        <item>Perrito</item>
+        <item>Pingüino</item>
+        <item>Tigre</item>
+        <item>Koala</item>
+        <item>Pato</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>El sonido de referencia: crujidos secos y firmes</item>
@@ -104,6 +110,12 @@
         <item>Crujidos sordos y apagados</item>
         <item>Crujidos finos y brillantes</item>
         <item>Crujidos nítidos como cristal de azúcar</item>
+        <item>Se aplasta suave y grave</item>
+        <item>Crujidos secos y gruesos</item>
+        <item>Estallidos pesados</item>
+        <item>Granos gruesos que siguen</item>
+        <item>Chirridos pequeños y blandos</item>
+        <item>Crujidos claros y brillantes</item>
     </string-array>
     <string-array name="material_labels">
         <item>Cera dura</item>

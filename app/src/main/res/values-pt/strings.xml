@@ -66,6 +66,12 @@
         <item>Massa de uva</item>
         <item>Massa arco-íris</item>
         <item>Massa de doce</item>
+        <item>Coelho</item>
+        <item>Cachorrinho</item>
+        <item>Pinguim</item>
+        <item>Tigre</item>
+        <item>Coala</item>
+        <item>Pato</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>O som de referência: estalos secos e firmes</item>
@@ -104,6 +110,12 @@
         <item>Estalos surdos e abafados</item>
         <item>Estalos finos e brilhantes</item>
         <item>Estalos nítidos como vidro de açúcar</item>
+        <item>Amassa macio e grave</item>
+        <item>Estalos secos e grossos</item>
+        <item>Estouros pesados</item>
+        <item>Grãos grossos contínuos</item>
+        <item>Rangidos pequenos e macios</item>
+        <item>Estalos claros e brilhantes</item>
     </string-array>
     <string-array name="material_labels">
         <item>Cera dura</item>

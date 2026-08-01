@@ -66,6 +66,12 @@
         <item>Adonan anggur</item>
         <item>Adonan pelangi</item>
         <item>Adonan permen</item>
+        <item>Kelinci</item>
+        <item>Anak anjing</item>
+        <item>Penguin</item>
+        <item>Harimau</item>
+        <item>Koala</item>
+        <item>Bebek</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>Suara acuan: retakan kering dan tegas</item>
@@ -104,6 +110,12 @@
         <item>Retakan tumpul dan teredam</item>
         <item>Retakan halus dan terang</item>
         <item>Retakan tajam dan jernih seperti kaca gula</item>
+        <item>Remuk lembut dan rendah</item>
+        <item>Retak kering dan tebal</item>
+        <item>Letupan berat</item>
+        <item>Butiran kasar terus-menerus</item>
+        <item>Derit kecil dan empuk</item>
+        <item>Retakan jernih dan nyaring</item>
     </string-array>
     <string-array name="material_labels">
         <item>Lilin keras</item>

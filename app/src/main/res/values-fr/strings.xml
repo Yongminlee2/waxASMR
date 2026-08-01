@@ -66,6 +66,12 @@
         <item>Pâte raisin</item>
         <item>Pâte arc-en-ciel</item>
         <item>Pâte bonbon</item>
+        <item>Lapin</item>
+        <item>Chiot</item>
+        <item>Manchot</item>
+        <item>Tigre</item>
+        <item>Koala</item>
+        <item>Canard</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>Le son de référence. Des craquements secs et fermes</item>
@@ -104,6 +110,12 @@
         <item>Des craquements sourds et étouffés</item>
         <item>Un craquement fin et clair</item>
         <item>Des craquements nets comme du sucre vitrifié</item>
+        <item>S\'écrase doux et grave</item>
+        <item>Craquements secs et épais</item>
+        <item>Éclats lourds et ronds</item>
+        <item>Gros grains qui durent</item>
+        <item>Petits grincements moelleux</item>
+        <item>Craquements clairs et nets</item>
     </string-array>
     <string-array name="material_labels">
         <item>Cire dure</item>

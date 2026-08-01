@@ -66,6 +66,12 @@
         <item>Виноградная масса</item>
         <item>Радужная масса</item>
         <item>Конфетная масса</item>
+        <item>Кролик</item>
+        <item>Щенок</item>
+        <item>Пингвин</item>
+        <item>Тигр</item>
+        <item>Коала</item>
+        <item>Утёнок</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>Эталонный звук. Сухой, твёрдый, чёткий треск</item>
@@ -104,6 +110,12 @@
         <item>Глухие приглушённые хрусты</item>
         <item>Яркий мелкий треск</item>
         <item>Резкий чистый треск, как сахарное стекло</item>
+        <item>Мягко и низко мнётся</item>
+        <item>Толстый сухой треск</item>
+        <item>Тяжёлые сочные хлопки</item>
+        <item>Крупные зёрна подряд</item>
+        <item>Маленький мягкий скрип</item>
+        <item>Чистый звонкий треск</item>
     </string-array>
     <string-array name="material_labels">
         <item>Твёрдый воск</item>

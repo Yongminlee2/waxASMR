@@ -66,6 +66,12 @@
         <item>Trauben-Knetmasse</item>
         <item>Regenbogen-Knetmasse</item>
         <item>Bonbon-Knetmasse</item>
+        <item>Hase</item>
+        <item>Hündchen</item>
+        <item>Pinguin</item>
+        <item>Tiger</item>
+        <item>Koala</item>
+        <item>Ente</item>
     </string-array>
     <string-array name="ball_sound_descs">
         <item>Der Referenzklang: trockene, feste Knackgeräusche</item>
@@ -104,6 +110,12 @@
         <item>Dumpfes, gedämpftes Knacken</item>
         <item>Helles, feines Knistern</item>
         <item>Scharfe, klare Risse wie Zuckerglas</item>
+        <item>Weich und tief zerdrückt</item>
+        <item>Dicke, trockene Knacker</item>
+        <item>Schwere, satte Plopps</item>
+        <item>Grobe Körner am Stück</item>
+        <item>Kleine, weiche Knarzer</item>
+        <item>Klare, helle Knacker</item>
     </string-array>
     <string-array name="material_labels">
         <item>Harter Wachs</item>
