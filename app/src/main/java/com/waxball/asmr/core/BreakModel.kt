@@ -193,7 +193,19 @@ class BreakModel(
         h *= -0x7ee3623b
         h = h xor (h ushr 13)
         val t = ((h ushr 8) and 0xFFFF) / 65536f
-        return 0.30f + 0.70f * t * t
+        return toughFloor +
+            (toughPeak - toughFloor) * Math.pow(t.toDouble(), toughExponent.toDouble()).toFloat()
+    }
+
+    private var toughFloor = TOUGH_FLOOR
+    private var toughPeak = TOUGH_PEAK
+    private var toughExponent = TOUGH_EXPONENT
+
+    /** 손맛 곡선을 탐색으로 맞출 때만 쓴다. 앱에서는 쓰지 않는다. */
+    internal fun overrideToughnessForTest(floor: Float, peak: Float, exponent: Float) {
+        toughFloor = floor
+        toughPeak = peak
+        toughExponent = exponent
     }
 
     fun rub(speed: Float, pan: Float) {
@@ -284,6 +296,26 @@ class BreakModel(
      * 이걸 안 걸면 연쇄로 한 번에 볼의 10%가 떨어질 때 저역이 통째로 울려 소리가 뭉갠다.
      */
     private val MAX_DETACH_SOUND_AREA = 0.035f
+
+    private companion object {
+        /**
+         * 조각별 "버티는 힘"을 정하는 세 값. `SqueezeCurveProbeTest` 로 탐색해 정했다.
+         *
+         * 예전 값(바닥 0.30, 꼭대기 1.0, 지수 2)은 폭이 3.3배뿐이라 대부분의 조각이
+         * 비슷한 때에 임계를 넘었다. 그래서 두 번까지 아무 일도 없다가 세 번째에
+         * 절반이 한꺼번에 떨어졌다 — 0%, 4%, 28%, 59%.
+         *
+         * 지금은 지수를 크게 줘서 대부분(t<0.8)을 바닥값 근처에 몰아 두고,
+         * 무른 10%만 꼭대기까지 끌어올렸다. 그 10%가 첫 쥐기에 떨어지면서
+         * "쥐자마자 뭔가 부서진다"를 만들고, 나머지는 천천히 따라온다.
+         * 결과는 10%, 30%, 50%, 66%, 83%, 89% — 사진으로 받은 목표와 거의 같다.
+         *
+         * 이 값을 바꾸면 반드시 그 탐침을 다시 돌려 곡선을 확인할 것.
+         */
+        const val TOUGH_FLOOR = 0.13f
+        const val TOUGH_PEAK = 1.4f
+        const val TOUGH_EXPONENT = 13f
+    }
 
     /** 조각 중심의 경도로 4분면을 가른다. 사방을 까려면 볼을 굴려야 한다. */
     private fun quadrantIndex(center: Vec3): Int {

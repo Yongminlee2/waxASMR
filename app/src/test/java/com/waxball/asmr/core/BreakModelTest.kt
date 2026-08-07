@@ -189,9 +189,13 @@ class BreakModelTest {
     @Test
     fun brushPressBreaksAWholeAreaNotASingleShard() {
         // 조각 하나만 콕 누르는 건 손가락이 아니라 바늘이다.
+        //
+        // 힘 10은 예전 3과 같은 세기다. 조각별 편차를 벌리면서 모델이 기대하는 힘의
+        // 눈금이 3.4배로 커졌다(PalmPose.FORCE_GAIN 참고). 이 테스트가 지키는 것은
+        // "누른 자리 주변이 함께 반응하는가"이지 절대 세기가 아니다.
         val m = model(seeds = 120)
         val hit = m.shards.shards[0].center
-        repeat(40) { m.pressArea(hit, 0.955f, 3f, 0.016f, 0f) }
+        repeat(40) { m.pressArea(hit, 0.955f, 10f, 0.016f, 0f) }
 
         val touched = m.state.count { it > ShardState.INTACT }
         assertTrue("한 번 문질렀는데 조각 하나만 반응함 (${touched}개)", touched >= 4)
