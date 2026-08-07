@@ -2,6 +2,7 @@ package com.waxball.asmr.ar
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCharacteristics
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,6 +11,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -227,17 +232,63 @@ class ArPlayActivity : AppCompatActivity() {
                     .apply { setAnalyzer(cameraExecutor) { tracker.analyze(it) } }
 
                 provider.unbindAll()
-                provider.bindToLifecycle(
-                    this,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    preview,
-                    analysis,
-                )
+                // 초광각이 있으면 그쪽으로 연다. 없으면 평소 뒷카메라로 되돌린다 —
+                // 고른 렌즈가 미리보기와 분석을 함께 감당하지 못하는 기기가 있다.
+                val camera = try {
+                    provider.bindToLifecycle(this, widestBackCamera(), preview, analysis)
+                } catch (e: Exception) {
+                    Log.w(TAG, "초광각으로 열지 못해 기본 뒷카메라로: ${e.message}")
+                    provider.bindToLifecycle(
+                        this,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview,
+                        analysis,
+                    )
+                }
+                zoomOutFully(camera)
             } catch (e: Exception) {
                 Log.e(TAG, "카메라를 열지 못함: ${e.message}")
                 refuse(R.string.ar_no_camera)
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    /**
+     * 화각이 가장 넓은 뒷카메라를 고른다.
+     *
+     * 손바닥을 카메라에 보여 주려면 팔을 접어야 해서 손이 렌즈에 가깝다. 기본
+     * 렌즈(1배)로는 손만 화면을 가득 채워 볼이 어디 있는지 보이지 않는다.
+     * 초점거리가 짧을수록 넓게 담기므로 그 값이 가장 작은 렌즈를 쓴다.
+     */
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun widestBackCamera(): CameraSelector = CameraSelector.Builder()
+        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+        .addCameraFilter { infos ->
+            val widest = infos.minByOrNull { focalLength(it) }
+            if (widest == null) infos else listOf(widest)
+        }
+        .build()
+
+    /** 렌즈의 초점거리(mm). 못 읽으면 "가장 넓지는 않다"로 친다. */
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun focalLength(info: CameraInfo): Float = try {
+        Camera2CameraInfo.from(info)
+            .getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
+            ?.minOrNull() ?: Float.MAX_VALUE
+    } catch (e: Exception) {
+        Float.MAX_VALUE
+    }
+
+    /**
+     * 그 렌즈가 낼 수 있는 가장 넓은 배율로 맞춘다.
+     *
+     * 렌즈를 골라도 기기가 기본 배율을 1배로 잡아 두면 이미 잘린 화면이 나온다.
+     * 논리 카메라 하나로 초광각까지 묶어 둔 기기에서는 이 한 줄이 실제로 화각을 넓힌다.
+     */
+    private fun zoomOutFully(camera: Camera) {
+        val zoom = camera.cameraInfo.zoomState.value ?: return
+        camera.cameraControl.setZoomRatio(zoom.minZoomRatio)
+        Log.i(TAG, "카메라 배율 ${zoom.minZoomRatio}배 (최대 ${zoom.maxZoomRatio}배)")
     }
 
     /**

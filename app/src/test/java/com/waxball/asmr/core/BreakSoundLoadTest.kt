@@ -50,10 +50,11 @@ class BreakSoundLoadTest {
     @Test
     fun brushStrokeStillBreaksManyShards() {
         // 소리를 묶는다고 해서 깨지는 양까지 줄면 안 된다.
+        // 힘 10은 예전 3과 같은 세기다 — BreakModelTest 쪽 같은 이름의 주석 참고.
         val q = EventQueue(8192)
         val m = model(q)
         val hit = m.shards.shards[0].center
-        repeat(30) { m.pressArea(hit, 0.955f, 3f, 0.016f, 0f) }
+        repeat(30) { m.pressArea(hit, 0.955f, 10f, 0.016f, 0f) }
 
         val touched = m.state.count { it > ShardState.INTACT }
         assertTrue("문질렀는데 거의 안 깨짐 (${touched}개)", touched >= 6)
