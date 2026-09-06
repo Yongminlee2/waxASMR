@@ -736,8 +736,9 @@ test.bat       JVM 유닛테스트 204건
 
 ### 먼저 알아야 할 것
 
-이 앱은 **이미 플레이스토어 비공개 테스트에 올라가 있다**(versionCode 2, versionName 1.0).
-내용을 고쳐 다시 올릴 때마다 `app/build.gradle.kts`의 `versionCode`를 3, 4로 올려야 한다.
+이 앱은 **이미 플레이스토어 비공개 테스트에 올라가 있다**(versionCode 2 로 출시됨).
+지금 저장소는 versionCode 3 — 손맛 재조정과 광각 카메라가 들어간, 아직 안 올린 빌드다.
+내용을 고쳐 다시 올릴 때마다 `app/build.gradle.kts`의 `versionCode`를 4, 5로 올려야 한다.
 콘솔은 같은 번호를 두 번 받지 않는다. 등록 절차와 12개 언어 스토어 문구는
 `docs/PLAY_CONSOLE.md`에 다 있다.
 
