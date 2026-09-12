@@ -737,8 +737,8 @@ test.bat       JVM 유닛테스트 204건
 ### 먼저 알아야 할 것
 
 이 앱은 **이미 플레이스토어 비공개 테스트에 올라가 있다**(versionCode 2 로 출시됨).
-지금 저장소는 versionCode 3 — 손맛 재조정과 광각 카메라가 들어간, 아직 안 올린 빌드다.
-내용을 고쳐 다시 올릴 때마다 `app/build.gradle.kts`의 `versionCode`를 4, 5로 올려야 한다.
+지금 저장소는 versionCode 4 다. 번호별 내용은 `app/build.gradle.kts` 주석에 있다.
+내용을 고쳐 다시 올릴 때마다 그 값을 5, 6으로 올려야 한다.
 콘솔은 같은 번호를 두 번 받지 않는다. 등록 절차와 12개 언어 스토어 문구는
 `docs/PLAY_CONSOLE.md`에 다 있다.
 
@@ -750,6 +750,21 @@ test.bat       JVM 유닛테스트 204건
 | 매니페스트의 `tools:node="remove"` 두 줄 | 지우면 MediaPipe가 인터넷 권한을 도로 넣는다. 개인정보처리방침이 거짓이 된다 |
 | `BreakModel.thresholds` | 올리면 잠가 둔 테스트가 깨진다. 부서지는 속도는 `TOUGH_*`와 `FORCE_GAIN`으로 맞출 것 |
 | 에뮬레이터 | 사용자가 다른 작업에 쓰고 있다. 설치·테스트는 실기기에만 |
+| CameraX·MediaPipe 버전 내리기 | 낮추면 16KB 메모리 페이지 지원이 깨져 콘솔이 출시를 막는다 |
+
+### 16KB 메모리 페이지
+
+`targetSdk` 35 이상이면 네이티브 라이브러리의 LOAD 세그먼트가 16KB(`0x4000`)로
+정렬돼 있어야 한다. 안 그러면 콘솔이 **"앱이 16KB 메모리 페이지 크기를 지원하지 않습니다"**
+오류를 낸다. 우리가 짠 네이티브 코드는 없으므로 전적으로 라이브러리 버전 문제다.
+CameraX 1.3.4 와 MediaPipe 0.10.14 가 4KB(`0x1000`) 정렬이라 각각 1.6.2 와 1.0.0 으로
+올려 해결했다. 라이브러리를 건드린 뒤에는 번들에 실린 `.so` 를 직접 확인할 것.
+
+```
+unzip -o -q -j app/build/outputs/bundle/release/app-release.aab "base/lib/arm64-v8a/*.so" -d 아무폴더
+```
+
+꺼낸 `.so` 의 ELF 프로그램 헤더에서 `PT_LOAD` 의 `p_align` 이 전부 `0x4000` 이상이어야 한다.
 
 ### 손맛을 고칠 때
 
