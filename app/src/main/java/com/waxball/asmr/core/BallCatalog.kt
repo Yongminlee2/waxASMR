@@ -252,8 +252,15 @@ object BallCatalog {
             kneadColors = listOf(0xFFFAF6EC.toInt(), 0xFFF5A03C.toInt())),
     )
 
-    /** 전부 열려 있다. 코인으로 여는 것은 없앴다. */
-    val free: List<Int> = all.map { it.id }
+    /**
+     * 처음부터 열려 있는 볼 — 고르기 줄 맨 앞 [FREE_COUNT] 개. 나머지는 광고를 보고 하나씩 연다.
+     *
+     * 게터로 둔다. [displayOrder] 가 이 아래에 선언돼 있어서, 값으로 두면 객체 초기화
+     * 시점에 아직 비어 있는 [displayOrder] 를 읽는다.
+     */
+    val free: List<Int> get() = displayOrder.take(FREE_COUNT).map { it.id }
+
+    const val FREE_COUNT = 3
 
     fun byId(id: Int): BallSpec = all.getOrElse(id) { all[0] }
 

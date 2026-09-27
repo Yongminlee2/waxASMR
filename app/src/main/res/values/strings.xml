@@ -146,4 +146,10 @@
         <item>Normal shell</item>
         <item>Thick shell</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">Locked</string>
+    <string name="unlock_message">Watch a short ad to unlock this ball.</string>
+    <string name="unlock_watch">Watch ad to unlock</string>
+    <string name="unlock_not_ready">The ad is still loading. Please try again in a moment.</string>
 </resources>

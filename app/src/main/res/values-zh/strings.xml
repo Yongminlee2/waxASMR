@@ -146,4 +146,10 @@
         <item>普通壳</item>
         <item>厚壳</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">未解锁</string>
+    <string name="unlock_message">观看一段简短的广告即可解锁这个球。</string>
+    <string name="unlock_watch">看广告解锁</string>
+    <string name="unlock_not_ready">广告正在加载，请稍后再试。</string>
 </resources>

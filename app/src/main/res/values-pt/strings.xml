@@ -146,4 +146,10 @@
         <item>Casca normal</item>
         <item>Casca grossa</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">Bloqueada</string>
+    <string name="unlock_message">Assista a um anúncio curto para desbloquear esta bola.</string>
+    <string name="unlock_watch">Assistir anúncio e desbloquear</string>
+    <string name="unlock_not_ready">O anúncio ainda está carregando. Tente de novo em instantes.</string>
 </resources>

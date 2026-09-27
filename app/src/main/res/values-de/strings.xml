@@ -146,4 +146,10 @@
         <item>Normale Schale</item>
         <item>Dicke Schale</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">Gesperrt</string>
+    <string name="unlock_message">Sieh dir eine kurze Werbung an, um diesen Ball freizuschalten.</string>
+    <string name="unlock_watch">Werbung ansehen und freischalten</string>
+    <string name="unlock_not_ready">Die Werbung wird noch geladen. Bitte versuch es gleich noch einmal.</string>
 </resources>

@@ -33,4 +33,10 @@
     <string name="language_picker_cd">언어 선택</string>
     <string name="language_picker_title">언어 선택</string>
     <string name="language_follow_system">기기 언어 따르기</string>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">잠김</string>
+    <string name="unlock_message">짧은 광고를 보면 이 볼이 열립니다.</string>
+    <string name="unlock_watch">광고 보고 열기</string>
+    <string name="unlock_not_ready">광고를 불러오는 중이에요. 잠시 후 다시 눌러 주세요.</string>
 </resources>

@@ -146,4 +146,10 @@
         <item>เปลือกปกติ</item>
         <item>เปลือกหนา</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">ล็อกอยู่</string>
+    <string name="unlock_message">ดูโฆษณาสั้น ๆ เพื่อปลดล็อกลูกบอลนี้</string>
+    <string name="unlock_watch">ดูโฆษณาเพื่อปลดล็อก</string>
+    <string name="unlock_not_ready">กำลังโหลดโฆษณา โปรดลองอีกครั้งในอีกสักครู่</string>
 </resources>

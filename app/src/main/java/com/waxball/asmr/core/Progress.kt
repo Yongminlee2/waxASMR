@@ -71,14 +71,13 @@ class Progress private constructor() {
         private const val CLEAR_BONUS = 20
 
         /**
-         * 볼은 처음부터 전부 열려 있다.
+         * 처음에는 [BallCatalog.free] 만 열려 있다. 나머지는 광고를 보고 하나씩 연다.
          *
-         * 코인을 모아 여는 구조를 뒀었는데, 소리를 들으려고 켜는 앱에서
-         * 듣고 싶은 소리를 막아 두는 게 아무 의미가 없었다.
-         * 코인은 미션 보상 기록으로만 남긴다.
+         * 1.0 에서는 전부 열어 줬으므로 그때 저장된 기록에는 42개가 다 들어 있다.
+         * [parse] 가 저장된 목록을 그대로 더하므로 기존 이용자는 아무것도 잃지 않는다.
          */
         fun fresh(): Progress = Progress().apply {
-            unlocked.addAll(BallCatalog.all.map { it.id })
+            unlocked.addAll(BallCatalog.free)
         }
 
         /**
@@ -96,7 +95,7 @@ class Progress private constructor() {
                 val value = line.substring(sep + 1)
                 when (key) {
                     "coins" -> value.toIntOrNull()?.let { p.coins = it.coerceAtLeast(0) }
-                    // 예전에 저장된 기록이 있어도 전부 열어 준다.
+                    // 무료 볼은 fresh() 가 이미 넣었다. 저장된 것은 거기에 더한다.
                     "unlocked" -> p.unlocked.addAll(intList(value))
                     "completed" -> { p.completed.clear(); p.completed.addAll(intList(value)) }
                     "missionDay" -> value.toLongOrNull()?.let { p.missionDay = it }

@@ -146,4 +146,10 @@
         <item>Coque normale</item>
         <item>Coque épaisse</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">Verrouillée</string>
+    <string name="unlock_message">Regarde une courte publicité pour débloquer cette boule.</string>
+    <string name="unlock_watch">Regarder la pub pour débloquer</string>
+    <string name="unlock_not_ready">La publicité est en cours de chargement. Réessaie dans un instant.</string>
 </resources>

@@ -146,4 +146,10 @@
         <item>普通の殻</item>
         <item>厚い殻</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">ロック中</string>
+    <string name="unlock_message">短い広告を見ると、このボールが使えるようになります。</string>
+    <string name="unlock_watch">広告を見て解放</string>
+    <string name="unlock_not_ready">広告を読み込み中です。少し待ってからもう一度押してください。</string>
 </resources>

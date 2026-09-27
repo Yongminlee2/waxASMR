@@ -146,4 +146,10 @@
         <item>Обычная оболочка</item>
         <item>Толстая оболочка</item>
     </string-array>
+
+    <!-- 광고를 보고 볼 해금 -->
+    <string name="ball_locked">Закрыт</string>
+    <string name="unlock_message">Посмотрите короткую рекламу, чтобы открыть этот шарик.</string>
+    <string name="unlock_watch">Смотреть рекламу и открыть</string>
+    <string name="unlock_not_ready">Реклама ещё загружается. Попробуйте чуть позже.</string>
 </resources>

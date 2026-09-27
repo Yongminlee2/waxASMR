@@ -29,7 +29,8 @@ android {
         // 2번 권한을 걷어낸 빌드 (비공개 테스트로 출시됨)
         // 3번 쥐는 손맛 재조정 + 최대 광각 카메라 (16KB 미지원으로 반려)
         // 4번 16KB 메모리 페이지 대응 (CameraX·MediaPipe 올림)
-        versionCode = 4
+        // 5번 광고를 보고 볼 해금 (처음 3개만 무료)
+        versionCode = 5
         versionName = "1.0"
 
         // 손 인식 라이브러리가 아키텍처마다 네이티브 코드를 싣는다. 전부 담으면
@@ -89,5 +90,6 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.mediapipe.tasks.vision)
+    implementation(libs.play.services.ads)
     testImplementation(libs.junit)
 }
