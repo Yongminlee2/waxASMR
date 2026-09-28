@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 잠긴 볼을 눌렀을 때 뜨는 팝업. 바깥 여백은 창이 화면 끝에 붙지 않게 하는 자리다. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="28dp"
+    android:paddingEnd="28dp">
+
+    <LinearLayout
+        android:id="@+id/unlockCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_unlock_card"
+        android:elevation="8dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="28dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="10dp">
+
+        <FrameLayout
+            android:layout_width="124dp"
+            android:layout_height="124dp">
+
+            <ImageView
+                android:id="@+id/unlockBall"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_unlock_halo"
+                android:importantForAccessibility="no"
+                android:padding="10dp" />
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="bottom|end"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_lock_badge" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/unlockName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="#4A3238"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:text="@string/unlock_message"
+            android:textColor="#A08A90"
+            android:textSize="15sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/unlockWatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:backgroundTint="#F2A9C0"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/unlock_watch"
+            android:textColor="#57303C"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:cornerRadius="30dp"
+            app:icon="@drawable/ic_play_small"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconTint="#57303C" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/unlockCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel"
+            android:textColor="#A08A90" />
+    </LinearLayout>
+</FrameLayout>

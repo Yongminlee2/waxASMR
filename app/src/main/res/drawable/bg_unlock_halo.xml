@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 팝업 속 볼 뒤에 깔리는 둥근 받침. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#FCE6EE" />
+    <stroke android:width="3dp" android:color="#FFFFFF" />
+</shape>
