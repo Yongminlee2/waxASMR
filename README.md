@@ -749,7 +749,7 @@ test.bat       JVM 유닛테스트 205건
 - 요구: compileSdk 36 / minSdk 26, Android Studio 내장 JDK(jbr)
 - 외부 의존성은 androidx·material·MediaPipe(손 인식)·junit뿐. NDK도, 게임엔진도, 물리엔진도 없다
 
-## 이어서 작업하는 사람에게 (CODEX 등)
+## 이어서 작업하는 사람에게
 
 ### 먼저 알아야 할 것
 
