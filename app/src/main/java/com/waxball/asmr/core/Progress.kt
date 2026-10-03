@@ -80,12 +80,23 @@ class Progress private constructor() {
             unlocked.addAll(BallCatalog.free)
         }
 
+        /** 볼을 전부 열어 준 시절(광고 해금 전)의 이용자. */
+        private fun allOpen(): Progress = Progress().apply {
+            unlocked.addAll(BallCatalog.all.map { it.id })
+        }
+
         /**
          * 못 읽는 값이 있으면 그 항목만 기본값으로 두고 나머지는 살린다.
          * 저장이 깨졌다고 앱이 죽거나 진행이 통째로 날아가면 안 된다.
          */
-        fun parse(text: String?): Progress {
-            val p = fresh()
+        /**
+         * @param legacyInstall 저장 파일이 없는데 앱이 새로 깐 게 아니라 업데이트된 경우.
+         *   광고 해금 전 버전은 홈에서 볼을 누르거나 설정을 바꿀 때만 저장했다. 놀이 화면에서만
+         *   볼을 바꿨거나 기본 볼로만 논 사람은 저장 파일이 없는데, 그 사람도 42개를 다 쓰던
+         *   이용자다. 업데이트로 빼앗지 않게 전부 열어 준다.
+         */
+        fun parse(text: String?, legacyInstall: Boolean = false): Progress {
+            val p = if (legacyInstall && text.isNullOrBlank()) allOpen() else fresh()
             if (text.isNullOrBlank()) return p
 
             for (line in text.lineSequence()) {

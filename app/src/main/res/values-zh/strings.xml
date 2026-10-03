@@ -153,4 +153,8 @@
     <string name="unlock_watch">看广告解锁</string>
     <string name="unlock_not_ready">广告正在加载，请稍后再试。</string>
     <string name="settings_ad_privacy">广告隐私设置</string>
+
+    <!-- 앱 안 업데이트 -->
+    <string name="update_ready">更新已下载</string>
+    <string name="update_restart">重新启动</string>
 </resources>

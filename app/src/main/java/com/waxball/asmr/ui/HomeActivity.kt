@@ -29,6 +29,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var store: PrefsProgressStore
     private lateinit var progress: Progress
     private var banner: AdView? = null
+    private lateinit var updates: AppUpdates
 
     /** 놀이 화면에 들어갔다 돌아오는 중인가. 돌아올 때만 전면 광고를 고려한다. */
     private var backFromPlay = false
@@ -44,6 +45,9 @@ class HomeActivity : AppCompatActivity() {
         store = PrefsProgressStore(this)
         progress = store.load()
         picked = pickable(progress.lastBallId)
+
+        // 스토어에 새 버전이 있으면 앱 안에서 받게 한다.
+        updates = AppUpdates(this, binding.root).also { it.check() }
 
         // 동의를 먼저 받고(유럽만 창이 뜬다) 광고를 받기 시작한다.
         Ads.start(this) {
@@ -74,6 +78,7 @@ class HomeActivity : AppCompatActivity() {
         buildBallList()
         showPicked()
         banner?.resume()
+        updates.resume()
 
         if (backFromPlay) {
             backFromPlay = false
@@ -88,6 +93,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         banner?.destroy()
+        updates.release()
         super.onDestroy()
     }
 

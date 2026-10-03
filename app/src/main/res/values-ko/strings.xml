@@ -40,4 +40,8 @@
     <string name="unlock_watch">광고 보고 열기</string>
     <string name="unlock_not_ready">광고를 불러오는 중이에요. 잠시 후 다시 눌러 주세요.</string>
     <string name="settings_ad_privacy">광고 개인정보 설정</string>
+
+    <!-- 앱 안 업데이트 -->
+    <string name="update_ready">새 버전을 받았어요</string>
+    <string name="update_restart">다시 시작</string>
 </resources>

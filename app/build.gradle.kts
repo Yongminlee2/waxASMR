@@ -31,7 +31,7 @@ android {
         // 4번 16KB 메모리 페이지 대응 (CameraX·MediaPipe 올림)
         // 5번 광고를 보고 볼 해금 (처음 3개만 무료)
         // 6번 실제 광고 ID, 배너·전면 광고 추가
-        // 7번 유럽 동의 창, 배너를 홈 위로, 놀이 화면에서도 광고 보고 볼 열기
+        // 7번 유럽 동의 창, 배너를 홈 위로, 놀이 화면에서도 광고 보고 볼 열기, 앱 안 업데이트
         versionCode = 7
         versionName = "1.0"
 
@@ -108,5 +108,6 @@ dependencies {
     implementation(libs.mediapipe.tasks.vision)
     implementation(libs.play.services.ads)
     implementation(libs.ump)
+    implementation(libs.app.update)
     testImplementation(libs.junit)
 }

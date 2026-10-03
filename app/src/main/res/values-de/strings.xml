@@ -153,4 +153,8 @@
     <string name="unlock_watch">Werbung ansehen und freischalten</string>
     <string name="unlock_not_ready">Die Werbung wird noch geladen. Bitte versuch es gleich noch einmal.</string>
     <string name="settings_ad_privacy">Datenschutz bei Werbung</string>
+
+    <!-- 앱 안 업데이트 -->
+    <string name="update_ready">Update heruntergeladen</string>
+    <string name="update_restart">Neu starten</string>
 </resources>

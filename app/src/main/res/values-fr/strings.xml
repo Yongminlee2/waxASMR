@@ -153,4 +153,8 @@
     <string name="unlock_watch">Regarder la pub pour débloquer</string>
     <string name="unlock_not_ready">La publicité est en cours de chargement. Réessaie dans un instant.</string>
     <string name="settings_ad_privacy">Confidentialité des annonces</string>
+
+    <!-- 앱 안 업데이트 -->
+    <string name="update_ready">Mise à jour téléchargée</string>
+    <string name="update_restart">Redémarrer</string>
 </resources>

@@ -153,4 +153,8 @@
     <string name="unlock_watch">Watch ad to unlock</string>
     <string name="unlock_not_ready">The ad is still loading. Please try again in a moment.</string>
     <string name="settings_ad_privacy">Ad privacy settings</string>
+
+    <!-- 앱 안 업데이트 -->
+    <string name="update_ready">Update downloaded</string>
+    <string name="update_restart">Restart</string>
 </resources>

@@ -153,4 +153,8 @@
     <string name="unlock_watch">Смотреть рекламу и открыть</string>
     <string name="unlock_not_ready">Реклама ещё загружается. Попробуйте чуть позже.</string>
     <string name="settings_ad_privacy">Конфиденциальность рекламы</string>
+
+    <!-- 앱 안 업데이트 -->
+    <string name="update_ready">Обновление загружено</string>
+    <string name="update_restart">Перезапустить</string>
 </resources>
