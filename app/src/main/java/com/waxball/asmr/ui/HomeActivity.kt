@@ -69,7 +69,8 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         progress = store.load()
-        picked = pickable(picked.id)
+        // 놀이 화면에서 볼을 바꾸거나 열었으면 그 볼로 돌아와 있어야 한다.
+        picked = pickable(progress.lastBallId)
         buildBallList()
         showPicked()
         banner?.resume()

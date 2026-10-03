@@ -175,7 +175,6 @@ class ArPlayActivity : AppCompatActivity() {
                     if (open) switchBall(candidate, progress)
                     else com.waxball.asmr.ui.LockedBalls.ask(this@ArPlayActivity, candidate) {
                         progress.unlocked.add(candidate.id)
-                        progress.lastBallId = candidate.id
                         store.save(progress)
                         switchBall(candidate, progress)
                     }
@@ -191,6 +190,9 @@ class ArPlayActivity : AppCompatActivity() {
     private fun switchBall(next: BallSpec, progress: com.waxball.asmr.core.Progress) {
         if (next.id == spec.id) return
         spec = next
+        // 홈으로 돌아가면 이 볼이 골라져 있어야 한다.
+        progress.lastBallId = next.id
+        store.save(progress)
         audio.setProfile(spec.soundProfile())
         audio.setMaterial(spec.material.bank)
         buildBallPicker(progress)
