@@ -32,10 +32,13 @@ object BallThumbs {
 
     /**
      * 뷰에 썸네일을 건다. 준비 전에는 껍질색 원이 보이게 두면 된다.
-     * 호출 전에 `view.tag = spec.id`를 넣어 둘 것 — 뒤늦게 도착한 그림이
-     * 다른 볼로 바뀐 뷰를 덮지 않게 가려내는 데 쓴다.
+     *
+     * 뷰의 tag 에 볼 번호를 달아 두고, 그림이 뒤늦게 도착했을 때 tag 가 그대로일 때만
+     * 붙인다. 그 사이 뷰가 다른 볼로 바뀌었으면 버린다. tag 는 여기서 단다 — 예전에는
+     * 부르는 쪽이 달아야 했는데, 잠금 해제 팝업에서 빠뜨려 볼이 까만 원으로만 보였다.
      */
     fun into(view: ImageView, spec: BallSpec, sizePx: Int) {
+        view.tag = spec.id
         val key = "${spec.id}@$sizePx"
         cache[key]?.let { view.setImageBitmap(it); return }
         val appContext = view.context.applicationContext
