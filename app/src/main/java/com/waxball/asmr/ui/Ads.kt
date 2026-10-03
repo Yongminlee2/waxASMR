@@ -40,6 +40,9 @@ object Ads {
 
     private var initialized = false
 
+    /** 홈 맨 위 배너의 최대 높이(dp). 일반 배너 한 줄 정도. */
+    private const val BANNER_MAX_HEIGHT_DP = 60
+
     /**
      * 동의를 먼저 확인하고, 광고를 보내도 되면 [onReady] 를 부른다.
      *
@@ -89,7 +92,11 @@ object Ads {
         SystemClock.elapsedRealtime() - lastFullScreenAt >= FULL_SCREEN_GAP_MS
 
     /**
-     * [slot] 폭에 맞춘 적응형 배너를 넣는다. 구글이 지금 권하는 Large 크기를 쓴다(이전 함수들은 지원 종료 예정).
+     * [slot] 폭에 맞춘 배너를 넣는다. 높이는 [BANNER_MAX_HEIGHT_DP] 까지로 묶는다.
+     *
+     * 처음엔 구글이 권하는 Large 고정형을 썼는데 홈 위쪽을 6분의 1쯤 차지해서 줄였다.
+     * 고정형의 작은 크기 함수(현재 방향·세로용)는 SDK 25 에서 지원 종료 예정이라,
+     * 높이 상한을 줄 수 있는 인라인 적응형을 쓴다.
      * 자리의 폭을 알아야 하므로 레이아웃이 끝난 뒤에 부를 것 (`slot.post { ... }`).
      */
     fun banner(activity: Activity, slot: FrameLayout): AdView {
@@ -97,7 +104,7 @@ object Ads {
         val widthPx = slot.width.takeIf { it > 0 } ?: activity.resources.displayMetrics.widthPixels
         return AdView(activity).apply {
             adUnitId = BuildConfig.AD_BANNER
-            setAdSize(AdSize.getLargeAnchoredAdaptiveBannerAdSize(activity, (widthPx / density).toInt()))
+            setAdSize(AdSize.getInlineAdaptiveBannerAdSize((widthPx / density).toInt(), BANNER_MAX_HEIGHT_DP))
             slot.removeAllViews()
             slot.addView(this)
             loadAd(AdRequest.Builder().build())
