@@ -51,7 +51,7 @@ class Progress private constructor() {
     }
 
     fun serialize(): String = buildString {
-        append("v=1\n")
+        append("v=").append(SAVE_VERSION).append('\n')
         append("coins=").append(coins).append('\n')
         append("unlocked=").append(unlocked.sorted().joinToString(",")).append('\n')
         append("completed=").append(completed.sorted().joinToString(",")).append('\n')
@@ -71,33 +71,28 @@ class Progress private constructor() {
         private const val CLEAR_BONUS = 20
 
         /**
-         * 처음에는 [BallCatalog.free] 만 열려 있다. 나머지는 광고를 보고 하나씩 연다.
+         * 저장 형식 번호. 2부터는 광고 해금이 있는 버전의 저장이다.
          *
-         * 1.0 에서는 전부 열어 줬으므로 그때 저장된 기록에는 42개가 다 들어 있다.
-         * [parse] 가 저장된 목록을 그대로 더하므로 기존 이용자는 아무것도 잃지 않는다.
+         * 광고 해금 전(1)에는 42개를 전부 열어 줬고 그 목록이 저장에 들어 있다. 기존 이용자도
+         * 업데이트하면 다시 잠그고 광고로 열게 하기로 했다 (2026-10-04 결정). 다만 1 이라는 번호는
+         * 광고 해금이 처음 들어간 몇 개의 시험 빌드도 똑같이 썼다. 그래서 "번호가 1 이고 목록에
+         * 42개가 전부 있으면" 광고 해금 전 기록으로 본다. 광고로 몇 개 연 기록은 그대로 둔다.
          */
+        const val SAVE_VERSION = 2
+
+        /** 처음에는 [BallCatalog.free] 만 열려 있다. 나머지는 광고를 보고 하나씩 연다. */
         fun fresh(): Progress = Progress().apply {
             unlocked.addAll(BallCatalog.free)
-        }
-
-        /** 볼을 전부 열어 준 시절(광고 해금 전)의 이용자. */
-        private fun allOpen(): Progress = Progress().apply {
-            unlocked.addAll(BallCatalog.all.map { it.id })
         }
 
         /**
          * 못 읽는 값이 있으면 그 항목만 기본값으로 두고 나머지는 살린다.
          * 저장이 깨졌다고 앱이 죽거나 진행이 통째로 날아가면 안 된다.
          */
-        /**
-         * @param legacyInstall 저장 파일이 없는데 앱이 새로 깐 게 아니라 업데이트된 경우.
-         *   광고 해금 전 버전은 홈에서 볼을 누르거나 설정을 바꿀 때만 저장했다. 놀이 화면에서만
-         *   볼을 바꿨거나 기본 볼로만 논 사람은 저장 파일이 없는데, 그 사람도 42개를 다 쓰던
-         *   이용자다. 업데이트로 빼앗지 않게 전부 열어 준다.
-         */
-        fun parse(text: String?, legacyInstall: Boolean = false): Progress {
-            val p = if (legacyInstall && text.isNullOrBlank()) allOpen() else fresh()
+        fun parse(text: String?): Progress {
+            val p = fresh()
             if (text.isNullOrBlank()) return p
+            var version = 1
 
             for (line in text.lineSequence()) {
                 val sep = line.indexOf('=')
@@ -105,6 +100,7 @@ class Progress private constructor() {
                 val key = line.substring(0, sep)
                 val value = line.substring(sep + 1)
                 when (key) {
+                    "v" -> value.toIntOrNull()?.let { version = it }
                     "coins" -> value.toIntOrNull()?.let { p.coins = it.coerceAtLeast(0) }
                     // 무료 볼은 fresh() 가 이미 넣었다. 저장된 것은 거기에 더한다.
                     "unlocked" -> p.unlocked.addAll(intList(value))
@@ -120,6 +116,11 @@ class Progress private constructor() {
                     "controlsTip" -> p.seenControlsTip = value == "1"
                     "lastBall" -> value.toIntOrNull()?.let { p.lastBallId = it.coerceAtLeast(0) }
                 }
+            }
+            // 광고 해금 전 기록(전부 열림)이면 무료 볼만 남기고 다시 잠근다. 설정 값은 그대로 둔다.
+            if (version < SAVE_VERSION && p.unlocked.containsAll(BallCatalog.all.map { it.id })) {
+                p.unlocked.clear()
+                p.unlocked.addAll(BallCatalog.free)
             }
             return p
         }

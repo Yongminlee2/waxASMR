@@ -1,0 +1,84 @@
+<ko-KR>
+· 쥘 때마다 껍질이 조금씩 고르게 부서지도록 손맛을 다듬었어요
+· 카메라를 더 넓게 써서 손바닥이 화면에 잘 들어와요
+· 이번 업데이트부터 볼은 처음 3개만 열려 있고, 나머지는 짧은 광고를 보고 하나씩 열 수 있어요
+· 손바닥 화면에서도 잠긴 볼을 바로 열 수 있어요
+· 새 버전이 나오면 앱 안에서 바로 업데이트할 수 있어요
+</ko-KR>
+<de-DE>
+· Die Schale bricht jetzt bei jedem Drücken gleichmäßig ein Stück mehr
+· Weitere Kameraansicht, damit deine Handfläche ins Bild passt
+· Ab diesem Update sind drei Bälle von Anfang an offen; die übrigen schaltest du einzeln mit einer kurzen Werbung frei
+· Bälle direkt auf dem Handflächen-Bildschirm freischalten
+· Bei einer neuen Version direkt in der App aktualisieren
+</de-DE>
+<en-US>
+· Squeezing now cracks the shell a little more each time, evenly
+· A wider camera view so your palm fits on screen
+· From this update, three balls are open from the start; unlock the rest one by one by watching a short ad
+· Unlock balls right from the palm screen
+· Update from inside the app when a new version is out
+</en-US>
+<es-ES>
+· Ahora la cáscara se rompe un poco más cada vez que aprietas, de forma pareja
+· Cámara más amplia para que tu palma quepa en la pantalla
+· Desde esta actualización hay tres bolas abiertas al principio; desbloquea el resto una a una viendo un anuncio corto
+· Desbloquea bolas directamente desde la pantalla de la palma
+· Actualiza desde la propia app cuando haya una versión nueva
+</es-ES>
+<fr-FR>
+· La coque se brise désormais un peu plus à chaque pression, de façon régulière
+· Une caméra plus large pour que ta paume tienne à l'écran
+· Depuis cette mise à jour, trois boules sont ouvertes au départ ; débloque les autres une par une en regardant une courte publicité
+· Débloque les boules directement depuis l'écran de la paume
+· Mets à jour depuis l'appli quand une nouvelle version sort
+</fr-FR>
+<id>
+· Cangkang kini pecah sedikit demi sedikit dan merata setiap kali digenggam
+· Tampilan kamera lebih lebar agar telapak tangan muat di layar
+· Mulai pembaruan ini, tiga bola terbuka sejak awal; buka sisanya satu per satu dengan menonton iklan singkat
+· Buka bola langsung dari layar telapak tangan
+· Perbarui langsung dari aplikasi saat versi baru tersedia
+</id>
+<ja-JP>
+・握るたびに殻が少しずつ均一に砕けるよう手ざわりを調整しました
+・カメラをより広く使い、手のひらが画面に収まりやすくなりました
+・今回のアップデートから、最初に開いているボールは3個です。残りは短い広告を見て1個ずつ開けられます
+・手のひら画面からもロック中のボールをすぐ開けられます
+・新しいバージョンが出たらアプリ内ですぐ更新できます
+</ja-JP>
+<pt-BR>
+· Agora a casca quebra um pouco mais a cada aperto, de forma uniforme
+· Câmera mais ampla para a palma caber na tela
+· A partir desta atualização, três bolas vêm abertas; desbloqueie as outras uma a uma assistindo a um anúncio curto
+· Desbloqueie bolas direto na tela da palma
+· Atualize dentro do app quando sair uma nova versão
+</pt-BR>
+<ru-RU>
+· Теперь скорлупа при каждом сжатии ломается понемногу и равномерно
+· Более широкий обзор камеры — ладонь легче помещается в кадр
+· С этого обновления сначала открыты три шарика; остальные можно открывать по одному, посмотрев короткую рекламу
+· Открывайте шарики прямо на экране с ладонью
+· Обновляйтесь прямо в приложении, когда выходит новая версия
+</ru-RU>
+<th>
+· ปรับให้เปลือกแตกทีละนิดอย่างสม่ำเสมอทุกครั้งที่บีบ
+· มุมกล้องกว้างขึ้น ฝ่ามืออยู่ในจอได้ง่ายขึ้น
+· ตั้งแต่อัปเดตนี้ ลูกบอลเปิดไว้ตั้งแต่แรก 3 ลูก ลูกที่เหลือเปิดได้ทีละลูกด้วยการดูโฆษณาสั้น ๆ
+· เปิดลูกบอลได้จากหน้าจอฝ่ามือโดยตรง
+· อัปเดตในแอปได้ทันทีเมื่อมีเวอร์ชันใหม่
+</th>
+<vi>
+· Vỏ giờ vỡ đều từng chút mỗi lần bóp
+· Camera rộng hơn để lòng bàn tay vừa màn hình
+· Từ bản cập nhật này, ban đầu chỉ mở 3 quả bóng; các quả còn lại mở từng quả bằng cách xem một quảng cáo ngắn
+· Mở bóng ngay trên màn hình lòng bàn tay
+· Cập nhật ngay trong ứng dụng khi có phiên bản mới
+</vi>
+<zh-CN>
+· 调整了手感，每次握紧外壳都会均匀地碎掉一点
+· 相机视野更广，手掌更容易进入画面
+· 从本次更新起，一开始只开放 3 个球，其余的可以观看一段简短的广告逐个解锁
+· 在手掌画面也能直接解锁球
+· 有新版本时可以在应用内直接更新
+</zh-CN>
