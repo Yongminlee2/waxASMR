@@ -30,8 +30,16 @@ android {
         // 3번 쥐는 손맛 재조정 + 최대 광각 카메라 (16KB 미지원으로 반려)
         // 4번 16KB 메모리 페이지 대응 (CameraX·MediaPipe 올림)
         // 5번 광고를 보고 볼 해금 (처음 3개만 무료)
-        versionCode = 5
+        // 6번 실제 광고 ID, 배너·전면 광고 추가
+        versionCode = 6
         versionName = "1.0"
+
+        // 광고 ID. 기본은 구글이 공개한 테스트 ID 이고 release 만 실제 ID 로 덮어쓴다.
+        // 개발 중에 실제 광고를 누르면 애드몹이 무효 클릭으로 보고 계정을 정지할 수 있다.
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+        buildConfigField("String", "AD_BANNER", "\"ca-app-pub-3940256099942544/9214589741\"")
+        buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-3940256099942544/1033173712\"")
+        buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-3940256099942544/5224354917\"")
 
         // 손 인식 라이브러리가 아키텍처마다 네이티브 코드를 싣는다. 전부 담으면
         // x86 20.5MB, armeabi-v7a 8.1MB가 그냥 따라와 APK가 60MB를 넘는다.
@@ -62,6 +70,12 @@ android {
             // 릴리즈 빌드가 되지만 스토어가 받아 주지 않는다.
             signingConfig = if (hasReleaseKey) signingConfigs.getByName("release") else null
 
+            // 실제 광고 ID (애드몹 콘솔의 왁뿌볼 앱)
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-6583185616347720~5243185363"
+            buildConfigField("String", "AD_BANNER", "\"ca-app-pub-6583185616347720/5801674286\"")
+            buildConfigField("String", "AD_INTERSTITIAL", "\"ca-app-pub-6583185616347720/2960811966\"")
+            buildConfigField("String", "AD_REWARDED", "\"ca-app-pub-6583185616347720/1647730295\"")
+
             // 콘솔이 "네이티브 디버그 기호가 없다"고 경고하지만 없앨 수 없다.
             // debugSymbolLevel 을 켜 봐도 아무것도 안 실린다 — 구글이 배포하는
             // libmediapipe_tasks_vision_jni.so 가 이미 스트립되어 .symtab 도
@@ -76,6 +90,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

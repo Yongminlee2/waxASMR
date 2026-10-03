@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.AdView
 import com.waxball.asmr.R
 import com.waxball.asmr.ar.ArPlayActivity
 import com.waxball.asmr.core.BallCatalog
@@ -38,6 +39,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var store: PrefsProgressStore
     private lateinit var progress: Progress
     private lateinit var ads: RewardedUnlock
+    private lateinit var interstitial: Interstitial
+    private var banner: AdView? = null
+
+    /** 놀이 화면에 들어갔다 돌아오는 중인가. 돌아올 때만 전면 광고를 고려한다. */
+    private var backFromPlay = false
 
     private var picked: BallSpec = BallCatalog.all[0]
 
@@ -51,14 +57,18 @@ class HomeActivity : AppCompatActivity() {
         progress = store.load()
         picked = pickable(progress.lastBallId)
 
-        RewardedUnlock.init(applicationContext)
+        Ads.init(applicationContext)
         ads = RewardedUnlock(this).also { it.load() }
+        interstitial = Interstitial(this).also { it.load() }
+        // 배너는 자리의 폭을 알아야 크기를 정할 수 있어서 레이아웃이 끝난 뒤에 넣는다.
+        binding.bannerSlot.post { banner = Ads.banner(this, binding.bannerSlot) }
 
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         binding.languageButton.setOnClickListener { LanguagePicker.show(this) }
         binding.startButton.setOnClickListener {
+            backFromPlay = true
             startActivity(
                 Intent(this, ArPlayActivity::class.java)
                     .putExtra(ArPlayActivity.EXTRA_BALL_ID, picked.id)
@@ -72,6 +82,22 @@ class HomeActivity : AppCompatActivity() {
         picked = pickable(picked.id)
         buildBallList()
         showPicked()
+        banner?.resume()
+
+        if (backFromPlay) {
+            backFromPlay = false
+            interstitial.showIfDue()
+        }
+    }
+
+    override fun onPause() {
+        banner?.pause()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        banner?.destroy()
+        super.onDestroy()
     }
 
     private fun buildBallList() {

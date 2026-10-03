@@ -114,6 +114,13 @@
             android:layout_marginTop="4dp"
             android:text="@string/home_settings"
             android:textColor="#A08A90" />
+
+        <!-- 배너 광고 자리. 설정 버튼에 붙어 있으면 잘못 누르기 쉬워 간격을 둔다. -->
+        <FrameLayout
+            android:id="@+id/bannerSlot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
     </LinearLayout>
 
     <!-- 오른쪽 위 언어 선택. 손바닥 모드에는 언어를 바꿀 일이 거의 없어 홈에만 둔다. -->

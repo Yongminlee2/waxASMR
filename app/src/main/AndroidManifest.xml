@@ -15,11 +15,11 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.WaxBall">
 
-        <!-- 애드몹 앱 ID. 지금은 구글이 공개한 테스트용이다 — 출시 전에 실제 ID로 바꿀 것.
+        <!-- 애드몹 앱 ID. 빌드 종류마다 build.gradle.kts 에서 넣는다 (디버그=테스트, 릴리스=실제).
              이 값이 없으면 광고 SDK가 앱 시작과 동시에 죽는다. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".ui.HomeActivity"
