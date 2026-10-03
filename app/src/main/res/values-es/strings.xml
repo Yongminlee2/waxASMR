@@ -152,4 +152,5 @@
     <string name="unlock_message">Mira un anuncio corto para desbloquear esta bola.</string>
     <string name="unlock_watch">Ver anuncio y desbloquear</string>
     <string name="unlock_not_ready">El anuncio aún se está cargando. Inténtalo de nuevo en un momento.</string>
+    <string name="settings_ad_privacy">Privacidad de los anuncios</string>
 </resources>

@@ -12,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.camera2.interop.Camera2CameraInfo
-import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
@@ -90,6 +89,7 @@ class ArPlayActivity : AppCompatActivity() {
     private val ui = Handler(Looper.getMainLooper())
 
     private var spec: BallSpec = BallCatalog.all[0]
+    private val store by lazy { PrefsProgressStore(this) }
 
     /** 손 위에 올라간 공들. 쥐면 전부 한꺼번에 으스러진다. */
     private val scenes = ArrayList<BallScene>()
@@ -117,8 +117,10 @@ class ArPlayActivity : AppCompatActivity() {
 
         binding.arBackButton.setOnClickListener { finish() }
 
-        val progress = PrefsProgressStore(this).load()
+        val progress = store.load()
         spec = BallCatalog.byId(intent.getIntExtra(EXTRA_BALL_ID, 0))
+        // 잠긴 볼을 여기서도 광고 보고 열 수 있다. 홈에서 이미 받아 둔 광고가 있으면 그대로 쓴다.
+        com.waxball.asmr.ui.Ads.start(this) { com.waxball.asmr.ui.RewardedUnlock.load(this) }
 
         audio = AudioEngine(this).apply { setVolume(progress.volume) }
         haptics = Haptics(this).apply { enabled = progress.hapticsOn }
@@ -148,9 +150,10 @@ class ArPlayActivity : AppCompatActivity() {
      */
     private fun buildBallPicker(progress: com.waxball.asmr.core.Progress) {
         binding.arBallList.removeAllViews()
-        val unlocked = BallCatalog.displayOrder.filter { progress.isUnlocked(it.id) }
 
-        for (candidate in unlocked) {
+        // 잠긴 볼도 자물쇠를 달고 보여 준다. 누르면 홈과 같은 팝업으로 광고를 보고 연다.
+        for (candidate in BallCatalog.displayOrder) {
+            val open = progress.isUnlocked(candidate.id)
             // 홈과 같은 "실제 볼 모습" 썸네일. 색 원만으로는 무슨 볼인지 안 보인다.
             val swatch = android.widget.ImageView(this).apply {
                 tag = candidate.id
@@ -165,8 +168,18 @@ class ArPlayActivity : AppCompatActivity() {
                 })
                 val pad = dp(3)
                 setPadding(pad, pad, pad, pad)
-                contentDescription = com.waxball.asmr.core.BallLocalization.name(this@ArPlayActivity, candidate)
-                setOnClickListener { switchBall(candidate, progress) }
+                com.waxball.asmr.ui.LockedBalls.mark(this, locked = !open, badgePx = dp(18))
+                val name = com.waxball.asmr.core.BallLocalization.name(this@ArPlayActivity, candidate)
+                contentDescription = if (open) name else "$name, ${getString(R.string.ball_locked)}"
+                setOnClickListener {
+                    if (open) switchBall(candidate, progress)
+                    else com.waxball.asmr.ui.LockedBalls.ask(this@ArPlayActivity, candidate) {
+                        progress.unlocked.add(candidate.id)
+                        progress.lastBallId = candidate.id
+                        store.save(progress)
+                        switchBall(candidate, progress)
+                    }
+                }
             }
             com.waxball.asmr.ui.BallThumbs.into(swatch, candidate, dp(40))
             val params = android.widget.LinearLayout.LayoutParams(dp(44), dp(44))
@@ -260,7 +273,6 @@ class ArPlayActivity : AppCompatActivity() {
      * 렌즈(1배)로는 손만 화면을 가득 채워 볼이 어디 있는지 보이지 않는다.
      * 초점거리가 짧을수록 넓게 담기므로 그 값이 가장 작은 렌즈를 쓴다.
      */
-    @OptIn(ExperimentalCamera2Interop::class)
     private fun widestBackCamera(): CameraSelector = CameraSelector.Builder()
         .requireLensFacing(CameraSelector.LENS_FACING_BACK)
         .addCameraFilter { infos ->
@@ -270,7 +282,6 @@ class ArPlayActivity : AppCompatActivity() {
         .build()
 
     /** 렌즈의 초점거리(mm). 못 읽으면 "가장 넓지는 않다"로 친다. */
-    @OptIn(ExperimentalCamera2Interop::class)
     private fun focalLength(info: CameraInfo): Float = try {
         Camera2CameraInfo.from(info)
             .getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)

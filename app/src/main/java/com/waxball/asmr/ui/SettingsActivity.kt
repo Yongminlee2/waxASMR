@@ -65,6 +65,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.resetButton.setOnClickListener { confirmReset() }
+
+        binding.adPrivacyButton.visibility =
+            if (Ads.privacyOptionsRequired(this)) android.view.View.VISIBLE else android.view.View.GONE
+        binding.adPrivacyButton.setOnClickListener { Ads.showPrivacyOptions(this) }
     }
 
     private fun confirmReset() {
@@ -72,7 +76,9 @@ class SettingsActivity : AppCompatActivity() {
             .setTitle(R.string.settings_reset)
             .setMessage(R.string.settings_reset_confirm)
             .setPositiveButton(R.string.settings_reset) { _, _ ->
-                progress = Progress.fresh()
+                // 광고를 보고 연 볼은 남긴다. 안내문도 "설정과 마지막으로 고른 볼"만 약속한다.
+                val opened = progress.unlocked.toSet()
+                progress = Progress.fresh().apply { unlocked.addAll(opened) }
                 store.save(progress)
                 bind()
                 Toast.makeText(this, R.string.settings_reset_done, Toast.LENGTH_SHORT).show()

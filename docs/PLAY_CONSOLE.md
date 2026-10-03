@@ -55,27 +55,26 @@ https://yongminlee2.github.io/legal/waxball/privacy.html
 (로그인이 없다.)
 
 ### 2-3. 광고
-→ **아니요, 앱에 광고가 없습니다.**
+→ **예, 앱에 광고가 있습니다.** (2026년 10월 업데이트, versionCode 7부터)
 
-> 나중에 광고 해금을 붙이면 이 답을 **예**로 바꾸고 개인정보처리방침도 고쳐야 한다.
+배너(홈 맨 위)·전면(놀이를 마치고 홈으로 돌아올 때, 3분에 한 번까지)·보상형(잠긴 볼 열기),
+모두 구글 AdMob. 스토어 페이지에 "광고 포함" 표시가 붙는다.
 
 ### 2-3b. 광고 ID
 targetSdk 가 33 이상이면 이 선언을 채우기 전에는 출시 버튼이 잠긴다.
-버전 만들기 화면에 **"광고 ID 선언을 작성해야 합니다"** 경고로 뜨는 것이 이것이다.
 
-→ **아니요, 앱에서 광고 ID를 사용하지 않습니다.**
+→ **예, 앱에서 광고 ID를 사용합니다.** 용도는 **광고 또는 마케팅**.
 
-빌드에 `com.google.android.gms.permission.AD_ID` 권한이 없다는 것을 확인하고 답한 것이다.
-병합된 매니페스트의 권한은 `VIBRATE`, `CAMERA` 둘뿐이다. 직접 확인하려면:
+광고 SDK가 `com.google.android.gms.permission.AD_ID` 권한을 병합해 넣는다. 확인하려면:
 
 ```
 아래 파일에서 uses-permission 줄을 본다
 app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
 ```
 
-> MediaPipe 가 딸고 오던 `INTERNET`·`ACCESS_NETWORK_STATE` 는 매니페스트에서
-> `tools:node="remove"` 로 걷어냈다. 개인정보처리방침에 "인터넷 권한이 없다"고
-> 적어 두었으므로, 라이브러리를 올릴 때마다 권한 목록이 그대로인지 확인해야 한다.
+> 광고 전에는 이 답이 "아니요"였다. 그때는 MediaPipe 가 딸고 오던 인터넷 권한까지
+> 걷어냈는데, 광고가 인터넷을 써야 해서 그 두 줄은 지웠다. 대신 MediaPipe 의 사용 통계
+> 업로드 대상(CCT) 등록만 매니페스트에서 걷어내 손 인식 통계는 여전히 나가지 않는다.
 
 ### 2-4. 콘텐츠 등급
 **설문 시작** → 이메일 입력 → 카테고리 **유틸리티, 생산성, 커뮤니케이션, 기타** 선택.
@@ -103,15 +102,30 @@ app/build/intermediates/merged_manifest/release/processReleaseMainManifest/Andro
 
 ### 2-6. 데이터 보안 ★ 여기가 제일 헷갈린다
 
+저희가 직접 모으는 것은 없지만, **광고 SDK(구글 AdMob)가 수집·공유하는 것은 신고해야 한다.**
+아래는 구글이 공개한 [Google Mobile Ads SDK 데이터 공개 안내](https://developers.google.com/admob/android/privacy/play-data-disclosure)
+기준이다. 콘솔 항목 이름이 바뀌었으면 그 문서를 우선한다.
+
 | 질문 | 답 |
 |---|---|
-| 앱에서 필수 사용자 데이터 유형을 수집하거나 공유하나요? | **아니요** |
+| 필수 사용자 데이터 유형을 수집하거나 공유하나요? | **예** |
+| 전송 중 암호화되나요? | **예** |
+| 사용자가 삭제를 요청할 수 있나요? | 저희 쪽에 저장하는 것이 없다. 콘솔 안내대로 답한다 |
 
-→ **아니요**를 고르면 나머지 질문이 전부 사라진다.
+체크할 데이터 유형 (모두 **수집 + 공유**, 처리 **필수**):
 
-> **카메라를 쓰는데 왜 "아니요"인가:** 구글 기준으로 "수집"은 데이터가 **기기 밖으로
-> 나가는 것**을 말한다. 이 앱은 카메라 영상을 기기 안에서만 처리하고 즉시 버리며
-> 저장도 전송도 하지 않는다. 인터넷 권한 자체가 없다. 그래서 수집이 아니다.
+| 분류 | 항목 | 목적 |
+|---|---|---|
+| 위치 | 대략적인 위치 (IP로 추정) | 광고 또는 마케팅, 분석, 사기 방지·보안·규정 준수 |
+| 앱 활동 | 앱 상호작용 (광고 노출·탭) | 광고 또는 마케팅, 분석, 사기 방지·보안·규정 준수 |
+| 앱 정보 및 성능 | 비정상 종료 로그, 진단 | 광고 또는 마케팅, 분석, 사기 방지·보안·규정 준수 |
+| 기기 또는 기타 ID | 기기 또는 기타 ID (광고 ID) | 광고 또는 마케팅, 분석, 사기 방지·보안·규정 준수 |
+
+> **카메라는 여전히 신고하지 않는다.** 구글 기준으로 "수집"은 데이터가 **기기 밖으로
+> 나가는 것**이다. 카메라 영상은 기기 안에서만 처리하고 즉시 버리며 저장도 전송도 하지 않는다.
+>
+> **손 인식(MediaPipe) 사용 통계도 신고 대상이 아니다.** 업로드 대상 등록을 매니페스트에서
+> 걷어내 기기 밖으로 나가지 않는다.
 
 ### 2-7. 나머지 (전부 아니요/해당 없음)
 정부 앱 · 금융 기능 · 건강 앱 · 뉴스 앱 → 전부 **아니요**.
@@ -227,9 +241,7 @@ Tiếng Việt – vi
 껍질이 다 깨져도 끝이 아닙니다. 고무 껍질 안에 조각이 남아 있고,
 계속 주무르면 조각이 속과 섞이면서 색이 천천히 바뀝니다.
 
-■ 광고 없음, 수집 없음
-광고가 없습니다. 개인정보를 수집하지 않습니다.
-인터넷 권한조차 없어서 어떤 데이터도 기기 밖으로 나가지 않습니다.
+■ 카메라 영상은 기기 안에서만
 카메라는 손 모양을 알아보는 데만 쓰이고, 영상은 저장하거나 보내지 않습니다.
 
 ■ 12개 언어
@@ -267,10 +279,8 @@ Breaking the shell isn't the end. The pieces stay trapped inside a rubber
 skin, and if you keep kneading they blend into the core and the colour
 slowly shifts.
 
-■ No ads, no data
-No advertising. No data collection. The app does not even hold the internet
-permission, so nothing can leave your device. The camera is used only to
-recognise your hand; frames are never stored or sent.
+■ Your camera stays on your device
+The camera is used only to recognise your hand; frames are never stored or sent.
 
 ■ 12 languages
 Korean, English, Japanese, Chinese, Spanish, Portuguese, German, French,
@@ -307,9 +317,7 @@ Camera permission is required. The app still opens if you decline.
 殻が全部割れても終わりではありません。ゴムの膜の中に破片が残り、
 こね続けると中身と混ざって色がゆっくり変わっていきます。
 
-■ 広告なし、収集なし
-広告はありません。個人情報を収集しません。
-インターネット権限すらないため、データが端末の外に出ることはありません。
+■ カメラ映像は端末の中だけ
 カメラは手の形を認識するためだけに使い、映像は保存も送信もしません。
 
 ■ 12言語対応
@@ -346,9 +354,7 @@ Camera permission is required. The app still opens if you decline.
 外壳全碎了并不是结束。碎片被留在橡胶膜里，
 继续揉捏，碎片会和里面混在一起，颜色慢慢改变。
 
-■ 无广告，无收集
-没有广告。不收集任何个人信息。
-应用甚至没有网络权限，任何数据都不会离开你的设备。
+■ 相机画面只留在设备上
 相机仅用于识别手型，画面不保存也不发送。
 
 ■ 支持12种语言
@@ -387,10 +393,8 @@ Romper la cáscara no es el final. Los trozos quedan atrapados dentro de una
 piel de goma y, si sigues amasando, se mezclan con el interior y el color
 cambia poco a poco.
 
-■ Sin anuncios, sin recopilación
-Sin publicidad. No recopilamos datos personales. La aplicación ni siquiera
-tiene permiso de internet, así que nada sale de tu dispositivo. La cámara
-solo sirve para reconocer tu mano; las imágenes no se guardan ni se envían.
+■ La cámara no sale de tu dispositivo
+La cámara solo sirve para reconocer tu mano; las imágenes no se guardan ni se envían.
 
 ■ 12 idiomas
 Coreano, inglés, japonés, chino, español, portugués, alemán, francés,
@@ -428,10 +432,8 @@ Quebrar a casca não é o fim. Os pedaços ficam presos dentro de uma pele de
 borracha e, se você continuar amassando, eles se misturam ao interior e a
 cor muda aos poucos.
 
-■ Sem anúncios, sem coleta
-Sem publicidade. Não coletamos dados pessoais. O aplicativo nem tem permissão
-de internet, então nada sai do seu aparelho. A câmera serve apenas para
-reconhecer sua mão; as imagens não são salvas nem enviadas.
+■ A câmera fica no seu aparelho
+A câmera serve apenas para reconhecer sua mão; as imagens não são salvas nem enviadas.
 
 ■ 12 idiomas
 Coreano, inglês, japonês, chinês, espanhol, português, alemão, francês,
@@ -469,10 +471,8 @@ Die Schale zu knacken ist nicht das Ende. Die Stücke bleiben in einer
 Gummihaut gefangen, und wenn du weiterknetest, vermischen sie sich mit dem
 Kern und die Farbe verändert sich langsam.
 
-■ Keine Werbung, keine Daten
-Keine Werbung. Keine Datenerhebung. Die App besitzt nicht einmal die
-Internet-Berechtigung, es kann also nichts dein Gerät verlassen. Die Kamera
-dient nur der Handerkennung; Bilder werden weder gespeichert noch gesendet.
+■ Kamerabilder bleiben auf dem Gerät
+Die Kamera dient nur der Handerkennung; Bilder werden weder gespeichert noch gesendet.
 
 ■ 12 Sprachen
 Koreanisch, Englisch, Japanisch, Chinesisch, Spanisch, Portugiesisch,
@@ -511,10 +511,8 @@ Briser la coque n'est pas la fin. Les morceaux restent piégés dans une peau
 de caoutchouc et, si tu continues à malaxer, ils se mêlent au cœur et la
 couleur change peu à peu.
 
-■ Sans publicité, sans collecte
-Aucune publicité. Aucune collecte de données. L'application n'a même pas la
-permission internet : rien ne peut quitter ton appareil. La caméra sert
-uniquement à reconnaître ta main ; les images ne sont ni conservées ni envoyées.
+■ La caméra reste sur ton appareil
+La caméra sert uniquement à reconnaître ta main ; les images ne sont ni conservées ni envoyées.
 
 ■ 12 langues
 Coréen, anglais, japonais, chinois, espagnol, portugais, allemand, français,
@@ -553,9 +551,7 @@ WaxBall - AR ASMR антистресс
 и если продолжать мять, они смешиваются с сердцевиной, а цвет медленно
 меняется.
 
-■ Без рекламы, без сбора данных
-Никакой рекламы. Никакого сбора персональных данных. У приложения нет даже
-разрешения на доступ в интернет, поэтому ничто не покидает ваше устройство.
+■ Видео с камеры остаётся на устройстве
 Камера нужна только для распознавания руки; кадры не сохраняются и не отправляются.
 
 ■ 12 языков
@@ -595,9 +591,7 @@ Memecahkan cangkang bukan akhirnya. Pecahannya terperangkap di dalam kulit
 karet, dan jika terus diremas, pecahan itu menyatu dengan isinya dan
 warnanya berubah perlahan.
 
-■ Tanpa iklan, tanpa pengumpulan data
-Tidak ada iklan. Tidak mengumpulkan data pribadi. Aplikasi ini bahkan tidak
-memiliki izin internet, sehingga tidak ada data yang keluar dari perangkat Anda.
+■ Kamera hanya di perangkat Anda
 Kamera hanya dipakai untuk mengenali tangan; gambarnya tidak disimpan atau dikirim.
 
 ■ 12 bahasa
@@ -637,10 +631,8 @@ Vỡ lớp vỏ chưa phải là hết. Các mảnh vụn còn nằm trong lớp
 và nếu bạn tiếp tục nhào bóp, chúng sẽ hòa vào phần ruột và màu sắc
 từ từ đổi khác.
 
-■ Không quảng cáo, không thu thập
-Không có quảng cáo. Không thu thập dữ liệu cá nhân. Ứng dụng thậm chí không
-có quyền truy cập internet, nên không gì rời khỏi thiết bị của bạn. Camera chỉ
-dùng để nhận diện bàn tay; hình ảnh không được lưu hay gửi đi.
+■ Camera chỉ xử lý trên thiết bị
+Camera chỉ dùng để nhận diện bàn tay; hình ảnh không được lưu hay gửi đi.
 
 ■ 12 ngôn ngữ
 Hàn, Anh, Nhật, Trung, Tây Ban Nha, Bồ Đào Nha, Đức, Pháp,
@@ -678,10 +670,8 @@ WaxBall - ASMR AR บีบคลาย
 การทำให้เปลือกแตกยังไม่ใช่จุดจบ เศษต่าง ๆ ยังติดอยู่ในเยื่อยาง
 และถ้าคุณนวดต่อไป เศษเหล่านั้นจะผสมเข้ากับเนื้อข้างในและสีจะค่อย ๆ เปลี่ยน
 
-■ ไม่มีโฆษณา ไม่เก็บข้อมูล
-ไม่มีโฆษณา ไม่เก็บข้อมูลส่วนบุคคล แอปไม่มีแม้แต่สิทธิ์เข้าถึงอินเทอร์เน็ต
-จึงไม่มีข้อมูลใดออกจากเครื่องของคุณ กล้องใช้เพื่อจดจำรูปมือเท่านั้น
-ภาพจะไม่ถูกบันทึกหรือส่งออกไป
+■ ภาพจากกล้องอยู่แค่ในเครื่อง
+กล้องใช้เพื่อจดจำรูปมือเท่านั้น ภาพจะไม่ถูกบันทึกหรือส่งออกไป
 
 ■ รองรับ 12 ภาษา
 เกาหลี อังกฤษ ญี่ปุ่น จีน สเปน โปรตุเกส เยอรมัน ฝรั่งเศส
@@ -745,8 +735,8 @@ Rest a wax ball on your palm and squeeze it. 42 balls, 12 languages.
 - [ ] 1. 앱 만들기 (이름·언어·앱·무료)
 - [ ] 2-1. 개인정보처리방침 URL
 - [ ] 2-2. 앱 액세스 권한 (제한 없음)
-- [ ] 2-3. 광고 (없음)
-- [ ] 2-3b. 광고 ID (사용 안 함)
+- [ ] 2-3. 광고 (있음)
+- [ ] 2-3b. 광고 ID (사용함, 광고 또는 마케팅)
 - [ ] 2-4. 콘텐츠 등급 설문
 - [ ] 2-5. 타겟층 (13세 이상)
 - [ ] 2-6. 데이터 보안 (수집 안 함)

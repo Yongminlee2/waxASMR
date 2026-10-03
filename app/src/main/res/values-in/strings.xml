@@ -152,4 +152,5 @@
     <string name="unlock_message">Tonton iklan singkat untuk membuka bola ini.</string>
     <string name="unlock_watch">Tonton iklan untuk membuka</string>
     <string name="unlock_not_ready">Iklan masih dimuat. Coba lagi sebentar lagi.</string>
+    <string name="settings_ad_privacy">Privasi iklan</string>
 </resources>

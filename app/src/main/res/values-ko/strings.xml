@@ -39,4 +39,5 @@
     <string name="unlock_message">짧은 광고를 보면 이 볼이 열립니다.</string>
     <string name="unlock_watch">광고 보고 열기</string>
     <string name="unlock_not_ready">광고를 불러오는 중이에요. 잠시 후 다시 눌러 주세요.</string>
+    <string name="settings_ad_privacy">광고 개인정보 설정</string>
 </resources>

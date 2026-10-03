@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -20,6 +21,18 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />
+
+        <!-- MediaPipe(손 인식)가 딸고 오는 구글 사용 통계 업로더. 광고 때문에 인터넷 권한이
+             다시 생기면서 이제 실제로 보낼 수 있게 됐다. 업로드 대상(CCT) 등록만 걷어내면
+             통계는 기기 안에서 버려지고 손 인식은 그대로 돈다. 광고 SDK는 이걸 쓰지 않는다
+             (의존성 트리에서 datatransport 를 끌고 오는 것은 tasks-vision 뿐이다). -->
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            tools:node="merge">
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                tools:node="remove" />
+        </service>
 
         <activity
             android:name=".ui.HomeActivity"

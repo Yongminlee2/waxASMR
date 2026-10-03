@@ -93,6 +93,17 @@
                 android:textColor="@color/text_primary" />
         </RadioGroup>
 
+        <!-- 유럽 사용자처럼 광고 동의를 다시 고칠 수 있어야 할 때만 보인다 (구글 정책). -->
+        <Button
+            android:id="@+id/adPrivacyButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_ad_privacy"
+            android:textColor="@color/text_muted"
+            android:visibility="gone" />
+
         <Button
             android:id="@+id/resetButton"
             style="@style/Widget.Material3.Button.OutlinedButton"

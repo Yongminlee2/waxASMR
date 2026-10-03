@@ -152,4 +152,5 @@
     <string name="unlock_message">Sieh dir eine kurze Werbung an, um diesen Ball freizuschalten.</string>
     <string name="unlock_watch">Werbung ansehen und freischalten</string>
     <string name="unlock_not_ready">Die Werbung wird noch geladen. Bitte versuch es gleich noch einmal.</string>
+    <string name="settings_ad_privacy">Datenschutz bei Werbung</string>
 </resources>
